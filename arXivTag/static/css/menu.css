@@ -1,0 +1,114 @@
+/* ------ Menu SS ------- */
+
+#menu {
+  width: 180px;
+  position: absolute;
+  z-index: 1;
+  top: 90px;
+  left: 20px;
+  padding: 0 0 10px 10px;
+  background-color: #fff;
+  overflow-x: hidden;
+}
+
+.menu-title {
+  font-size: 1.5rem;
+  color: #000;
+  margin: 20px 0 5px 0;
+}
+
+.menu-item {
+  color: #666;
+  clear: both;
+  overflow: hidden;
+  margin: 3px 0 0 10px;
+  text-decoration: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.menu-item a {
+  color: #666;
+  text-decoration: none;
+}
+
+.menu-item a:hover {
+  color: #000;
+}
+
+.menu-item:hover {
+  color: #000;
+}
+
+.menu-line-left {
+  float: left;
+  margin-left: 3px;
+  cursor: pointer;
+}
+
+.menu-line-left:hover {
+  color: #000;
+}
+
+.menu-line-right {
+  float: right;
+  margin-right: 10px;
+  opacity: 0.4;
+}
+
+input[type=checkbox] {
+  float: left;
+  transform: scale(1.15);
+}
+
+input[type=checkbox]:hover {
+  -o-box-shadow: inset 0 0 2px 2px #286090;
+  -moz-box-shadow: inset 0 0 2px 2px #286090;
+  -webkit-box-shadow: inset 0 0 2px 2px #286090;
+}
+
+input[type="text"] {
+  font-size: 1.1rem;
+}
+
+input[type="select"] {
+  font-size: 1.1rem;
+}
+
+.sub-item {
+  font-size: 1rem;
+  font-style: italic;
+  opacity: 50%;
+  cursor: pointer;
+}
+
+.sub-item:hover {
+  text-decoration: underline;
+  opacity: 100%;
+  color: #000;
+}
+
+#edit-tag {
+  margin-top: 10px;
+}
+
+/* ----------tags------------- */
+.tag-label {
+  background-color: #aaa;
+  color: #000;
+  width: 90px;
+  margin: 5px 0 5px 10px;
+  padding: 5px 5px 5px 5px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+#add-tag {
+  background-color: #fff;
+  color: #666;
+  border-style: dashed;
+  border-width: 2px;
+  border-color: #666;
+  cursor: pointer;
+  float: left;
+}
