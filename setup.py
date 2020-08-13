@@ -11,6 +11,7 @@ setuptools.setup(
         'flask',
         'flask_cors',
         'requests',
-        'feedparser'
+        'feedparser',
+        'gunicorn'
     ],
     )
