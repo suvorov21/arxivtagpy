@@ -1,1 +1,1 @@
-web: gunicorn app:arXivTag/server
+web: gunicorn --chdir=arXivTag server:app
