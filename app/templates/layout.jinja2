@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="{{ url_for('static', filename='dist/img/favicon.ico') }}" type="image/x-icon"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  {% block head_scripts %}{% endblock %}
+  <title>arXiv tagger</title>
+</head>
+<body>
+  <div id="header">
+    <a id="page-title" href="{{ url_for('main_bp.root') }}">arXiv tagger</a>
+  </div>
+
+  <div class="login-block">
+    {% if current_user.is_authenticated %}
+      {# show top menu #}
+      <a href="/papers">Papers <i class="fa fa-newspaper-o" aria-hidden="true"></i></a>
+      <a href="/bookshelf">Bookshelf <i class="fa fa-book" aria-hidden="true"></i></a>
+      <a href="/settings">Profile <i class="fa fa-cogs" aria-hidden="true"></i></a>
+      <a href="/about">About <i class="fa fa-info-circle" aria-hidden="true"></i></a>
+      <a href="/logout">Logout <i class="fa fa-sign-out" aria-hidden="true"></i></a>
+
+    {% else %}
+      {# show login form #}
+      <form id="login-form" name="f_login" action="/login" onsubmit="return validateLogin()" method="POST">
+        <label for="i_login">Email:</label>
+        <input type="text" name="i_login" size="15" />
+        <label for="i_pass">Pass:</label>
+        <input type="password" name="i_pass" size="15"/>
+        <button type="submit" class="btn btn-login">Login</button>
+        <a href="/signup" style="font-size: 1rem">Sign up!</a>
+      </form>
+
+    {% endif %}
+  </div>
+
+  {# Alert block #}
+  {% for message in get_flashed_messages() %}
+    <div class="alert alert-warning">
+      <button type="button" class="close" data-dismiss="alert">&times;</button>
+      {{ message }}
+    </div>
+  {% endfor %}
+
+  {% block content %}{% endblock %}
+  {% block script_footer %}{% endblock %}
+</body>

@@ -1,0 +1,83 @@
+{% extends "layout.jinja2" %}
+
+{% block head_scripts %}
+  <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
+  <script type="text/javascript">
+    var PAPERS = JSON.parse(decodeURIComponent( {{ "'" + paper_list + "'" }} ));
+    TAGS = {{ tags }};
+    CATS = {{ cats }};
+  </script>
+
+  {% if math_jax %}
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+      var parseTex = true;
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+{# Menu description #}
+  <div id="menu">
+    <div class="menu-title" style="margin-top: 5px">Date:</div>
+    <div class="menu-item" id="date-today"><a href="/papers?date=today">Today</a></div>
+    <div class="menu-item" id="date-week"><a href="/papers?date=week">This week</a></div>
+    <div class="menu-item" id="date-month"><a href="/papers?date=month">This month</a></div>
+    <br/>
+    <div class="menu-item" id="date-last"><a href="/papers?date=last">Since last visit</a></div>
+
+
+    {% if cats %}
+      <div class="menu-title" id="cats-title">Categories</div>
+        <div id="cats">
+        </div>
+    {% endif %}
+    <div class="menu-title">Novelty</div>
+    <div class="menu-item">
+      <input type="checkbox" id="check-nov-0" class="check-nov" checked/>
+      <div id="nov-0" class="menu-line-left item-nov">New</div>
+      <div class="menu-line-right" id="nov-count-0">{{ nov[0] }}</div>
+    </div>
+    <div class="menu-item">
+      <input type="checkbox" id="check-nov-1" class="check-nov" checked/>
+      <div id="nov-1" class="menu-line-left item-nov">Cross-list</div>
+      <div class="menu-line-right" id="nov-count-1">{{ nov[1] }}</div>
+    </div>
+    <div class="menu-item">
+      <input type="checkbox" id="check-nov-2" class="check-nov" checked/>
+      <div id="nov-2" class="menu-line-left item-nov">Updated</div>
+      <div class="menu-line-right" id="nov-count-2">{{ nov[2] }}</div>
+    </div>
+    <div class="menu-title">Tags:</div>
+    <div id="tags">
+    </div>
+  </div>
+
+  {# Paper list description #}
+  <div id="paper-list">
+    <div id="paper-list-title">{{ title }}</div>
+
+    <div id="paper-list-content">
+
+    </div>
+
+    <div id="no-paper" style="display: none">No papers suitable with your request.</div>
+
+  </div>
+
+
+{% endblock %}
+
+{% block script_footer %}
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers.min.js') }}"></script>
+{% endblock %}
