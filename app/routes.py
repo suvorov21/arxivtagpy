@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .import login_manager
 from .model import db, User
-from .render import render_papers, render_cats, render_tags, render_title
+from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
 
 from json import loads

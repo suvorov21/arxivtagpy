@@ -75,7 +75,9 @@ function renderCats() {
     }
     check.onchange = function() {
       var number = event.target.getAttribute("id").split("-")[2];
-      prefs.data.catsShowArr[parseInt(number, 10)] = document.getElementById("check-cat-"+number).checked;
+      let cat = document.getElementById("cat-label-"+num).textContent;
+      let index = prefs.data.catsArr.indexOf(cat);
+      prefs.data.catsShowArr[parseInt(index, 10)] = document.getElementById("check-cat-"+number).checked;
       prefs.save();
       toggleVis();
     };
@@ -123,22 +125,41 @@ function renderTags() {
   });
 }
 
+// toggle the visibility of rendered papers
 function toggleVis(start=0) {
-  if (start == 0) {
+  if (start === 0) {
     VISIBLE = 0;
   }
   for(let pId = start; pId < START + PAPERS_TO_RENDER; pId ++) {
     if (pId >= PAPERS.length) {
       break;
     }
-    if (prefs.data.showNov[0] === true && PAPERS[pId].nov === 1 ||
-        prefs.data.showNov[1] === true && PAPERS[pId].nov === 2 ||
-        prefs.data.showNov[2] === true && PAPERS[pId].nov === 4) {
+    let paper = PAPERS[pId];
+    let display = false;
+    if (prefs.data.showNov[0] === true && paper.nov === 1 ||
+        prefs.data.showNov[1] === true && paper.nov === 2 ||
+        prefs.data.showNov[2] === true && paper.nov === 4) {
+      display = true;
+    } else {
+      display = false;
+    }
+    if (display) {
+      for (let catId = 0; catId < prefs.data.catsArr.length; catId++) {
+        let cat = prefs.data.catsArr[catId];
+        if (prefs.data.catsShowArr[parseInt(catId, 10)] && paper.cats.includes(cat)) {
+          display = true;
+          break;
+        } else {
+          display = false;
+        }
+      }
+    }
+
+    if (display) {
       document.getElementById("paper-" + pId).style["display"] = "block";
       let number = document.getElementById("paper-num-" + pId);
       VISIBLE += 1;
       number.textContent = String(VISIBLE);
-
     } else {
       document.getElementById("paper-" + pId).style["display"] = "none";
     }
