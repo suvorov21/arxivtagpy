@@ -13,18 +13,18 @@ def compile_layout_assets(app):
         extra={'rel': 'stylesheet/less'}
     )
     # JavaScript Bundle
-    js_bundle = Bundle(
-        'src/js/alert.js',
-        filters='jsmin',
-        output='dist/js/main.min.js'
-    )
+    # js_bundle = Bundle(
+    #     'src/js/alert.js',
+    #     filters='jsmin',
+    #     output='dist/js/main.min.js'
+    # )
     # Register assets
     assets.register('less_all', less_bundle)
-    assets.register('js_all', js_bundle)
+    # assets.register('js_all', js_bundle)
     # Build assets in development mode
     if app.config['DEBUG']:
         less_bundle.build(force=True)
-        js_bundle.build()
+        # js_bundle.build()
 
 def compile_paper_assets(app):
     """Compile asssets explicetely for paper representation."""
@@ -41,7 +41,6 @@ def compile_paper_assets(app):
     )
     # JavaScript Bundle
     js_bundle = Bundle(
-        'src/js/alert.js',
         'src/js/cookie.js',
         'src/js/papers.js',
         filters='jsmin',

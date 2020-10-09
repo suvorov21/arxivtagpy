@@ -291,7 +291,7 @@ def parse_simple_rule(paper, rule, prefix):
     if prefix not in rule_dict:
         raise ValueError('Prefix is unknown')
 
-    condition = search(r'.*%s{(.*)}.*' % prefix, rule).group(1)
+    condition = search(r'^%s{(.*)}.*' % prefix, rule).group(1)
     search_target = paper[rule_dict[prefix]]
     # in case of author the target is a list
     if isinstance(search_target, list):

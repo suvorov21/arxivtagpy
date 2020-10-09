@@ -2,17 +2,32 @@
 
 /* ------ Menu SS ------- */
 
-#menu {
-  width: 200px;
-  position: absolute;
-  border-radius: @border_curv;
-  z-index: 1;
-  top: @menu_top;
-  left: @menu_left;
-  padding: 0 0 10px 10px;
-  background-color: #fff;
-  overflow-x: hidden;
+.menu {
+  min-width: 280px;
 }
+
+.menu-content {
+ background-color: #fff;
+ padding: .5rem 1rem 2rem 1rem;
+ border-radius: @border_curv;
+ width: 200px;
+}
+
+.counters {
+  color: #aaa;
+}
+
+// #menu {
+//   width: 200px;
+//   position: absolute;
+//   border-radius: @border_curv;
+//   z-index: 1;
+//   top: @menu_top;
+//   left: @menu_left;
+//   padding: 0 0 10px 10px;
+//   background-color: #fff;
+//   overflow-x: hidden;
+// }
 
 .menu-title {
   font-size: 1.5rem;
@@ -53,15 +68,15 @@
   opacity: 0.4;
 }
 
-input[type=checkbox] {
-  float: left;
-  transform: scale(1.15);
-  &:hover {
-    -o-box-shadow: inset 0 0 2px 2px #286090;
-    -moz-box-shadow: inset 0 0 2px 2px #286090;
-    -webkit-box-shadow: inset 0 0 2px 2px #286090;
-  }
-}
+// input[type=checkbox] {
+//   float: left;
+//   transform: scale(1.15);
+//   &:hover {
+//     -o-box-shadow: inset 0 0 2px 2px #286090;
+//     -moz-box-shadow: inset 0 0 2px 2px #286090;
+//     -webkit-box-shadow: inset 0 0 2px 2px #286090;
+//   }
+// }
 
 .sub-item {
   font-size: 1rem;
@@ -86,11 +101,12 @@ input[type=checkbox] {
   text-align: center;
 }
 
-#paper-list {
+.paper-wrapper {
   border-radius: @border_curv;
-  position: static;
-  margin: @menu_top 30px 0 240px;
-  padding: 15px;
+  // position: static;
+  // margin: @menu_top 30px 0 240px;
+  padding: .5rem 1rem 1rem 1rem;
+  margin-bottom: 2rem;
   font-size: 1.2rem;
   background-color: #fff;
   overflow: hidden;
@@ -171,16 +187,29 @@ input[type=checkbox] {
   margin-bottom: 5px;
 }
 
-.btn-paper {
-  color: #fff;
-  font-weight: 400;
-  background-color: #337ab7;
-  border-color: #2e6da4;
-  margin-left: 5px;
-  text-decoration: none;
-  &:hover {
-    color: #fff;
-    background-color: #286090;
-    border-color: #204d74;
-  }
+// .btn-paper {
+//   color: #fff;
+//   font-weight: 400;
+//   background-color: #337ab7;
+//   border-color: #2e6da4;
+//   margin-left: 5px;
+//   text-decoration: none;
+//   &:hover {
+//     color: #fff;
+//     background-color: #286090;
+//     border-color: #204d74;
+//   }
+// }
+
+.paper-footer {
+  display: none;
+  text-align: center;
+  font-size: 1.4rem;
+  color: #888;
+  margin-top: 50px;
 }
+
+#loading-papers {
+  display: block;
+}
+

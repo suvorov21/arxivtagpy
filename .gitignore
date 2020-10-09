@@ -4,3 +4,5 @@ __pycache__
 draft/*
 arXivTag
 app/static/.webassets-cache/*
+varxiv/*
+.idea/*
