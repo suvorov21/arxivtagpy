@@ -6,7 +6,7 @@ class Config(object):
     TESTING = False
 
     # DB
-    SQLALCHEMY_DATABASE_URI = environ['DATABASE_URL']
+    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # security
@@ -29,4 +29,5 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     """Testing (staging) config."""
+    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_TEST')
     TESTING = True
