@@ -111,19 +111,19 @@ def data():
 @login_required
 def bookshelf():
     """Bookshelf page."""
-    return render_template('mess.jinja2')
+    return render_template('bookshelf.jinja2')
 
 @main_bp.route('/settings')
 @login_required
 def settings():
     """Settings page."""
-    return render_template('mess.jinja2')
+    return render_template('settings.jinja2')
 
 @main_bp.route('/about')
 @login_required
 def about():
     """About page."""
-    return render_template('mess.jinja2')
+    return render_template('about.jinja2')
 
 
 

@@ -20,7 +20,6 @@ function scrollIfNeeded() {
     START += PAPERS_TO_RENDER;
     document.getElementById("loading-papers").style["display"] = "block";
     renderPapers();
-    // document.getElementById("loading-papers").style["display"] = "none";
   }
 }
 
@@ -49,6 +48,7 @@ function renderTitle() {
     }
     title.textContent += ": " +formateDate(start) + " - " + formateDate(end);
   } else if (dateType === 4) {
+    // TODO
     // title.textContent += ": " +formateDate(new Date(prefs.data.lastVisit));
   }
 }
@@ -62,7 +62,7 @@ function renderCats() {
     }
 
     let parent = document.createElement("div");
-    parent.setAttribute("class", "d-flex");
+    parent.setAttribute("class", "d-flex menu-item");
 
     let form = document.createElement("div");
     form.setAttribute("class", "form-check")
@@ -88,13 +88,9 @@ function renderCats() {
     catElement.setAttribute("id", "cat-label-"+num);
     catElement.setAttribute("for", "check-cat-"+num);
     catElement.textContent = cat;
-    // catElement.onclick = function(event) {
-    //   var number = event.target.getAttribute("id").split("-")[2];
-    //   document.getElementById("check-cat-" + number).click();
-    // };
 
     let counter = document.createElement("div");
-    counter.setAttribute("class", "ml-auto counters");
+    counter.setAttribute("class", "ml-auto counter");
     counter.setAttribute("id", "cat-count-"+num);
     counter.textContent = "0";
 
@@ -108,17 +104,17 @@ function renderCats() {
 
 function renderTags() {
   TAGS.forEach((tag, num) => {
-    var parent = document.createElement("div");
-    parent.setAttribute("class", "menu-item");
+    let parent = document.createElement("div");
+    parent.setAttribute("class", "d-flex justify-content-between");
 
-    var tagElement = document.createElement("div");
-    tagElement.setAttribute("class", "menu-line-left tag-label");
+    let tagElement = document.createElement("div");
+    tagElement.setAttribute("class", "tag-label");
     tagElement.setAttribute("id", "tag-label-"+num);
-    tagElement.setAttribute("style", "background-color: " + tag.color + "; margin: 0;");
+    tagElement.setAttribute("style", "background-color: " + tag.color);
     tagElement.textContent = tag.name;
 
-    var counter = document.createElement("div");
-    counter.setAttribute("class", "menu-line-right");
+    let counter = document.createElement("div");
+    counter.setAttribute("class", "counter");
     counter.setAttribute("id", "tag-count-"+num);
     counter.textContent = "0";
 
@@ -266,18 +262,39 @@ function renderPapers() {
     paper.appendChild(date);
 
     if (content.ref_doi) {
-      let ref = document.createElement("a");
-      ref.setAttribute("class", "paper-doi");
-      ref.setAttribute("href", content.ref_doi);
-      ref.setAttribute("id", "paper-doi-"+pId);
-      // BUG this stuff is not working.
-      ref.innerHTML = "doi" + "\u{0020}";
-      date.appendChild(ref);
+      let ref = document.createElement("div");
+      ref.setAttribute("class", "ref");
 
-      let doi = document.createElement("span");
-      doi.setAttribute("class", "label");
-      doi.textContent = " " + content.ref_doi.split(".org/")[1];
-      ref.appendChild(doi);
+      let dark = document.createElement("span");
+      dark.setAttribute("class", "dark paper-doi");
+      dark.textContent = "doi:";
+
+      let light = document.createElement("span");
+      light.setAttribute("class", "light paper-doi");
+
+      let link = document.createElement("a");
+      link.setAttribute("href", content.ref_doi);
+      link.textContent = content.ref_doi.split(".org/")[1];
+
+      date.appendChild(ref);
+      ref.appendChild(dark);
+      ref.appendChild(light);
+      light.appendChild(link);
+
+
+
+
+
+      // ref.setAttribute("href", content.ref_doi);
+      // ref.setAttribute("id", "paper-doi-"+pId);
+      // // BUG this stuff is not working.
+      // ref.innerHTML = "doi" + "\u{0020}";
+      // date.appendChild(ref);
+
+      // let doi = document.createElement("span");
+      // doi.setAttribute("class", "label");
+      // doi.textContent = " " + content.ref_doi.split(".org/")[1];
+      // ref.appendChild(doi);
     }
 
     let cat = document.createElement("div");
@@ -307,15 +324,6 @@ function renderPapers() {
     btnAbs.setAttribute("data-target", "#abs-"+pId);
     btnAbs.setAttribute("id", "btn-abs-"+pId);
     btnAbs.textContent = "Abstract";
-    // btnAbs.onclick = function(event) {
-    //   let name =  "abs-" + event.target.id.split("-")[2];;
-    //   let absBlock = document.getElementById(name);
-    //   if (absBlock.style.display === "none" || absBlock.style.display === "") {
-    //     absBlock.style.display = "block";
-    //   } else {
-    //     absBlock.style.display = "none";
-    //   }
-    // }
     btnGroup1.appendChild(btnAbs);
 
     let btnPdf = document.createElement("a");
@@ -345,8 +353,7 @@ function renderPapers() {
     btnGroup3.appendChild(btnArxiv);
 
     let abs = document.createElement("div");
-    // abs.setAttribute("class", "paper-abs");
-    abs.setAttribute("class", "collapse");
+    abs.setAttribute("class", "collapse paper-abs");
     abs.setAttribute("id", "abs-"+pId);
     abs.textContent = content.abstract;
     paper.appendChild(abs);
@@ -392,6 +399,16 @@ function render_ocoins(paper) {
 function formateDate(date) {
   let dateArray = date.toString().split(" ");
   return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
+}
+
+document.getElementById("filter-button").onclick = function(event) {
+  if (document.getElementById("menu-col").classList.contains("d-none")) {
+    document.getElementById("menu-col").classList.remove("d-none")
+    document.getElementById("menu-main").classList.remove("ml-auto")
+  } else {
+    document.getElementById("menu-col").classList.add("d-none")
+    document.getElementById("menu-main").classList.add("ml-auto")
+  }
 }
 
 window.onload = function(event) {

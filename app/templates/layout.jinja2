@@ -12,25 +12,25 @@
 </head>
 <body>
   <nav class="navbar navbar-expand-md navbar-dark header">
-    <a class="navbar-brand d-flex w-50 mr-auto page-title" href="/">arXiv tagger</a>
     {% if current_user.is_authenticated %}
       {# show top menu #}
+      <a class="navbar-brand d-flex w-50 mr-auto page-title" href="/">arXiv tagger</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse w-100" id="navbarText">
         <ul class="navbar-nav w- justify-content-center">
-          <li class="nav-item active">
-            <a class="nav-link px-3" href="/papers">Papers <i class="fa fa-newspaper-o" aria-hidden="true"></i> <span class="sr-only">(current)</span></a>
+          <li class="nav-item">
+            <a class="nav-link px-3" id ="papers-nav" href="/papers">Papers <i class="fa fa-newspaper-o" aria-hidden="true"></i></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link px-3" href="/bookshelf">Bookshelf <i class="fa fa-book" aria-hidden="true"></i></a>
+            <a class="nav-link px-3" id ="shelf-nav" href="/bookshelf">Bookshelf <i class="fa fa-book" aria-hidden="true"></i></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link px-3" href="/settings">Settings <i class="fa fa-cogs" aria-hidden="true"></i></a>
+            <a class="nav-link px-3" id ="set-nav" href="/settings">Settings <i class="fa fa-cogs" aria-hidden="true"></i></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link px-3" href="/about">About <i class="fa fa-info-circle" aria-hidden="true"></i></a>
+            <a class="nav-link px-3" id ="about-nav" href="/about">About <i class="fa fa-info-circle" aria-hidden="true"></i></a>
           </li>
         </ul>
         <ul class="nav navbar-nav ml-auto w-25 justify-content-end">
@@ -42,6 +42,7 @@
 
     {% else %}
       {# show login form #}
+      <a class="navbar-brand d-flex mr-auto page-title" href="/">arXiv tagger</a>
       <form id="login-form" name="f_login" action="/login" onsubmit="return validateLogin()" method="POST">
         <div class="form-row align-items-center">
           <div class="col-auto">
@@ -63,9 +64,11 @@
           <div class="col-auto">
             <button type="submit" class="btn btn-primary mb-2">Login</button>
           </div>
+          <div class="col-auto">
+            <a class="btn btn-secondary mb-2" href="/signup" role="button">Sign up!</a>
+          </div>
         </div>
       </form>
-      <a href="/signup" style="font-size: 1rem">Sign up!</a>
     {% endif %}
   </nav>
 
