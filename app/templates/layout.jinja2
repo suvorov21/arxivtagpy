@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <head>
   <link rel="icon" href="{{ url_for('static', filename='dist/img/favicon.ico') }}" type="image/x-icon"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -37,6 +38,7 @@
             <a class="nav-link" href="/logout">Logout <i class="fa fa-sign-out" aria-hidden="true"></i></a>
           </li>
         </ul>
+      </div>
 
     {% else %}
       {# show login form #}
@@ -61,11 +63,10 @@
           <div class="col-auto">
             <button type="submit" class="btn btn-primary mb-2">Login</button>
           </div>
-        </form>
-        <a href="/signup" style="font-size: 1rem">Sign up!</a>
-
-      {% endif %}
-    </div>
+        </div>
+      </form>
+      <a href="/signup" style="font-size: 1rem">Sign up!</a>
+    {% endif %}
   </nav>
 
   {# Alert block #}
@@ -89,3 +90,4 @@
 
   {% block script_footer %}{% endblock %}
 </body>
+</html>
