@@ -14,8 +14,8 @@ def render_title(date_type: int = 0) -> str:
         return 'Papers since your last visit'
     return 'Papers'
 
-def render_papers(papers: Dict) -> str:
-    """Convert papers dict to JSON string."""
+def render_papers(papers: Dict) -> Dict:
+    """Convert papers dict to minimize info"""
 
     # cross-fingered nobody will use 1000 tags
     # otherwise I'm in trouble
@@ -37,6 +37,4 @@ def render_papers(papers: Dict) -> str:
         if paper.get('date_up'):
             paper['date_up'] = paper['date_up'].strftime('%d %B %Y')
 
-    # TODO think about the best way to encode JSON
-    # quote may be exaggerated
-    return quote(dumps(papers['content']))
+    return papers['content']
