@@ -1,0 +1,12 @@
+{% extends "layout.jinja2" %}
+
+{% block head_scripts %}
+  {# <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css"> #}
+{% endblock %}
+
+
+{% block script_footer %}
+  <script type="text/javascript">
+    document.getElementById("set-nav").classList.add("active");
+  </script>
+{% endblock %}

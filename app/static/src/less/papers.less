@@ -2,32 +2,16 @@
 
 /* ------ Menu SS ------- */
 
-.menu {
-  min-width: 280px;
-}
-
 .menu-content {
  background-color: #fff;
  padding: .5rem 1rem 2rem 1rem;
  border-radius: @border_curv;
- width: 200px;
+ width: @menu_width;
 }
 
-.counters {
+.counter {
   color: #aaa;
 }
-
-// #menu {
-//   width: 200px;
-//   position: absolute;
-//   border-radius: @border_curv;
-//   z-index: 1;
-//   top: @menu_top;
-//   left: @menu_left;
-//   padding: 0 0 10px 10px;
-//   background-color: #fff;
-//   overflow-x: hidden;
-// }
 
 .menu-title {
   font-size: 1.5rem;
@@ -36,57 +20,13 @@
 }
 
 .menu-item {
-  color: #666;
-  clear: both;
-  overflow: hidden;
-  margin: 3px 0 0 10px;
-  text-decoration: none;
-  font-size: 1rem;
-  cursor: pointer;
-  a {
+  label, a, input {
+    cursor: pointer;
     text-decoration: none;
     color: #666;
-  }
-  &:hover a:hover {
-    color: #000;
-  }
-}
-
-.menu-line-left {
-  float: left;
-  margin-left: 3px;
-  cursor: pointer;
-}
-
-.menu-line-left:hover {
-  color: #000;
-}
-
-.menu-line-right {
-  float: right;
-  margin-right: 10px;
-  opacity: 0.4;
-}
-
-// input[type=checkbox] {
-//   float: left;
-//   transform: scale(1.15);
-//   &:hover {
-//     -o-box-shadow: inset 0 0 2px 2px #286090;
-//     -moz-box-shadow: inset 0 0 2px 2px #286090;
-//     -webkit-box-shadow: inset 0 0 2px 2px #286090;
-//   }
-// }
-
-.sub-item {
-  font-size: 1rem;
-  font-style: italic;
-  opacity: 50%;
-  cursor: pointer;
-  &:hover {
-    text-decoration: underline;
-    opacity: 100%;
-    color: #000;
+    &:hover {
+      color: #222;
+    }
   }
 }
 
@@ -95,17 +35,16 @@
   background-color: #aaa;
   color: #000;
   width: 90px;
-  margin: 5px 0 5px 10px;
-  padding: 5px 5px 5px 5px;
+  margin: 1px 0;
+  padding: 5px;
   border-radius: 20px;
   text-align: center;
 }
 
+/* ----------Papers ---------- */
+
 .paper-wrapper {
   border-radius: @border_curv;
-  // position: static;
-  // margin: @menu_top 30px 0 240px;
-  padding: .5rem 1rem 1rem 1rem;
   margin-bottom: 2rem;
   font-size: 1.2rem;
   background-color: #fff;
@@ -118,12 +57,28 @@
   text-decoration: underline;
 }
 
-/* ----------Papers ---------- */
-
 .paper {
   clear: both;
-  padding: 15px 0 0 20px;
   font-size: 1rem;
+}
+
+@media (min-width: 768px) {
+  .paper-wrapper {
+    padding: .5rem 1rem 1rem 1rem;
+  }
+  .paper {
+    padding: 15px 0 0 20px;
+  }
+}
+
+
+@media (max-width: 767.98px) {
+  .paper-wrapper {
+    padding: 0;
+  }
+  .paper {
+    padding: 15px 0 0 0;
+  }
 }
 
 .paper-title {
@@ -134,21 +89,21 @@
 
 .tag-panel {
   overflow: hidden;
-  margin: 0 0 0 5px;
+  margin-left: 10px;
+  margin-bottom: 5px;
 }
 
 .tag-panel-item {
   float: left;
-  margin: 0 5px 0 5px;
-  padding: 0 5px 0 5px;
-  font-size: 1rem;
+  margin: 5 5px;
+  padding: 0 5px;
   border-radius: 10px;
   text-align: center;
 }
 
 .paper-au {
   clear: both;
-  margin: 5px 0 3px 0;
+  margin: 5px 0 0px 0px;
 }
 
 .paper-cat {
@@ -156,50 +111,42 @@
 }
 
 .paper-date {
-  margin: 3px 0 3px 0;
+  margin: 0;
   color: #666;
+}
+
+.ref {
+ display: inline;
+ margin-left: 20px;
 }
 
 .paper-doi {
   display: inline;
-  border-radius: 4px;
-  color: #f5f5f5;
-  background-color: #2d2d2d;
   font-size: 0.85rem;
-  padding: 2px 0 2px 8px;
-  margin-left: 15px;
-  text-decoration: none;
+  padding: 2px;
+  border-radius: 4px;
+}
 
-  & .label {
-    padding: 2px 10px;
-    color: #2d2d2d;
+.dark {
+    color: #f5f5f5;
+    background-color: #2d2d2d;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+.light {
+    color: #000;
     background-color: #f5f5f5;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+      a {
+    text-decoration: none;
   }
 }
 
 .paper-abs {
-  display: none;
+  padding-top: .5rem;
 }
-
-.btn-panel {
-  clear: both;
-  display: flex;
-  margin-bottom: 5px;
-}
-
-// .btn-paper {
-//   color: #fff;
-//   font-weight: 400;
-//   background-color: #337ab7;
-//   border-color: #2e6da4;
-//   margin-left: 5px;
-//   text-decoration: none;
-//   &:hover {
-//     color: #fff;
-//     background-color: #286090;
-//     border-color: #204d74;
-//   }
-// }
 
 .paper-footer {
   display: none;
