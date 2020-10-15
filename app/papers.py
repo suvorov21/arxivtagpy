@@ -1,11 +1,12 @@
-import feedparser
-from datetime import datetime, timedelta
-import requests
 from os import linesep
 from time import sleep
-
-from typing import List, Dict, Tuple
+from datetime import datetime, timedelta
+from typing import Dict, Tuple
 from re import findall, search, escape, IGNORECASE
+
+from feedparser import parse
+from requests import get
+
 
 class PaperApi:
     """API default class."""
@@ -42,15 +43,14 @@ class ArxivApi(PaperApi):
         elif date_type == 2:
             self.params['max_results'] = 900
 
-        response = requests.get(self.URL, self.params)
-        # print(response.url)
+        response = get(self.URL, self.params)
 
         if response.status_code != 200:
             # TODO add handler
             return 404
 
         # parse arXiv response
-        feed = feedparser.parse(response.text)
+        feed = parse(response.text)
         if len(feed.entries) == 0:
             # TODO add handler
             return 400
@@ -126,7 +126,7 @@ class ArxivApi(PaperApi):
             # TODO unify all the requests in one function?
             sleep(self.delay)
             self.params['start'] += self.params['max_results']
-            response = requests.get(self.URL, self.params)
+            response = get(self.URL, self.params)
             # print(response.url)
 
             if response.status_code != 200:
@@ -134,7 +134,7 @@ class ArxivApi(PaperApi):
                 return 404
 
             # parse arXiv response
-            feed = feedparser.parse(response.text)
+            feed = parse(response.text)
             if len(feed.entries) == 0:
                 # TODO add handler
                 return 400
@@ -146,7 +146,7 @@ class ArxivApi(PaperApi):
         """Parse xml tag content.
 
         Remove line endings and double spaces."""
-        return xml.replace(linesep, "").replace("  ", " ")
+        return xml.replace(linesep, " ").replace("  ", " ")
 
     def parse_authors(self, authors):
         """Convert authors from freeparser output to list."""
@@ -299,7 +299,9 @@ def parse_simple_rule(paper, rule, prefix):
 
     if '&' in condition:
         cond_list = condition.split('&')
-        condition = '(' + condition.replace('&', '.*') + ')|(' + '.*'.join(cond_list[::-1]) + ')'
+        condition = '(' + condition.replace('&', '.*')
+        condition +=')|('
+        condition += '.*'.join(cond_list[::-1]) + ')'
 
     if search(condition,
               search_target,

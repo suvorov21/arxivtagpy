@@ -105,7 +105,7 @@ function renderCats() {
 function renderTags() {
   TAGS.forEach((tag, num) => {
     let parent = document.createElement("div");
-    parent.setAttribute("class", "d-flex justify-content-between");
+    parent.setAttribute("class", "d-flex justify-content-between align-items-center");
 
     let tagElement = document.createElement("div");
     tagElement.setAttribute("class", "tag-label");
@@ -267,34 +267,20 @@ function renderPapers() {
 
       let dark = document.createElement("span");
       dark.setAttribute("class", "dark paper-doi");
-      dark.textContent = "doi:";
+      dark.textContent = " doi:";
 
       let light = document.createElement("span");
       light.setAttribute("class", "light paper-doi");
 
       let link = document.createElement("a");
       link.setAttribute("href", content.ref_doi);
+      link.setAttribute("target", "_blank");
       link.textContent = content.ref_doi.split(".org/")[1];
 
-      date.appendChild(ref);
+      paper.appendChild(ref);
       ref.appendChild(dark);
       ref.appendChild(light);
       light.appendChild(link);
-
-
-
-
-
-      // ref.setAttribute("href", content.ref_doi);
-      // ref.setAttribute("id", "paper-doi-"+pId);
-      // // BUG this stuff is not working.
-      // ref.innerHTML = "doi" + "\u{0020}";
-      // date.appendChild(ref);
-
-      // let doi = document.createElement("span");
-      // doi.setAttribute("class", "label");
-      // doi.textContent = " " + content.ref_doi.split(".org/")[1];
-      // ref.appendChild(doi);
     }
 
     let cat = document.createElement("div");

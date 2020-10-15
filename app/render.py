@@ -1,6 +1,5 @@
-from json import dumps
 from urllib.parse import quote
-from typing import List, Dict, Tuple
+from typing import Dict
 
 def render_title(date_type: int = 0) -> str:
     """Put the date type in the title text."""
