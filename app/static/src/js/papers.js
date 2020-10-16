@@ -20,7 +20,7 @@ function toggleVis(start=0) {
     if (pId >= DATA.papers.length) {
       break;
     }
-    let paper = DATA.papers[pId];
+    let paper = DATA.papers[parseInt(pId, 10)];
     let display = false;
     if (prefs.data.showNov[0] === true && paper.nov === 1 ||
         prefs.data.showNov[1] === true && paper.nov === 2 ||
@@ -31,7 +31,7 @@ function toggleVis(start=0) {
     }
     if (display) {
       for (let catId = 0; catId < prefs.data.catsArr.length; catId++) {
-        let cat = prefs.data.catsArr[catId];
+        let cat = prefs.data.catsArr[parseInt(catId, 10)];
         if (prefs.data.catsShowArr[parseInt(catId, 10)] && paper.cats.includes(cat)) {
           display = true;
           break;
@@ -70,7 +70,7 @@ function renderTitle() {
       start = new Date(start.setDate(start.getDate() - 7));
       end = new Date(dateNew.setDate(end.getDate() - 7));
     }
-    title.textContent += ": " + formateDate(start) + " - " + formateDate(end)
+    title.textContent += ": " + formateDate(start) + " - " + formateDate(end);
   } else if (title.textContent.includes("month")) {
     let end = new Date;
     let start = new Date(date.setDate(date.getDate() - date.getDate() + 1));
@@ -169,18 +169,17 @@ function renderNov() {
 
 function renderCounters() {
   let nCats = CATS.length;
-  // CATS.forEach((cat, num) => {
   for(let catId = 0; catId < nCats; catId++) {
-    document.getElementById("cat-count-"+catId).textContent = DATA.ncat[catId];
+    document.getElementById("cat-count-"+catId).textContent = DATA.ncat[parseInt(catId, 10)];
   }
 
   for(let novId = 0; novId < 3; novId++) {
-    document.getElementById("nov-count-"+novId).textContent = DATA.nnov[novId];
+    document.getElementById("nov-count-"+novId).textContent = DATA.nnov[parseInt(novId, 10)];
   }
 
  let nTags = TAGS.length;
  for(let tagId = 0; tagId < nTags; tagId++) {
-    document.getElementById("tag-count-"+tagId).textContent = DATA.ntag[tagId];
+    document.getElementById("tag-count-"+tagId).textContent = DATA.ntag[parseInt(tagId, 10)];
   }
 }
 
@@ -188,8 +187,6 @@ function render_ocoins(paper) {
   let ocoins = {
     "ctx_ver": "Z39.88-2004",
     "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
-    // "rfr_id": encodeURIComponent("info:sid/arxivtagger.com:arxivtagger"),
-
     "rft_id": encodeURIComponent(paper.ref_web),
     "rft_id": encodeURIComponent(paper.ref_doi),
     "rft.atitle": encodeURIComponent(paper.title),

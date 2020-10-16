@@ -144,7 +144,8 @@ class ArxivApi(PaperApi):
         return papers
 
 def fix_xml(xml: str) -> str:
-    """Parse xml tag content
+    """
+    Parse xml tag content
 
     Remove line endings and double spaces.
     """
@@ -159,7 +160,8 @@ def parse_cats(cats) -> List:
     return [cat.term for cat in cats]
 
 def parse_links(links, link_type='pdf') -> str:
-    """Loop over links and extract hrefs to pdf and arXiV abstract
+    """
+    Loop over links and extract hrefs to pdf and arXiv abstract
 
     parse links
     related & title = pdf --> pdf
@@ -181,7 +183,8 @@ def process_papers(papers: Dict,
                    tags: Dict,
                    cats: Tuple[str]
                    ) -> Dict:
-    """Papers processing
+    """
+    Papers processing
 
     Process:
     1. novelty. use 'bit' map
@@ -223,7 +226,8 @@ def process_papers(papers: Dict,
     return papers
 
 def tag_suitable(paper: Dict, rule: str) -> bool:
-    """Check if paper is suitable with a tag rule
+    """
+    Check if paper is suitable with a tag rule
 
     :param      paper:  The paper
     :type       paper:  paper JSON entry

@@ -1,4 +1,3 @@
-from urllib.parse import quote
 from typing import Dict
 
 def render_title(date_type: int = 0) -> str:
@@ -15,7 +14,6 @@ def render_title(date_type: int = 0) -> str:
 
 def render_papers(papers: Dict) -> Dict:
     """Convert papers dict to minimize info"""
-
     # cross-fingered nobody will use 1000 tags
     # otherwise I'm in trouble
     papers['content'] = sorted(papers['content'],
