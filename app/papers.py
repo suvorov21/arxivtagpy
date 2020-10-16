@@ -1,14 +1,17 @@
-import feedparser
-from datetime import datetime, timedelta
-import requests
 from os import linesep
 from time import sleep
-
-from typing import List, Dict, Tuple
+from datetime import datetime, timedelta
+from typing import Dict, Tuple, List
 from re import findall, search, escape, IGNORECASE
 
+from feedparser import parse
+from requests import get
+
+
 class PaperApi:
+
     """API default class."""
+
     def_params = {}
     delay = 0
     URL = ""
@@ -16,7 +19,9 @@ class PaperApi:
     last_paper = datetime.now()
 
 class ArxivApi(PaperApi):
+
     """API for arXiv connection."""
+
     def_params = {'start': 0,
                   'max_results': 200,
                   'search_query': 'hep-ex',
@@ -42,15 +47,14 @@ class ArxivApi(PaperApi):
         elif date_type == 2:
             self.params['max_results'] = 900
 
-        response = requests.get(self.URL, self.params)
-        # print(response.url)
+        response = get(self.URL, self.params)
 
         if response.status_code != 200:
             # TODO add handler
             return 404
 
         # parse arXiv response
-        feed = feedparser.parse(response.text)
+        feed = parse(response.text)
         if len(feed.entries) == 0:
             # TODO add handler
             return 400
@@ -100,24 +104,22 @@ class ArxivApi(PaperApi):
                     break
 
                 papers['content'].append(
-                    {'title': self.fix_xml(entry.title),
-                     'author': self.parse_authors(entry.authors),
+                    {'title': fix_xml(entry.title),
+                     'author': parse_authors(entry.authors),
                      'date_sub': datetime.strptime(entry.published,
                                                    '%Y-%m-%dT%H:%M:%SZ'
                                                    ),
                      'date_up': date,
-                     'abstract': self.fix_xml(entry.summary),
-                     'ref_pdf': self.parse_links(entry.links, link_type='pdf'),
-                     'ref_web': self.parse_links(entry.links, link_type='abs'),
-                     'ref_doi': self.parse_links(entry.links, link_type='doi'),
+                     'abstract': fix_xml(entry.summary),
+                     'ref_pdf': parse_links(entry.links, link_type='pdf'),
+                     'ref_web': parse_links(entry.links, link_type='abs'),
+                     'ref_doi': parse_links(entry.links, link_type='doi'),
                      'id': entry.id.split('/')[-1],
                      'primary': entry.tags[0]['term'],
-                     'cats': self.parse_cats(entry.tags),
+                     'cats': parse_cats(entry.tags),
                      'tags': [],
                      'nov': 0
                     })
-
-            # print(date)
 
             if date <= old_date or len(papers['content']) > 10000:
                 break
@@ -126,7 +128,7 @@ class ArxivApi(PaperApi):
             # TODO unify all the requests in one function?
             sleep(self.delay)
             self.params['start'] += self.params['max_results']
-            response = requests.get(self.URL, self.params)
+            response = get(self.URL, self.params)
             # print(response.url)
 
             if response.status_code != 200:
@@ -134,52 +136,55 @@ class ArxivApi(PaperApi):
                 return 404
 
             # parse arXiv response
-            feed = feedparser.parse(response.text)
+            feed = parse(response.text)
             if len(feed.entries) == 0:
                 # TODO add handler
                 return 400
 
         return papers
 
-    # TODO move to utils?
-    def fix_xml(self, xml):
-        """Parse xml tag content.
+def fix_xml(xml: str) -> str:
+    """
+    Parse xml tag content
 
-        Remove line endings and double spaces."""
-        return xml.replace(linesep, "").replace("  ", " ")
+    Remove line endings and double spaces.
+    """
+    return xml.replace(linesep, " ").replace("  ", " ")
 
-    def parse_authors(self, authors):
-        """Convert authors from freeparser output to list."""
-        return [au.name for au in authors]
+def parse_authors(authors) -> List:
+    """Convert authors from freeparser output to list."""
+    return [au.name for au in authors]
 
-    def parse_cats(self, cats):
-        """Convert categories from freeparser output to list."""
-        return [cat.term for cat in cats]
+def parse_cats(cats) -> List:
+    """Convert categories from freeparser output to list."""
+    return [cat.term for cat in cats]
 
-    def parse_links(self, links, link_type='pdf'):
-        """Loop over links and extract hrefs to pdf and arXiV abstract.
+def parse_links(links, link_type='pdf') -> str:
+    """
+    Loop over links and extract hrefs to pdf and arXiv abstract
 
-        parse links
-        related & title = pdf --> pdf
-        related & title = doi --> doi
-        alternate --> abstract
-        """
-        for link in links:
-            if link.rel == 'alternate' and link_type == 'abs':
+    parse links
+    related & title = pdf --> pdf
+    related & title = doi --> doi
+    alternate --> abstract
+    """
+    for link in links:
+        if link.rel == 'alternate' and link_type == 'abs':
+            return link.href
+        if link.rel == 'related':
+            if link.title == 'pdf' and link_type == 'pdf':
                 return link.href
-            if link.rel == 'related':
-                if link.title == 'pdf' and link_type == 'pdf':
-                    return link.href
-                if link.title == 'doi' and link_type == 'doi':
-                    return link.href
+            if link.title == 'doi' and link_type == 'doi':
+                return link.href
 
-        return None
+    return None
 
 def process_papers(papers: Dict,
                    tags: Dict,
                    cats: Tuple[str]
                    ) -> Dict:
-    """Papers processing.
+    """
+    Papers processing
 
     Process:
     1. novelty. use 'bit' map
@@ -221,7 +226,8 @@ def process_papers(papers: Dict,
     return papers
 
 def tag_suitable(paper: Dict, rule: str) -> bool:
-    """Check if paper is suitable with a tag rule.
+    """
+    Check if paper is suitable with a tag rule
 
     :param      paper:  The paper
     :type       paper:  paper JSON entry
@@ -266,7 +272,7 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
 
     return False
 
-def separate_rules(rule, sign):
+def separate_rules(rule: str, sign: str):
     """Split two parts of the rule with sign."""
     sign_pos = search(r"\{.*?\}(%s).*\{.*?\}" % escape(sign),
                       rule).start(1)
@@ -282,7 +288,7 @@ def separate_rules(rule, sign):
 
     return fst, scd, rule[0:fst_start], rule[scd_end+2:]
 
-def parse_simple_rule(paper, rule, prefix):
+def parse_simple_rule(paper: Dict, rule: str, prefix: str) -> bool:
     """Parse simple rules as ti/au/abs."""
     rule_dict = {'ti': 'title',
                  'au': 'author',
@@ -299,7 +305,9 @@ def parse_simple_rule(paper, rule, prefix):
 
     if '&' in condition:
         cond_list = condition.split('&')
-        condition = '(' + condition.replace('&', '.*') + ')|(' + '.*'.join(cond_list[::-1]) + ')'
+        condition = '(' + condition.replace('&', '.*')
+        condition +=')|('
+        condition += '.*'.join(cond_list[::-1]) + ')'
 
     if search(condition,
               search_target,

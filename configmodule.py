@@ -1,6 +1,7 @@
 from os import environ
 
 class Config(object):
+
     """Default config."""
     DEBUG = False
     TESTING = False
@@ -18,16 +19,19 @@ class Config(object):
 
 
 class ProductionConfig(Config):
+
     """Prod config."""
     pass
 
 class DevelopmentConfig(Config):
+
     """Dev config."""
     DEBUG = True
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 class TestingConfig(Config):
+
     """Testing (staging) config."""
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_TEST')
     TESTING = True

@@ -2,6 +2,7 @@ from . import db
 from flask_login import UserMixin
 
 class User(UserMixin, db.Model):
+
     """User table description."""
     __tablename__ = 'users'
 
@@ -32,4 +33,5 @@ class User(UserMixin, db.Model):
                      )
 
     def __repr__(self):
+        """Print user."""
         return f'<id: {self.id} name: {self.name}>'

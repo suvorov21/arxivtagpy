@@ -13,12 +13,15 @@ def app_init():
     """Initialise app."""
     app = Flask(__name__, instance_relative_config=True)
 
-    if 'SERVER_CONF' not in environ or \
-        'DATABASE_URL' not in environ:
-        print("App configuration error!")
+    if 'DATABASE_URL' not in environ:
+        print("DB configuration error!")
         return None
 
-    cfg = import_string(environ['SERVER_CONF'])()
+    if 'SERVER_CONF' in environ:
+        cfg = import_string(environ['SERVER_CONF'])()
+    else:
+        cfg = import_string('configmodule.ProductionConfig')()
+
     app.config.from_object(cfg)
 
     db.init_app(app)

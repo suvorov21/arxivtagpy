@@ -1,7 +1,8 @@
-from datetime import datetime
+# from datetime import datetime
+from json import loads
 
 from flask import Blueprint, render_template, flash, session, redirect, \
-url_for, request, Markup, jsonify
+url_for, request, jsonify
 from flask_login import current_user, login_user, login_required, logout_user
 
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -10,8 +11,6 @@ from .import login_manager
 from .model import db, User
 from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
-
-from json import loads
 
 main_bp = Blueprint(
     'main_bp',
@@ -92,6 +91,7 @@ def data():
     # store the info about last checked paper
     # descending paper order is assumed
     if date_type == 3:
+      # TODO
         last_paper = papers['content'][0].date_up
 
     papers = process_papers(papers,
