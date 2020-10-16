@@ -24,7 +24,8 @@ Then the package could be cloned and installed
 ```bash
 git clone https://gitlab.com/suvorov21/arxivtagpy.git
 cd arxivtagpy
-virtualemv v_arxiv
+virtualemv varxiv
+source varxiv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 

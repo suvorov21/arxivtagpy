@@ -1,4 +1,4 @@
-from datetime import datetime
+# from datetime import datetime
 from json import loads
 
 from flask import Blueprint, render_template, flash, session, redirect, \
@@ -91,6 +91,7 @@ def data():
     # store the info about last checked paper
     # descending paper order is assumed
     if date_type == 3:
+      # TODO
         last_paper = papers['content'][0].date_up
 
     papers = process_papers(papers,

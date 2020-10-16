@@ -4,7 +4,7 @@
 
 .menu-content {
   background-color: #fff;
-  padding: .5rem 1rem 2rem 1rem;
+  padding: 0.5rem 1rem 2rem 1rem;
   border-radius: @border_curv;
   width: @menu_width;
 }
@@ -20,10 +20,13 @@
 }
 
 .menu-item {
-  label, a, input {
+  label,
+  a,
+  input {
     cursor: pointer;
     text-decoration: none;
     color: #666;
+
     &:hover {
       color: #222;
     }
@@ -64,7 +67,7 @@
 
 @media (min-width: 768px) {
   .paper-wrapper {
-    padding: .5rem 1rem 1rem 1rem;
+    padding: 0.5rem 1rem 1rem 1rem;
   }
   .paper {
     padding: 15px 0 0 20px;
@@ -102,7 +105,7 @@
 
 .paper-au {
   clear: both;
-  margin: 5px 0 0px 0px;
+  margin: 5px 0 0 0;
 }
 
 .paper-cat {
@@ -116,8 +119,8 @@
 }
 
 .ref {
- display: inline;
- margin-left: 20px;
+  display: inline;
+  margin-left: 20px;
 }
 
 .paper-doi {
@@ -147,7 +150,7 @@
 }
 
 .paper-abs {
-  padding-top: .5rem;
+  padding-top: 0.5rem;
 }
 
 .paper-footer {

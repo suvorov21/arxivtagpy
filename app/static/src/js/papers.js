@@ -1,31 +1,64 @@
+/*global MathJax, parseTex, DATA, prefs, CATS, TAGS*/
+/*eslint no-undef: "error"*/
+
 let PAPERS_TO_RENDER = 20;
 let START = 0;
 let DONE = false;
 var VISIBLE = 0;
 
-function scrollIfNeeded() {
-  if (START > DATA.papers.length) {
-    DONE = true;
-    document.getElementById("loading-papers").style["display"] = "none";
-    document.getElementById("done-papers").style["display"] = "block";
-    return;
+function formateDate(date) {
+  let dateArray = date.toString().split(" ");
+  return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
+}
+
+// toggle the visibility of rendered papers
+function toggleVis(start=0) {
+  if (start === 0) {
+    VISIBLE = 0;
+  }
+  for(let pId = start; pId < START + PAPERS_TO_RENDER; pId ++) {
+    if (pId >= DATA.papers.length) {
+      break;
+    }
+    let paper = DATA.papers[pId];
+    let display = false;
+    if (prefs.data.showNov[0] === true && paper.nov === 1 ||
+        prefs.data.showNov[1] === true && paper.nov === 2 ||
+        prefs.data.showNov[2] === true && paper.nov === 4) {
+      display = true;
+    } else {
+      display = false;
+    }
+    if (display) {
+      for (let catId = 0; catId < prefs.data.catsArr.length; catId++) {
+        let cat = prefs.data.catsArr[catId];
+        if (prefs.data.catsShowArr[parseInt(catId, 10)] && paper.cats.includes(cat)) {
+          display = true;
+          break;
+        } else {
+          display = false;
+        }
+      }
+    }
+
+    if (display) {
+      document.getElementById("paper-" + pId).style["display"] = "block";
+      let number = document.getElementById("paper-num-" + pId);
+      VISIBLE += 1;
+      number.textContent = String(VISIBLE);
+    } else {
+      document.getElementById("paper-" + pId).style["display"] = "none";
+    }
   }
 
-  var scrollTop = window.scrollY;
-  var windowHeight = window.innerHeight;
-  var bodyHeight = document.body.clientHeight - windowHeight;
-  var scrollPercentage = (scrollTop / bodyHeight);
-
-  if(scrollPercentage > 0.9 || bodyHeight < 0) {
-    START += PAPERS_TO_RENDER;
-    document.getElementById("loading-papers").style["display"] = "block";
-    renderPapers();
+  if (!DONE) {
+    scrollIfNeeded();
   }
 }
 
 function renderTitle() {
-  title = document.getElementById("paper-list-title");
-  date = new Date();
+  let title = document.getElementById("paper-list-title");
+  let date = new Date();
   let dateNew = new Date();
   if (title.textContent.includes("today")) {
     title.textContent += ": " + formateDate(date);
@@ -37,7 +70,7 @@ function renderTitle() {
       start = new Date(start.setDate(start.getDate() - 7));
       end = new Date(dateNew.setDate(end.getDate() - 7));
     }
-    title.textContent += ": " +formateDate(start) + " - " + formateDate(end)
+    title.textContent += ": " + formateDate(start) + " - " + formateDate(end)
   } else if (title.textContent.includes("month")) {
     let end = new Date;
     let start = new Date(date.setDate(date.getDate() - date.getDate() + 1));
@@ -47,7 +80,7 @@ function renderTitle() {
       start = new Date(dateNew.setDate(dateNew.getDate() - 1));
     }
     title.textContent += ": " +formateDate(start) + " - " + formateDate(end);
-  } else if (dateType === 4) {
+  } else if (title.textContent.includes("visit")) {
     // TODO
     // title.textContent += ": " +formateDate(new Date(prefs.data.lastVisit));
   }
@@ -65,7 +98,7 @@ function renderCats() {
     parent.setAttribute("class", "d-flex menu-item");
 
     let form = document.createElement("div");
-    form.setAttribute("class", "form-check")
+    form.setAttribute("class", "form-check");
 
     var check = document.createElement("input");
     check.setAttribute("type", "checkbox");
@@ -95,7 +128,7 @@ function renderCats() {
     counter.textContent = "0";
 
     document.getElementById("cats").appendChild(parent);
-    parent.appendChild(form)
+    parent.appendChild(form);
     form.appendChild(check);
     form.appendChild(catElement);
     parent.appendChild(counter);
@@ -151,49 +184,31 @@ function renderCounters() {
   }
 }
 
-// toggle the visibility of rendered papers
-function toggleVis(start=0) {
-  if (start === 0) {
-    VISIBLE = 0;
-  }
-  for(let pId = start; pId < START + PAPERS_TO_RENDER; pId ++) {
-    if (pId >= DATA.papers.length) {
-      break;
-    }
-    let paper = DATA.papers[pId];
-    let display = false;
-    if (prefs.data.showNov[0] === true && paper.nov === 1 ||
-        prefs.data.showNov[1] === true && paper.nov === 2 ||
-        prefs.data.showNov[2] === true && paper.nov === 4) {
-      display = true;
-    } else {
-      display = false;
-    }
-    if (display) {
-      for (let catId = 0; catId < prefs.data.catsArr.length; catId++) {
-        let cat = prefs.data.catsArr[catId];
-        if (prefs.data.catsShowArr[parseInt(catId, 10)] && paper.cats.includes(cat)) {
-          display = true;
-          break;
-        } else {
-          display = false;
-        }
-      }
-    }
+function render_ocoins(paper) {
+  let ocoins = {
+    "ctx_ver": "Z39.88-2004",
+    "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
+    // "rfr_id": encodeURIComponent("info:sid/arxivtagger.com:arxivtagger"),
 
-    if (display) {
-      document.getElementById("paper-" + pId).style["display"] = "block";
-      let number = document.getElementById("paper-num-" + pId);
-      VISIBLE += 1;
-      number.textContent = String(VISIBLE);
-    } else {
-      document.getElementById("paper-" + pId).style["display"] = "none";
-    }
-  }
+    "rft_id": encodeURIComponent(paper.ref_web),
+    "rft_id": encodeURIComponent(paper.ref_doi),
+    "rft.atitle": encodeURIComponent(paper.title),
+    "rft.jtitle": encodeURIComponent("arXiv:" + paper.id + " [" + paper.cats[0] + "]"),
+    "rft.date": encodeURIComponent(paper.date_up),
+    "rft.artnum": encodeURIComponent(paper.id),
+    "rft.genre": encodeURIComponent("preprint"),
+    "rft.description": encodeURIComponent(paper.abstract),
+  };
 
-  if (!DONE) {
-    scrollIfNeeded();
-  }
+  ocoins = JSON.stringify(ocoins);
+  ocoins = ocoins.replace(/\"/g, "");
+  ocoins = ocoins.replace(/,/g, "&");
+  ocoins = ocoins.replace(/:/g, "=");
+  ocoins = ocoins.slice(1, ocoins.length - 1);
+
+  ocoins += paper.author.map((au) => {return "&rft.au=" + encodeURIComponent(au)}).join();
+
+  return ocoins;
 }
 
 function renderPapers() {
@@ -201,16 +216,16 @@ function renderPapers() {
     if (DATA.papers.length <= pId) {
       break;
     }
-    content = DATA.papers[parseInt(pId, 10)];
+    let content = DATA.papers[parseInt(pId, 10)];
     let paper = document.createElement("div");
     paper.setAttribute("class", "paper");
     paper.setAttribute("id", "paper-"+pId);
     document.getElementById("paper-list-content").appendChild(paper);
 
-    let ocoins_span = document.createElement("span");
-    ocoins_span.setAttribute("class", "Z3988");
-    ocoins_span.setAttribute("title", render_ocoins(content));
-    paper.appendChild(ocoins_span);
+    let ocoinsSpan = document.createElement("span");
+    ocoinsSpan.setAttribute("class", "Z3988");
+    ocoinsSpan.setAttribute("title", render_ocoins(content));
+    paper.appendChild(ocoinsSpan);
 
     let title = document.createElement("div");
     title.setAttribute("class", "paper-title");
@@ -254,7 +269,7 @@ function renderPapers() {
     let date = document.createElement("div");
     date.setAttribute("id", "paper-date-"+pId);
     date.setAttribute("class", "paper-date");
-    date.textContent = content.date_up
+    date.textContent = content.date_up;
 
     if (content.date_sub) {
       date.textContent += " (v1: " + content.date_sub + ")";
@@ -355,36 +370,24 @@ function renderPapers() {
   }
 }
 
-function render_ocoins(paper) {
-  let ocoins = {
-    "ctx_ver": "Z39.88-2004",
-    "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
-    // "rfr_id": encodeURIComponent("info:sid/arxivtagger.com:arxivtagger"),
+function scrollIfNeeded() {
+  if (START > DATA.papers.length) {
+    DONE = true;
+    document.getElementById("loading-papers").style["display"] = "none";
+    document.getElementById("done-papers").style["display"] = "block";
+    return;
+  }
 
-    "rft_id": encodeURIComponent(paper.ref_web),
-    "rft_id": encodeURIComponent(paper.ref_doi),
-    "rft.atitle": encodeURIComponent(paper.title),
-    "rft.jtitle": encodeURIComponent("arXiv:" + paper.id + " [" + paper.cats[0] + "]"),
-    "rft.date": encodeURIComponent(paper.date_up),
-    "rft.artnum": encodeURIComponent(paper.id),
-    "rft.genre": encodeURIComponent("preprint"),
-    "rft.description": encodeURIComponent(paper.abstract),
-  };
+  var scrollTop = window.scrollY;
+  var windowHeight = window.innerHeight;
+  var bodyHeight = document.body.clientHeight - windowHeight;
+  var scrollPercentage = (scrollTop / bodyHeight);
 
-  ocoins = JSON.stringify(ocoins);
-  ocoins = ocoins.replace(/\"/g, "");
-  ocoins = ocoins.replace(/,/g, "&");
-  ocoins = ocoins.replace(/:/g, "=");
-  ocoins = ocoins.slice(1, ocoins.length - 1);
-
-  ocoins += paper.author.map((au) => {return "&rft.au=" + encodeURIComponent(au)}).join();
-
-  return ocoins;
-}
-
-function formateDate(date) {
-  let dateArray = date.toString().split(" ");
-  return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
+  if(scrollPercentage > 0.9 || bodyHeight < 0) {
+    START += PAPERS_TO_RENDER;
+    document.getElementById("loading-papers").style["display"] = "block";
+    renderPapers();
+  }
 }
 
 document.getElementById("filter-button").onclick = function(event) {
@@ -417,7 +420,6 @@ window.onload = function(event) {
   renderNov();
   renderCats();
   renderTags();
-  // renderPapers();
 
   // add anchors for click on novelty
   var anchors = document.getElementsByClassName("check-nov");
