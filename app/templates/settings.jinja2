@@ -1,11 +1,54 @@
 {% extends "layout.jinja2" %}
 
 {% block head_scripts %}
-  {# <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css"> #}
+  <link href="{{ url_for('static', filename='dist/css/settings.css') }}" rel="stylesheet" type="text/css">
+  <script type="text/javascript">
+    var TAGS = {{ tags }};
+    var CATS = {{ cats }};
+  </script>
 {% endblock %}
 
+{% block content %}
+  <div class="container-fluid">
+    <div class="row mt-4">
+      {# Menu #}
+      <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
+        <div class="menu-content ml-auto" id="menu-main">
+
+          <ul class="nav flex-column nav-pills">
+            <li class="nav-item">
+              <a class="nav-link active" href="#">Categories</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Tags</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Preferences</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+      {# Settings content #}
+      <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
+        <div class="paper-wrapper">
+          <div class="container pt-3">
+            <datalist id="catsDataList"></datalist>
+            <div id="cats-list">
+
+            </div>
+            <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
+              <label for="cat-add-input">Add new category:</label>
+              <input list="catsDataList" id="cat-add-input" name="cat_name" class="custom-select col-6"/>
+              <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
+            </form>
+          </div>
+        </div>
+    </div>
+  </div>
+{% endblock %}
 
 {% block script_footer %}
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings.min.js') }}"></script>
   <script type="text/javascript">
     document.getElementById("set-nav").classList.add("active");
   </script>

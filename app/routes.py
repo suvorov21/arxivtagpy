@@ -41,13 +41,9 @@ def papers_list():
     if date_type is None:
         return redirect(url_for('main_bp.papers_list', date='today'))
 
-    # read categories
-    if 'cats' not in session:
-        session['cats'] = current_user.arxiv_cat
+    # load preferences
+    load_prefs()
 
-    # read tags
-    if 'tags' not in session:
-        session['tags'] = loads(current_user.tags)
     # get rid of tag rule at front-end
     tags_dict = [{'color': tag['color'],
                   'name': tag['name']
@@ -117,7 +113,10 @@ def bookshelf():
 @login_required
 def settings():
     """Settings page."""
-    return render_template('settings.jinja2')
+    load_prefs()
+    return render_template('settings.jinja2',
+                           cats=session['cats'],
+                           tags=session['tags'])
 
 @main_bp.route('/about')
 @login_required
@@ -126,8 +125,21 @@ def about():
     return render_template('about.jinja2')
 
 
+def load_prefs():
+    """Load preferences from DB to session."""
+    if 'cats' not in session:
+        session['cats'] = current_user.arxiv_cat
+
+    # read tags
+    if 'tags' not in session:
+        session['tags'] = loads(current_user.tags)
 
 
+@main_bp.route('/add_cat', methods=['POST'])
+@login_required
+def add_cat():
+    new_cat = request.form.get('cat_name')
+    return new_cat
 
 
 @login_manager.user_loader

@@ -2,13 +2,6 @@
 
 /* ------ Menu SS ------- */
 
-.menu-content {
-  background-color: #fff;
-  padding: 0.5rem 1rem 2rem 1rem;
-  border-radius: @border_curv;
-  width: @menu_width;
-}
-
 .counter {
   color: #aaa;
 }
@@ -46,14 +39,6 @@
 
 /* ----------Papers ---------- */
 
-.paper-wrapper {
-  border-radius: @border_curv;
-  margin-bottom: 2rem;
-  font-size: 1.2rem;
-  background-color: #fff;
-  overflow: hidden;
-}
-
 #paper-list-title {
   font-size: 1.4rem;
   text-align: center;
@@ -65,6 +50,8 @@
   font-size: 1rem;
 }
 
+// for mobile
+// remove paddings and gray BG
 @media (min-width: 768px) {
   .paper-wrapper {
     padding: 0.5rem 1rem 1rem 1rem;
@@ -118,11 +105,11 @@
   margin: 0;
   color: #666;
   display: inline;
+  padding-right: 20px;
 }
 
 .ref {
   display: inline;
-  margin-left: 20px;
 }
 
 .paper-doi {
