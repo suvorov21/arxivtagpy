@@ -6,6 +6,24 @@
     var TAGS = {{ tags }};
     var CATS = {{ cats }};
   </script>
+
+  {% if math_jax %}
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+      var parseTex = true;
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  {% endif %}
+
 {% endblock %}
 
 {% block content %}
@@ -17,13 +35,13 @@
 
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
-              <a class="nav-link active" href="#">Categories</a>
+              <a class="nav-link active" id="cats-link" href="#">Categories</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Tags</a>
+              <a class="nav-link" id="tags-link" href="#">Tags</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Preferences</a>
+              <a class="nav-link" id="pref-link" href="#">Preferences</a>
             </li>
           </ul>
         </div>
@@ -32,19 +50,40 @@
       <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
         <div class="paper-wrapper">
           <div class="container pt-3">
-            <div class="mb-4">
-              <button class="btn btn-success disabled">Save</button>
-              <button class="btn btn-danger disabled" id="btn-cancel">Cancel</button>
+            <div id="cats-set">
+              <form class="mb-4" id="mod-cat" action="/mod_cat" method="POST" onsubmit="return fillCatForm()">
+                <button class="btn btn-success btn-save disabled" type="submit">Save</button>
+                <button class="btn btn-danger btn-save disabled btn-cancel" type="reset">Cancel</button>
+              </form>
+
+              <datalist id="catsDataList"></datalist>
+              {# <h2>Your categories:</h2> #}
+              <div id="cats-list">
+              </div>
+              <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
+                <label for="cat-add-input">Add new category:</label>
+                <input list="catsDataList" id="cat-add-input" name="cat_name" class="custom-select col-6"/>
+                <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
+              </form>
             </div>
-            <datalist id="catsDataList"></datalist>
-            <div id="cats-list">
+            <div id="tags-set" style="display: none;">
+              <form class="mb-4" id="mod-tag" action="/mod_cat" method="POST" onsubmit="return fillTagForm()">
+                <button class="btn btn-success btn-save disabled">Save</button>
+                <button class="btn btn-danger btn-save disabled btn-cancel">Cancel</button>
+              </form>
+              {# <h2>Your tags:</h2> #}
+              <div id="tag-list">
+              </div>
 
             </div>
-            <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
-              <label for="cat-add-input">Add new category:</label>
-              <input list="catsDataList" id="cat-add-input" name="cat_name" class="custom-select col-6"/>
-              <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
-            </form>
+            <div id="pref-set" style="display: none;">
+              <form class="mb-4" id="mod-set" action="/mod_cat" method="POST" onsubmit="return fillSetForm()">
+                <button class="btn btn-success btn-save disabled">Save</button>
+                <button class="btn btn-danger btn-save disabled btn-cancel">Cancel</button>
+              </form>
+              <h2>Display settings</h2>
+              <h2>Account settings</h2>
+            </div>
           </div>
         </div>
     </div>

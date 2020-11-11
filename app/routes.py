@@ -53,6 +53,7 @@ def papers_list():
                            title=render_title(date_type),
                            cats=session['cats'],
                            tags=tags_dict,
+                           # TODO read from prefs
                            math_jax=True
                            )
 
@@ -116,10 +117,12 @@ def settings():
     load_prefs()
     return render_template('settings.jinja2',
                            cats=session['cats'],
-                           tags=session['tags'])
+                           tags=session['tags'],
+                           # TODO read from prefs
+                           math_jax=True
+                           )
 
 @main_bp.route('/about')
-@login_required
 def about():
     """About page."""
     return render_template('about.jinja2')
@@ -135,11 +138,18 @@ def load_prefs():
         session['tags'] = loads(current_user.tags)
 
 
-@main_bp.route('/add_cat', methods=['POST'])
+@main_bp.route('/mod_cat', methods=['POST'])
 @login_required
-def add_cat():
-    new_cat = request.form.get('cat_name')
-    return new_cat
+def mod_cat():
+    new_cat = request.form.get('catNew')
+    print(new_cat)
+    current_user.arxiv_cat = new_cat.split(',')
+    db.session.commit()
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
+    session['cats'] = current_user.arxiv_cat
+    flash("Settings saved")
+    return redirect(url_for('main_bp.settings'))
 
 
 @login_manager.user_loader
@@ -184,5 +194,5 @@ def logout():
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
-    flash('You must be logged in to view that page.')
-    return redirect(url_for('main_bp.root'))
+    flash('You must be logged in to view this page.')
+    return redirect(url_for('main_bp.about'))
