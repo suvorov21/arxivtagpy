@@ -142,12 +142,24 @@ def load_prefs():
 @login_required
 def mod_cat():
     new_cat = request.form.get('catNew')
-    print(new_cat)
     current_user.arxiv_cat = new_cat.split(',')
     db.session.commit()
     # WARNING Do I really need prefs in settings
     # How much it affect db load?
     session['cats'] = current_user.arxiv_cat
+    flash("Settings saved")
+    return redirect(url_for('main_bp.settings'))
+
+@main_bp.route('/mod_tag', methods=['POST'])
+@login_required
+def mod_tag():
+    new_tags = request.form.get('tagNew')
+    print(new_tags)
+    current_user.tags = new_tags
+    db.session.commit()
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
+    session['tags'] = loads(current_user.tags)
     flash("Settings saved")
     return redirect(url_for('main_bp.settings'))
 
@@ -157,8 +169,8 @@ def load_user(user_id):
     """Load user function, store username."""
     if user_id is not None:
         usr = User.query.get(user_id)
-        # usr.login = datetime.now()
-        # db.session.commit()
+        usr.login = datetime.now()
+        db.session.commit()
         return usr
     return None
 

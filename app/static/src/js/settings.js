@@ -1,5 +1,6 @@
 var catNew = [];
 
+// ************************  RENDERS *******************************************
 function addCat(cat) {
   // Dots replace with 111 to be a legal
   // name for JS elements
@@ -55,10 +56,17 @@ function renderTags() {
   if (parseTex) {
     MathJax.typesetPromise();
   }
+  // new tag button
+  let tagElement = document.createElement("div");
+  tagElement.setAttribute("class", "add-set tag-label");
+  tagElement.setAttribute("id", "add-tag");
+  tagElement.textContent = "New";
+
+  document.getElementById("tag-list").appendChild(tagElement);
 }
 
 function renderPref() {
-
+ return;
 }
 
 function reloadSettings() {
@@ -77,6 +85,7 @@ window.onload = function(event) {
   reloadSettings()
 }
 
+// ******************** CATEGORIES *********************************************
 function fillCatForm() {
   if ($(".btn-cancel").hasClass("disabled")) {
     return false;
@@ -116,6 +125,83 @@ $(".btn-cancel").click((event) => {
   }
 });
 
+// ****************** TAGS *****************************************************
+$("#show-rules").click((event) => {
+  if ($("#tag-help").css("display") === "block") {
+    $("#tag-help").css("display", "none");
+  } else {
+    $("#tag-help").css("display", "block");
+  }
+});
+
+$("#tag-list").click((event) => {
+  // consider only tag labels click
+  if (!$(event.target).attr("class").includes("tag-label")) {
+    return;
+  }
+  // check if settings were modified
+  if (!$(".btn-cancel").hasClass("disabled")) {
+    if (confirm("Settings will not be saved. Continue?")) {
+      $(".btn-save").addClass("disabled");
+      event.preventDefault();
+    } else {
+      event.preventDefault();
+      return;
+    }
+  }
+  // highlight the editting tag
+  let tagCol = document.getElementsByClassName("tag-label");
+  for (let id = 0; id < tagCol.length; id++) {
+    $("#tag-label-"+parseInt(id, 10)).css("border-color", "transparent");
+    if ($(tagCol[parseInt(id, 10)]).attr("id") === "add-tag") {
+      $("#add-tag").css("border-style", "dashed");
+      $("#add-tag").css("border-width", "2px");
+    }
+  }
+
+  if ($(event.target).attr("id") === "add-tag") {
+    // WARNING
+    newTag = true;
+
+    $("#btn-reset").click();
+    $("#add-tag").css("border-style", "solid");
+    $("#add-tag").css("border-width", "4px");
+  } else {
+    // WARNING
+    newTag = false;
+
+    editTagId = $(event.target).attr("id").split("-")[2];
+    let tag = TAGS[parseInt(editTagId, 10)];
+
+    $(event.target).css("border-color", "#000");
+
+    $("#tag-fields").prop("disabled", false);
+    document.forms["add-tag"]["tag_name"].value = tag.name;
+    document.forms["add-tag"]["tag_rule"].value = tag.rule;
+    document.forms["add-tag"]["tag_color"].value = tag.color;
+    document.forms["add-tag"]["tag_order"].value = editTagId;
+    $("#tag-color").css("background-color", $("#tag-color").val());
+  }
+  $("#tag-fields").prop("disabled", false);
+});
+
+$(".tag-field").on("input", function(event) {
+  $(".btn-save").removeClass("disabled");
+});
+
+$("#tag-color").on("change", function(event) {
+  $("#tag-color").css("background-color", $("#tag-color").val());
+  $(".btn-save").removeClass("disabled");
+});
+
+function fillTagForm() {
+  if ($(".btn-cancel").hasClass("disabled")) {
+    return false;
+  }
+}
+
+
+// ************** NAVIGATION ***************************************************
 $(".nav-link").click((event) => {
   if (!$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
@@ -135,6 +221,7 @@ $(".nav-link").click((event) => {
   $("#tags-link").removeClass("active");
   $("#pref-link").removeClass("active");
 
-  $("#" + event.target.getAttribute("id").split("-")[0] + "-set").css("display", "block");
+  $("#" + event.target.getAttribute("id").split("-")[0]
+                                    + "-set").css("display", "block");
   $(event.target).addClass("active");
 });

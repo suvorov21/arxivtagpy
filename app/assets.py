@@ -66,6 +66,7 @@ def compile_settings_assets(app):
         'src/js/allCatsArray.js',
         'src/js/cookie.js',
         'src/js/settings.js',
+        'src/js/jquery.wheelcolorpicker.js',
         filters='jsmin',
         output='dist/js/settings.min.js'
     )
