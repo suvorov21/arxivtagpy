@@ -45,6 +45,7 @@ function renderCats() {
 }
 
 function renderTags() {
+  $("#tag-list").empty();
   TAGS.forEach((tag, num) => {
     let tagElement = document.createElement("div");
     tagElement.setAttribute("class", "tag-label");
@@ -74,6 +75,11 @@ function reloadSettings() {
     renderCats();
   }
   renderTags();
+  document.forms["add-tag"]["tag_name"].value = "";
+  document.forms["add-tag"]["tag_rule"].value = "";
+  document.forms["add-tag"]["tag_color"].value = "";
+  document.forms["add-tag"]["tag_order"].value = "";
+
   renderPref();
 }
 
@@ -134,11 +140,16 @@ $("#show-rules").click((event) => {
   }
 });
 
+var newTag = true;
+var editTagId = -1;
+
 $("#tag-list").click((event) => {
   // consider only tag labels click
   if (!$(event.target).attr("class").includes("tag-label")) {
     return;
   }
+  // make delete possible
+  $("#btn-del").removeClass("disabled");
   // check if settings were modified
   if (!$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
@@ -166,6 +177,10 @@ $("#tag-list").click((event) => {
     $("#btn-reset").click();
     $("#add-tag").css("border-style", "solid");
     $("#add-tag").css("border-width", "4px");
+    document.forms["add-tag"]["tag_name"].value = "";
+    document.forms["add-tag"]["tag_rule"].value = "";
+    document.forms["add-tag"]["tag_color"].value = "";
+    document.forms["add-tag"]["tag_order"].value = "";
   } else {
     // WARNING
     newTag = false;
@@ -198,7 +213,76 @@ function fillTagForm() {
   if ($(".btn-cancel").hasClass("disabled")) {
     return false;
   }
+  return checkTag();
 }
+
+function submitTag() {
+  let url = "mod_tag";
+  $.post(url, JSON.stringify(TAGS))
+  .done(function(data) {
+    reloadSettings();
+    $(".btn-save").addClass("disabled");
+    $("#btn-del").addClass("disabled");
+  }).fail(function(jqXHR){
+    alert(jqXHR);
+  });
+}
+
+function checkTag() {
+  $(".cat-alert").html("");
+
+  // check all fields are filled
+  if (document.forms["add-tag"]["tag_name"].value === "" ||
+      document.forms["add-tag"]["tag_rule"].value === "" ||
+      document.forms["add-tag"]["tag_color"].value === "" ||
+      document.forms["add-tag"]["tag_order"].value === "") {
+    $(".cat-alert").html("Fill all the fields in the form!");
+    return false;
+  }
+
+  // check rule
+  let rule = document.forms["add-tag"]["tag_rule"].value;
+  if (!/^(ti|au|abs){.*?}((\||\&)(\(|)((ti|au|abs){.*?})(\)|))*$/i.test(rule)) {
+    $(".cat-alert").html("Check the rule syntax!");
+    return false;
+  }
+
+  // check color
+  if (!/^#[0-9A-F]{6}$/i.test(document.forms["add-tag"]["tag_color"].value)) {
+    $(".cat-alert").html("Color should be in hex format: e.g. #aaaaaa");
+    return false;
+  }
+
+  // check order
+  if (!/^[0-9]/i.test(document.forms["add-tag"]["tag_order"].value)) {
+    $(".cat-alert").html("Order should be an integer");
+    return false;
+  }
+
+  // tag rules are checked
+  let TagDict = {"name": document.forms["add-tag"]["tag_name"].value,
+                 "rule": document.forms["add-tag"]["tag_rule"].value,
+                 "color": document.forms["add-tag"]["tag_color"].value
+               };
+  let order = parseInt(document.forms["add-tag"]["tag_order"].value, 10);
+  if (!newTag) {
+    TAGS.splice(editTagId, 1);
+  }
+  TAGS.splice(order, 0, TagDict);
+
+  submitTag();
+}
+
+$("#btn-del").click((event) => {
+  if (confirm("Are you sure you want to delete " + TAGS[editTagId].name + "?")) {
+    TAGS.splice(editTagId, 1);
+    submitTag();
+    event.preventDefault();
+  } else {
+    event.preventDefault();
+    return;
+  }
+});
 
 
 // ************** NAVIGATION ***************************************************

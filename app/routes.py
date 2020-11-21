@@ -1,5 +1,5 @@
 from datetime import datetime
-from json import loads
+from json import loads, dumps
 
 from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify
@@ -44,10 +44,12 @@ def papers_list():
     # load preferences
     load_prefs()
 
+    print(type(session['tags']))
+
     # get rid of tag rule at front-end
     tags_dict = [{'color': tag['color'],
                   'name': tag['name']
-                  } for num, tag in enumerate(session['tags'])]
+                  } for tag in session['tags']]
 
     return render_template('papers.jinja2',
                            title=render_title(date_type),
@@ -88,7 +90,7 @@ def data():
     # store the info about last checked paper
     # descending paper order is assumed
     if date_type == 3:
-      # TODO
+        # TODO
         last_paper = papers['content'][0].date_up
 
     papers = process_papers(papers,
@@ -130,12 +132,12 @@ def about():
 
 def load_prefs():
     """Load preferences from DB to session."""
-    if 'cats' not in session:
-        session['cats'] = current_user.arxiv_cat
+    # if 'cats' not in session:
+    session['cats'] = current_user.arxiv_cat
 
     # read tags
-    if 'tags' not in session:
-        session['tags'] = loads(current_user.tags)
+    # if 'tags' not in session:
+    session['tags'] = loads(current_user.tags)
 
 
 @main_bp.route('/mod_cat', methods=['POST'])
@@ -146,21 +148,25 @@ def mod_cat():
     db.session.commit()
     # WARNING Do I really need prefs in settings
     # How much it affect db load?
-    session['cats'] = current_user.arxiv_cat
+    load_prefs()
     flash("Settings saved")
     return redirect(url_for('main_bp.settings'))
 
 @main_bp.route('/mod_tag', methods=['POST'])
 @login_required
 def mod_tag():
-    new_tags = request.form.get('tagNew')
-    print(new_tags)
-    current_user.tags = new_tags
+    new_tags = []
+    for arg in request.form.to_dict().keys():
+        new_tags = arg
+
+    if new_tags == []:
+        return redirect(url_for('main_bp.settings'))
+
+    current_user.tags = str(new_tags)
     db.session.commit()
-    # WARNING Do I really need prefs in settings
-    # How much it affect db load?
-    session['tags'] = loads(current_user.tags)
-    flash("Settings saved")
+    # # WARNING Do I really need prefs in settings
+    # # How much it affect db load?
+    load_prefs()
     return redirect(url_for('main_bp.settings'))
 
 
