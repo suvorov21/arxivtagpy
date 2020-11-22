@@ -123,7 +123,7 @@ $("#add-cat-btn").click(() => {
     return;
   }
   // check if legal category
-  if (typeof(allCatsArray[cat]) === undefined) {
+  if (typeof(allCatsArray[cat]) === "undefined") {
     alert("Unknown category");
     return;
   }
@@ -155,6 +155,9 @@ var editTagId = -1;
 
 $("#tag-list").click((event) => {
   // consider only tag labels click
+  if (typeof($(event.target).attr("class")) === "undefined") {
+    return;
+  }
   if (!$(event.target).attr("class").includes("tag-label")) {
     return;
   }
