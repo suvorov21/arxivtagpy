@@ -6,7 +6,6 @@
   <script type="text/javascript">
     var TAGS = {{ tags }};
     var CATS = {{ cats }};
-    console.log("{{page}}");
   </script>
 
   {% if math_jax %}
@@ -89,7 +88,7 @@
                     <small id="ruleHelp" class="form-text text-muted"><span id="show-rules">Show rules hints</span></small>
                     <br/>
                     <div id="tag-help">
-                      <p>The followign syntax rules or their combinations can be used:<br/>
+                      <p>The following rules or their combinations can be used:<br/>
                       <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
                       <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
                       <code>au{John Doe}</code> - for papers with "John Doe" in author list</p>
@@ -100,7 +99,7 @@
                     <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
                     <label for="tag_order">Enter tag order</label><br/>
                     <input type="text" class="form-control tag-field" size="15" name="tag_order" placeholder="1"><br/><br/>
-                    {# WARNING unknown shit here #}
+                    {# TODO consider alert through flash? #}
                     <div style="color: #f00" class="cat-alert"></div>
                   </fieldset>
                 </form>
@@ -115,7 +114,17 @@
                 </form>
                 <h3>Display settings</h3>
 
-                <div class="form-check" action="/mod_pref">
+                <div class="form-check form-block" action="/mod_pref">
+                  <input class="form-check-input" type="checkbox" id="tex-check">
+                  <label class="form-check-label" for="tex-check">Render TeX formulas</label>
+                  <small class="form-text text-muted">
+                    Render TeX formulas may take significant amount of time.
+                  </small>
+                  <input class="form-check-input" type="checkbox" id="and-check">
+                  <label class="form-check-label" for="and-check">Easy logic AND in tag rule</label>
+                  <small class="form-text text-muted">
+                    By default the simple tag rule with logic AND <code>{a&b}</code> is replaced with a proper REGEX expression <code>(a.*b)|(b.*a)</code>.<br/> If you want to have full control over the rule REGEX - disable this option.
+                  </small>
                 </div>
 
                 <h3>Account settings</h3>

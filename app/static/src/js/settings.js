@@ -1,3 +1,6 @@
+/*global allCatsArray, CATS, TAGS, parseTex, MathJax*/
+/*eslint no-undef: "error"*/
+
 var catNew = [];
 
 // ************************  RENDERS *******************************************
@@ -7,15 +10,15 @@ function addCat(cat) {
   // TODO proper escape dot with \\.
   let parent = document.createElement("div");
   parent.setAttribute("class", "d-flex");
-  parent.setAttribute("id", "par-cat-"+cat.replaceAll(".", "111"))
+  parent.setAttribute("id", "par-cat-"+cat.replaceAll(".", "111"));
 
   let close = document.createElement("button");
   close.setAttribute("id", "close_"+cat.replaceAll(".", "111"));
   close.setAttribute("class", "close close-btn");
-  close.innerHTML = "&times"
+  close.innerHTML = "&times";
 
   close.onclick = function(event) {
-    let name = event.target.getAttribute("id").split("_")[1]
+    let name = event.target.getAttribute("id").split("_")[1];
     $("#par-cat-" + name).removeClass("d-flex");
     $("#par-cat-" + name).fadeOut();
     $(".btn").removeClass("disabled");
@@ -23,7 +26,7 @@ function addCat(cat) {
     if (catId > -1) {
       catNew.splice(catId, 1);
     }
-  }
+  };
 
   let catElement = document.createElement("div");
   catElement.setAttribute("class", "pl-2");
@@ -37,7 +40,7 @@ function addCat(cat) {
 function renderCats() {
   $("#cats-list").empty();
   catNew = [];
-  CATS.forEach((cat, num) => {
+  CATS.forEach((cat) => {
     // TODO consider moving function inline?
     addCat(cat);
     catNew.push(cat);
@@ -89,12 +92,12 @@ function reloadSettings() {
   }
 }
 
-window.onload = function(event) {
+window.onload = function() {
   $.each(allCatsArray, function(val, text) {
     $("#catsDataList").append($("<option>").attr("value", val).text(text));
   });
 
-  reloadSettings()
+  reloadSettings();
 }
 
 // ******************** CATEGORIES *********************************************
@@ -112,15 +115,15 @@ function fillCatForm() {
   return true;
 }
 
-$("#add-cat-btn").click((event) => {
-  cat = document.forms["add-cat"]["cat_name"].value;
+$("#add-cat-btn").click(() => {
+  let cat = document.forms["add-cat"]["cat_name"].value;
   // check if already there
   if (catNew.includes(cat)) {
     alert("Catagory already added!");
     return;
   }
   // check if legal category
-  if (allCatsArray[cat] === undefined) {
+  if (typeof(allCatsArray[cat]) === undefined) {
     alert("Unknown category");
     return;
   }
@@ -131,14 +134,14 @@ $("#add-cat-btn").click((event) => {
   catNew.push(cat);
 });
 
-$(".btn-cancel").click((event) => {
+$(".btn-cancel").click(() => {
   if (!$(".btn-cancel").hasClass("disabled")) {
     location.reload();
   }
 });
 
 // ****************** TAGS *****************************************************
-$("#show-rules").click((event) => {
+$("#show-rules").click(() => {
   if ($("#tag-help").css("display") === "block") {
     $("#tag-help").css("display", "none");
   } else {
@@ -207,21 +210,14 @@ $("#tag-list").click((event) => {
   $("#tag-fields").prop("disabled", false);
 });
 
-$(".tag-field").on("input", function(event) {
+$(".tag-field").on("input", function() {
   $(".btn-save").removeClass("disabled");
 });
 
-$("#tag-color").on("change", function(event) {
+$("#tag-color").on("change", function() {
   $("#tag-color").css("background-color", $("#tag-color").val());
   $(".btn-save").removeClass("disabled");
 });
-
-function fillTagForm() {
-  if ($(".btn-cancel").hasClass("disabled")) {
-    return false;
-  }
-  return checkTag();
-}
 
 function submitTag() {
   let url = "mod_tag";
@@ -230,13 +226,15 @@ function submitTag() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     $("#btn-del").addClass("disabled");
+    return true;
   }).fail(function(jqXHR){
     alert(jqXHR);
+    return false;
   });
 }
 
 function checkTag() {
-  $(".cat-alert").html("");
+  $(".cat-alert").empty();
 
   // check all fields are filled
   if (document.forms["add-tag"]["tag_name"].value === "" ||
@@ -261,7 +259,7 @@ function checkTag() {
   }
 
   // check order
-  if (!/^[0-9]/i.test(document.forms["add-tag"]["tag_order"].value)) {
+  if (!/^[0-9]+$/i.test(document.forms["add-tag"]["tag_order"].value)) {
     $(".cat-alert").html("Order should be an integer");
     return false;
   }
@@ -280,8 +278,16 @@ function checkTag() {
   submitTag();
 }
 
+function fillTagForm(event) {
+  if ($(".btn-cancel").hasClass("disabled")) {
+    return false;
+  }
+  checkTag();
+  return false;
+}
+
 $("#btn-del").click((event) => {
-  if (confirm("Are you sure you want to delete " + TAGS[editTagId].name + "?")) {
+  if (confirm("Are you sure you want to delete " + TAGS[parseInt(editTagId, 10)].name + "?")) {
     TAGS.splice(editTagId, 1);
     submitTag();
     event.preventDefault();
@@ -306,13 +312,13 @@ $(".nav-link").click((event) => {
 
 // ask fo settings save on leave
 // BUG seems to be useless
-window.onbeforeunload = function(event) {
-  if (!$(".btn-cancel").hasClass("disabled")) {
-    if (confirm("Settings will not be saved. Continue?")) {
-      return true;
-    } else {
-      event.preventDefault();
-      return;
-    }
-  }
-};
+// window.onbeforeunload = function(event) {
+//   if (!$(".btn-cancel").hasClass("disabled")) {
+//     if (confirm("Settings will not be saved. Continue?")) {
+//       return true;
+//     } else {
+//       event.preventDefault();
+//       return true;
+//     }
+//   }
+// };

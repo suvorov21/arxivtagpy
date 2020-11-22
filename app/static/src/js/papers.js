@@ -183,7 +183,7 @@ function renderCounters() {
   }
 }
 
-function render_ocoins(paper) {
+function renderOcoins(paper) {
   let ocoins = {
     "ctx_ver": "Z39.88-2004",
     "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
@@ -203,7 +203,7 @@ function render_ocoins(paper) {
   ocoins = ocoins.replace(/:/g, "=");
   ocoins = ocoins.slice(1, ocoins.length - 1);
 
-  ocoins += paper.author.map((au) => {return "&rft.au=" + encodeURIComponent(au)}).join();
+  ocoins += paper.author.map((au) => {return "&rft.au=" + encodeURIComponent(au);}).join();
 
   return ocoins;
 }
@@ -221,7 +221,7 @@ function renderPapers() {
 
     let ocoinsSpan = document.createElement("span");
     ocoinsSpan.setAttribute("class", "Z3988");
-    ocoinsSpan.setAttribute("title", render_ocoins(content));
+    ocoinsSpan.setAttribute("title", renderOcoins(content));
     paper.appendChild(ocoinsSpan);
 
     let title = document.createElement("div");
@@ -242,18 +242,21 @@ function renderPapers() {
     var tagPanel = document.createElement("div");
     tagPanel.setAttribute("class", "tag-panel");
     tagPanel.setAttribute("id", "tag-panel-"+pId);
-    var tags = [];
-    content.tags.forEach(function(tag, tagId) {
+    paper.appendChild(tagPanel);
+
+    // var tags = [];
+    content.tags.forEach(function(tag) {
       var tagDiv = document.createElement("div");
       tagDiv.setAttribute("class", "tag-panel-item");
       tagDiv.setAttribute("style", "background-color:" + TAGS[parseInt(tag, 10)].color);
       tagDiv.textContent = TAGS[parseInt(tag, 10)].name;
-      tags.push(tagDiv);
-    });
-    paper.appendChild(tagPanel);
-    tags.forEach(function(tag){
       tagPanel.appendChild(tag);
+      // tags.push(tagDiv);
     });
+    // paper.appendChild(tagPanel);
+    // tags.forEach(function(tag){
+    //   tagPanel.appendChild(tag);
+    // });
     if (tags.length === 0) {
       tagPanel.setAttribute("style", "display: none");
     }
@@ -435,7 +438,7 @@ function sortPapers() {
 }
 
 // change sort selector
-$("#sort-sel").change((event) => {
+$("#sort-sel").change(() => {
   $("#sorting-proc").css("display", "block");
   sortPapers();
   // WARNING
@@ -470,17 +473,17 @@ function scrollIfNeeded() {
   }
 }
 
-document.getElementById("filter-button").onclick = function(event) {
+document.getElementById("filter-button").onclick = function() {
   if (document.getElementById("menu-col").classList.contains("d-none")) {
-    document.getElementById("menu-col").classList.remove("d-none")
-    document.getElementById("menu-main").classList.remove("ml-auto")
+    document.getElementById("menu-col").classList.remove("d-none");
+    document.getElementById("menu-main").classList.remove("ml-auto");
   } else {
-    document.getElementById("menu-col").classList.add("d-none")
-    document.getElementById("menu-main").classList.add("ml-auto")
+    document.getElementById("menu-col").classList.add("d-none");
+    document.getElementById("menu-main").classList.add("ml-auto");
   }
 }
 
-window.onload = function(event) {
+window.onload = function() {
   var url = document.location.href;
   url = url.replace("papers", "data");
 
@@ -499,9 +502,9 @@ window.onload = function(event) {
   renderCats();
   renderTags();
 
-  // add anchors for click on novelty
+  // add anchors for click on novelty checkbox
   var anchors = document.getElementsByClassName("check-nov");
-  for(var i = 0; i < anchors.length; i++) {
+  for(let i = 0; i < anchors.length; i++) {
     let anchor = anchors[i];
     anchor.onchange = function(event) {
       let number = event.target.getAttribute("id").split("-")[2];
@@ -510,8 +513,9 @@ window.onload = function(event) {
       toggleVis();
     }
   }
+  // ad ahchors for click on novelty labels
   anchors = document.getElementsByClassName("item-nov");
-  for(var i = 0; i < anchors.length; i++) {
+  for(let i = 0; i < anchors.length; i++) {
     let anchor = anchors[i];
     anchor.onclick = function(event) {
       let number = event.target.getAttribute("id").split("-")[1];
@@ -520,7 +524,7 @@ window.onload = function(event) {
   }
 }
 
-window.onscroll = function(event) {
+window.onscroll = function() {
   if (!DONE) {
     scrollIfNeeded();
   }

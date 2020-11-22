@@ -120,6 +120,8 @@ def settings():
     page = 'cat'
     if 'page' in request.args:
         page = request.args['page']
+    # TODO this is excessive
+    # CATS and TAGS are send back for all the settings pages
     return render_template('settings.jinja2',
                            cats=session['cats'],
                            tags=session['tags'],
