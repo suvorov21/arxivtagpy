@@ -61,26 +61,32 @@ function renderTags() {
   let tagElement = document.createElement("div");
   tagElement.setAttribute("class", "add-set tag-label");
   tagElement.setAttribute("id", "add-tag");
-  tagElement.textContent = "New";
+  tagElement.textContent = "+New";
 
   document.getElementById("tag-list").appendChild(tagElement);
 }
 
 function renderPref() {
+  // TODO
  return;
 }
 
 function reloadSettings() {
-  if (CATS !== catNew) {
-    renderCats();
+  if ($("#cats-link").hasClass("active")) {
+    if (CATS !== catNew) {
+      renderCats();
+    }
   }
-  renderTags();
-  document.forms["add-tag"]["tag_name"].value = "";
-  document.forms["add-tag"]["tag_rule"].value = "";
-  document.forms["add-tag"]["tag_color"].value = "";
-  document.forms["add-tag"]["tag_order"].value = "";
-
-  renderPref();
+  else if ($("#tags-link").hasClass("active")) {
+    renderTags();
+    document.forms["add-tag"]["tag_name"].value = "";
+    document.forms["add-tag"]["tag_rule"].value = "";
+    document.forms["add-tag"]["tag_color"].value = "";
+    document.forms["add-tag"]["tag_order"].value = "";
+  }
+  else if ($("#pref-link").hasClass("active")) {
+    renderPref();
+  }
 }
 
 window.onload = function(event) {
@@ -140,6 +146,7 @@ $("#show-rules").click((event) => {
   }
 });
 
+// TODO consider how to get rid of it
 var newTag = true;
 var editTagId = -1;
 
@@ -171,7 +178,7 @@ $("#tag-list").click((event) => {
   }
 
   if ($(event.target).attr("id") === "add-tag") {
-    // WARNING
+    // TODO consider how to get rif of it
     newTag = true;
 
     $("#btn-reset").click();
@@ -182,7 +189,7 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_color"].value = "";
     document.forms["add-tag"]["tag_order"].value = "";
   } else {
-    // WARNING
+    // TODO consider how to get rif of it
     newTag = false;
 
     editTagId = $(event.target).attr("id").split("-")[2];
@@ -289,23 +296,23 @@ $("#btn-del").click((event) => {
 $(".nav-link").click((event) => {
   if (!$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
-      $(".btn-save").addClass("disabled");
-      reloadSettings();
-      event.preventDefault();
+      return;
     } else {
       event.preventDefault();
       return;
     }
   }
-  $("#cats-set").css("display", "none");
-  $("#tags-set").css("display", "none");
-  $("#pref-set").css("display", "none");
-
-  $("#cats-link").removeClass("active");
-  $("#tags-link").removeClass("active");
-  $("#pref-link").removeClass("active");
-
-  $("#" + event.target.getAttribute("id").split("-")[0]
-                                    + "-set").css("display", "block");
-  $(event.target).addClass("active");
 });
+
+// ask fo settings save on leave
+// BUG seems to be useless
+window.onbeforeunload = function(event) {
+  if (!$(".btn-cancel").hasClass("disabled")) {
+    if (confirm("Settings will not be saved. Continue?")) {
+      return true;
+    } else {
+      event.preventDefault();
+      return;
+    }
+  }
+};

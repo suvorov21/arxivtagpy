@@ -117,11 +117,15 @@ def bookshelf():
 def settings():
     """Settings page."""
     load_prefs()
+    page = 'cat'
+    if 'page' in request.args:
+        page = request.args['page']
     return render_template('settings.jinja2',
                            cats=session['cats'],
                            tags=session['tags'],
                            # TODO read from prefs
-                           math_jax=True
+                           math_jax=True,
+                           page=page
                            )
 
 @main_bp.route('/about')
@@ -143,6 +147,7 @@ def load_prefs():
 @main_bp.route('/mod_cat', methods=['POST'])
 @login_required
 def mod_cat():
+    """Apply category changes."""
     new_cat = request.form.get('catNew')
     current_user.arxiv_cat = new_cat.split(',')
     db.session.commit()
@@ -155,19 +160,38 @@ def mod_cat():
 @main_bp.route('/mod_tag', methods=['POST'])
 @login_required
 def mod_tag():
+    """Apply tag changes."""
     new_tags = []
     for arg in request.form.to_dict().keys():
         new_tags = arg
 
     if new_tags == []:
-        return redirect(url_for('main_bp.settings'))
+        return dumps({'success': False}), 204
 
     current_user.tags = str(new_tags)
     db.session.commit()
-    # # WARNING Do I really need prefs in settings
-    # # How much it affect db load?
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
     load_prefs()
-    return redirect(url_for('main_bp.settings'))
+    return dumps({'success':True}), 200
+
+@main_bp.route('/mod_pref', methods=['POST'])
+@login_required
+def mod_pref():
+    """Apply preference changes."""
+    new_tags = []
+    for arg in request.form.to_dict().keys():
+        new_tags = arg
+
+    if new_tags == []:
+        return dumps({'success': False}), 204
+
+    current_user.tags = str(new_tags)
+    db.session.commit()
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
+    load_prefs()
+    return dumps({'success':True}), 200
 
 
 @login_manager.user_loader

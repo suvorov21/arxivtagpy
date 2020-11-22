@@ -6,6 +6,7 @@
   <script type="text/javascript">
     var TAGS = {{ tags }};
     var CATS = {{ cats }};
+    console.log("{{page}}");
   </script>
 
   {% if math_jax %}
@@ -36,13 +37,13 @@
 
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
-              <a class="nav-link active" id="cats-link" href="#">Categories</a>
+              <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="tags-link" href="#">Tags</a>
+              <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" id="pref-link" href="#">Preferences</a>
+              <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
             </li>
           </ul>
         </div>
@@ -51,65 +52,75 @@
       <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
         <div class="paper-wrapper">
           <div class="container pt-3">
-            <div id="cats-set">
-              <form class="mb-4" id="mod-cat" action="/mod_cat" method="POST" onsubmit="return fillCatForm()">
-                <button class="btn btn-success btn-save disabled" type="submit">Save</button>
-                <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
-              </form>
+            {% if page == 'cat' %}
+              <div id="cats-set">
+                <form class="mb-4" id="mod-cat" action="/mod_cat" method="POST" onsubmit="return fillCatForm()">
+                  <button class="btn btn-success btn-save disabled" type="submit">Save</button>
+                  <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
+                </form>
 
-              <datalist id="catsDataList"></datalist>
-              {# <h2>Your categories:</h2> #}
-              <div id="cats-list">
+                <datalist id="catsDataList"></datalist>
+                {# <h2>Your categories:</h2> #}
+                <div id="cats-list">
+                </div>
+                <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
+                  <label for="cat-add-input">Add new category:</label>
+                  <input list="catsDataList" id="cat-add-input" name="cat_name" class="custom-select col-6"/>
+                  <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
+                </form>
               </div>
-              <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
-                <label for="cat-add-input">Add new category:</label>
-                <input list="catsDataList" id="cat-add-input" name="cat_name" class="custom-select col-6"/>
-                <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
-              </form>
-            </div>
-            <div id="tags-set" style="display: none;">
-              <form class="mb-4" id="mod-tag" onsubmit="return fillTagForm()">
-                <button class="btn btn-success btn-save disabled">Save</button>
-                <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
-                <button class="btn btn-danger disabled" type="reset" id="btn-del">Delete</button>
-              </form>
-              {# <h2>Your tags:</h2> #}
-              <div id="tag-list">
-              </div>
-              <form name="add-tag" class="form-group">
-                <fieldset id="tag-fields" disabled style="margin: 0; padding: 0; border: none">
-                  <label for="tag-name">Tag name:</label></br>
-                  <input type="text" class="form-control tag-field" id="tag-name" name="tag_name" placeholder="LHC"><br/>
-                  <label for="tag-rule">Tag rule</label><br/>
-                  <input type="text" class="form-control tag-field" id="tag-rule" name='tag_rule' placeholder="abs{LHC}&au{ATLAS|LHCb|ALICE|CMS}" size=50>
-                  <small id="ruleHelp" class="form-text text-muted"><span id="show-rules">Show rules hints</span></small>
-                  <br/>
-                  <div id="tag-help">
-                    <p>The followign syntax rules or their combinations should be used:<br/>
-                    <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
-                    <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
-                    <code>au{John Doe}</code> - for papers with "John Doe" in author list</p>
-                    <p>Logic operators & and | can be placed inside and outside curly brackets. <br/>Regular expressions can be used inside curly brackets. $\\LaTeX$ is supported.<br/><br/>
-                    Example: <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code></p>
-                  </div>
-                  <label for="tag-color" >Tag color</label><br/>
-                  <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
-                  <label for="tag_order">Enter tag order</label><br/>
-                  <input type="text" class="form-control tag-field" size="15" name="tag_order" placeholder="1"><br/><br/>
-                  {# WARNING unknown shit here #}
-                  <div style="color: #f00" class="cat-alert"></div>
-                </fieldset>
-              </form>
+            {% endif %}
+            {% if page == 'tag' %}
+              <div id="tags-set">
+                <form class="mb-4" id="mod-tag" onsubmit="return fillTagForm()">
+                  <button class="btn btn-success btn-save disabled">Save</button>
+                  <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
+                  <button class="btn btn-danger disabled" type="reset" id="btn-del">Delete</button>
+                </form>
+                {# <h2>Your tags:</h2> #}
+                <div id="tag-list">
+                </div>
+                <form name="add-tag" class="form-group">
+                  <fieldset id="tag-fields" disabled style="margin: 0; padding: 0; border: none">
+                    <label for="tag-name">Tag name:</label></br>
+                    <input type="text" class="form-control tag-field" id="tag-name" name="tag_name" placeholder="LHC"><br/>
+                    <label for="tag-rule">Tag rule</label><br/>
+                    <input type="text" class="form-control tag-field" id="tag-rule" name='tag_rule' placeholder="abs{LHC}&au{ATLAS|LHCb|ALICE|CMS}" size=50>
+                    <small id="ruleHelp" class="form-text text-muted"><span id="show-rules">Show rules hints</span></small>
+                    <br/>
+                    <div id="tag-help">
+                      <p>The followign syntax rules or their combinations can be used:<br/>
+                      <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
+                      <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
+                      <code>au{John Doe}</code> - for papers with "John Doe" in author list</p>
+                      <p>Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. <br/>Regular expressions can be used inside curly brackets. <br/>$\\LaTeX$ is supported.<br/>Rules are case insensitive.<br/><br/>
+                      Example: <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code></p><br/><br/>
+                    </div>
+                    <label for="tag-color" >Tag color</label><br/>
+                    <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
+                    <label for="tag_order">Enter tag order</label><br/>
+                    <input type="text" class="form-control tag-field" size="15" name="tag_order" placeholder="1"><br/><br/>
+                    {# WARNING unknown shit here #}
+                    <div style="color: #f00" class="cat-alert"></div>
+                  </fieldset>
+                </form>
 
-            </div>
-            <div id="pref-set" style="display: none;">
-              <form class="mb-4" id="mod-set" action="/mod_cat" method="POST" onsubmit="return fillSetForm()">
-                <button class="btn btn-success btn-save disabled">Save</button>
-                <button class="btn btn-danger btn-save disabled btn-cancel">Cancel</button>
-              </form>
-              <h2>Display settings</h2>
-              <h2>Account settings</h2>
-            </div>
+              </div>
+            {% endif %}
+            {% if page == 'pref' %}
+              <div id="pref-set">
+                <form class="mb-4" id="mod-set" action="/mod_cat" method="POST" onsubmit="return fillSetForm()">
+                  <button class="btn btn-success btn-save disabled">Save</button>
+                  <button class="btn btn-secondary btn-save disabled btn-cancel">Cancel</button>
+                </form>
+                <h3>Display settings</h3>
+
+                <div class="form-check" action="/mod_pref">
+                </div>
+
+                <h3>Account settings</h3>
+              </div>
+            {% endif %}
           </div>
         </div>
     </div>
