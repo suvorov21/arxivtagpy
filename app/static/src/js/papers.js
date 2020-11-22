@@ -244,20 +244,15 @@ function renderPapers() {
     tagPanel.setAttribute("id", "tag-panel-"+pId);
     paper.appendChild(tagPanel);
 
-    // var tags = [];
     content.tags.forEach(function(tag) {
       var tagDiv = document.createElement("div");
       tagDiv.setAttribute("class", "tag-panel-item");
       tagDiv.setAttribute("style", "background-color:" + TAGS[parseInt(tag, 10)].color);
       tagDiv.textContent = TAGS[parseInt(tag, 10)].name;
-      tagPanel.appendChild(tag);
-      // tags.push(tagDiv);
+      tagPanel.appendChild(tagDiv);
     });
-    // paper.appendChild(tagPanel);
-    // tags.forEach(function(tag){
-    //   tagPanel.appendChild(tag);
-    // });
-    if (tags.length === 0) {
+
+    if (content.tags.length === 0) {
       tagPanel.setAttribute("style", "display: none");
     }
 
