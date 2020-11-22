@@ -367,6 +367,87 @@ function renderPapers() {
   }
 }
 
+function sortFunction(a, b, order=true) {
+  return order? a - b : b - a;
+}
+
+function sortPapers() {
+  $("#paper-list-content").empty();
+  START = 0;
+  let sortMethod = $("#sort-sel").val();
+  // tag increase
+  if (sortMethod.includes("tag")) {
+
+    DATA.papers.sort((a, b) => {
+      if (b.tags.length === 0) {
+        return -1;
+      }
+      if (a.tags.length === 0) {
+        return 1;
+      }
+      return sortFunction(a.tags[0], b.tags[0],
+                          sortMethod === "tag-as"? true : false);
+    });
+  }
+  // dates
+  if (sortMethod.includes("date")) {
+    DATA.papers.sort((a, b) => {
+      var aDate = new Date(a.dateUp);
+      var bDate = new Date(b.dateUp);
+      return sortFunction(aDate, bDate,
+                          sortMethod === "date-des"? true : false);
+    });
+  }
+
+  // caregories
+  if (sortMethod.includes("cat")) {
+    DATA.papers.sort((a, b) => {
+      let catA = "";
+      let catB = "";
+      for (let id = 0; id < a.cats.length; id++) {
+        if (CATS.includes(a.cats[parseInt(id, 10)])) {
+          catA = a.cats[parseInt(id, 10)];
+          break;
+        }
+      }
+      for (let id = 0; id < b.cats.length; id++) {
+        if (CATS.includes(b.cats[parseInt(id, 10)])) {
+          catB = b.cats[parseInt(id, 10)];
+          break;
+        }
+      }
+      return sortFunction(CATS.indexOf(catA), CATS.indexOf(catB),
+                          sortMethod === "cat-as"? true : false);
+    });
+  }
+
+  // Novelty new-crossref-update
+  if (sortMethod.includes("nov")) {
+    DATA.papers.sort((a, b) => {
+      let novA = a.up ? 3 : a.cross? 2 : 1;
+      let novB = b.up ? 3 : b.cross? 2 : 1;
+      return sortFunction(novA, novB,
+                          sortMethod === "nov-des"? true : false);
+    });
+  }
+}
+
+// change sort selector
+$("#sort-sel").change((event) => {
+  $("#sorting-proc").css("display", "block");
+  sortPapers();
+  // WARNING
+  // dirty fix to throw displayPapers() in the separate thread
+  // and not frise the selector
+  setTimeout(function () {
+    renderPapers();
+    $("#sorting-proc").css("display", "none");
+    if (parseTex) {
+      MathJax.typesetPromise();
+    }
+  }, 0);
+});
+
 function scrollIfNeeded() {
   if (START > DATA.papers.length) {
     DONE = true;
@@ -407,9 +488,7 @@ window.onload = function(event) {
     DATA = data;
     renderCounters();
     renderPapers();
-    // sortPapers();
-    // displayPapers();
-    // $("#sort-block").css("display", "block");
+    $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
     alert(jqXHR);
   });

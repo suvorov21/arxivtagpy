@@ -1,5 +1,5 @@
-# from datetime import datetime
-from json import loads
+from datetime import datetime
+from json import loads, dumps
 
 from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify
@@ -41,22 +41,21 @@ def papers_list():
     if date_type is None:
         return redirect(url_for('main_bp.papers_list', date='today'))
 
-    # read categories
-    if 'cats' not in session:
-        session['cats'] = current_user.arxiv_cat
+    # load preferences
+    load_prefs()
 
-    # read tags
-    if 'tags' not in session:
-        session['tags'] = loads(current_user.tags)
+    print(type(session['tags']))
+
     # get rid of tag rule at front-end
     tags_dict = [{'color': tag['color'],
                   'name': tag['name']
-                  } for num, tag in enumerate(session['tags'])]
+                  } for tag in session['tags']]
 
     return render_template('papers.jinja2',
                            title=render_title(date_type),
                            cats=session['cats'],
                            tags=tags_dict,
+                           # TODO read from prefs
                            math_jax=True
                            )
 
@@ -91,7 +90,7 @@ def data():
     # store the info about last checked paper
     # descending paper order is assumed
     if date_type == 3:
-      # TODO
+        # TODO
         last_paper = papers['content'][0].date_up
 
     papers = process_papers(papers,
@@ -117,17 +116,82 @@ def bookshelf():
 @login_required
 def settings():
     """Settings page."""
-    return render_template('settings.jinja2')
+    load_prefs()
+    page = 'cat'
+    if 'page' in request.args:
+        page = request.args['page']
+    return render_template('settings.jinja2',
+                           cats=session['cats'],
+                           tags=session['tags'],
+                           # TODO read from prefs
+                           math_jax=True,
+                           page=page
+                           )
 
 @main_bp.route('/about')
-@login_required
 def about():
     """About page."""
     return render_template('about.jinja2')
 
 
+def load_prefs():
+    """Load preferences from DB to session."""
+    # if 'cats' not in session:
+    session['cats'] = current_user.arxiv_cat
+
+    # read tags
+    # if 'tags' not in session:
+    session['tags'] = loads(current_user.tags)
 
 
+@main_bp.route('/mod_cat', methods=['POST'])
+@login_required
+def mod_cat():
+    """Apply category changes."""
+    new_cat = request.form.get('catNew')
+    current_user.arxiv_cat = new_cat.split(',')
+    db.session.commit()
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
+    load_prefs()
+    flash("Settings saved")
+    return redirect(url_for('main_bp.settings'))
+
+@main_bp.route('/mod_tag', methods=['POST'])
+@login_required
+def mod_tag():
+    """Apply tag changes."""
+    new_tags = []
+    for arg in request.form.to_dict().keys():
+        new_tags = arg
+
+    if new_tags == []:
+        return dumps({'success': False}), 204
+
+    current_user.tags = str(new_tags)
+    db.session.commit()
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
+    load_prefs()
+    return dumps({'success':True}), 200
+
+@main_bp.route('/mod_pref', methods=['POST'])
+@login_required
+def mod_pref():
+    """Apply preference changes."""
+    new_tags = []
+    for arg in request.form.to_dict().keys():
+        new_tags = arg
+
+    if new_tags == []:
+        return dumps({'success': False}), 204
+
+    current_user.tags = str(new_tags)
+    db.session.commit()
+    # WARNING Do I really need prefs in settings
+    # How much it affect db load?
+    load_prefs()
+    return dumps({'success':True}), 200
 
 
 @login_manager.user_loader
@@ -135,8 +199,8 @@ def load_user(user_id):
     """Load user function, store username."""
     if user_id is not None:
         usr = User.query.get(user_id)
-        # usr.login = datetime.now()
-        # db.session.commit()
+        usr.login = datetime.now()
+        db.session.commit()
         return usr
     return None
 
@@ -172,5 +236,5 @@ def logout():
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
-    flash('You must be logged in to view that page.')
-    return redirect(url_for('main_bp.root'))
+    flash('You must be logged in to view this page.')
+    return redirect(url_for('main_bp.about'))

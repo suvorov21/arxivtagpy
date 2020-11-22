@@ -82,7 +82,28 @@
       {# Paper list #}
       <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
         <div class="paper-wrapper">
-          <div id="paper-list-title">{{ title }}</div>
+          <div id="paper-list-title">
+            {{ title }}
+          </div>
+          <div id="sort-block">
+{#             <span id="passed" style="float: left;">0</span>
+            <span style="float: left;">&nbsp;results</span> #}
+            <span id="sort-label">Sort by</span>
+            <select class="form-control form-control-sm" id="sort-sel">
+              <option value="tag-as">tag (first)</option>
+              <option value="tag-des">tag (last)</option>
+              <option disabled="disabled">----</option>
+              <option value="cat-as">category (first)</option>
+              <option value="cat-des">category (last)</option>
+              <option disabled="disabled">----</option>
+              <option value="nov-des">Novelty (new)</option>
+              <option value="nov-as">Novelty (updated)</option>
+              <option disabled="disabled">----</option>
+              <option value="date-as">date (recent)</option>
+              <option value="date-des">date (old)</option>
+            </select>
+            <span id="sorting-proc" style="float: left;">Sorting...</span>
+          </div>
           <div id="paper-list-content">
 
           </div>

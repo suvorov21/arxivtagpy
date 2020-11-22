@@ -49,6 +49,9 @@ class ArxivApi(PaperApi):
 
         response = get(self.URL, self.params)
 
+        print("HEY!")
+        print(response.url)
+
         if response.status_code != 200:
             # TODO add handler
             return 404
