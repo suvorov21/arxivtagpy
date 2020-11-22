@@ -2,13 +2,6 @@
 
 /* ------ Menu SS ------- */
 
-.menu-content {
-  background-color: #fff;
-  padding: 0.5rem 1rem 2rem 1rem;
-  border-radius: @border_curv;
-  width: @menu_width;
-}
-
 .counter {
   color: #aaa;
 }
@@ -37,7 +30,7 @@
 .tag-label {
   background-color: #aaa;
   color: #000;
-  width: 90px;
+  width: 110px;
   margin: 2px 0;
   padding: 5px;
   border-radius: 20px;
@@ -45,14 +38,6 @@
 }
 
 /* ----------Papers ---------- */
-
-.paper-wrapper {
-  border-radius: @border_curv;
-  margin-bottom: 2rem;
-  font-size: 1.2rem;
-  background-color: #fff;
-  overflow: hidden;
-}
 
 #paper-list-title {
   font-size: 1.4rem;
@@ -65,6 +50,31 @@
   font-size: 1rem;
 }
 
+#sort-block {
+  display: none;
+  color: #aaa;
+  font-size: 1rem;
+  padding: 15px 0 0 0;
+}
+
+#sort-label {
+  float: left;
+  line-height:30px;
+}
+
+#sort-sel {
+  margin-left: 5px;
+  width: 150px;
+  float: left;
+}
+
+#sorting-proc {
+  margin-left: 15px;
+  display: none;
+}
+
+// for mobile
+// remove paddings and gray BG
 @media (min-width: 768px) {
   .paper-wrapper {
     padding: 0.5rem 1rem 1rem 1rem;
@@ -118,11 +128,11 @@
   margin: 0;
   color: #666;
   display: inline;
+  padding-right: 20px;
 }
 
 .ref {
   display: inline;
-  margin-left: 20px;
 }
 
 .paper-doi {
