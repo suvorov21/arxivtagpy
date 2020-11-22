@@ -392,8 +392,8 @@ function sortPapers() {
   // dates
   if (sortMethod.includes("date")) {
     DATA.papers.sort((a, b) => {
-      var aDate = new Date(a.dateUp);
-      var bDate = new Date(b.dateUp);
+      let aDate = new Date(a.date_sub);
+      let bDate = new Date(b.date_sub);
       return sortFunction(aDate, bDate,
                           sortMethod === "date-des"? true : false);
     });
@@ -424,8 +424,10 @@ function sortPapers() {
   // Novelty new-crossref-update
   if (sortMethod.includes("nov")) {
     DATA.papers.sort((a, b) => {
-      let novA = a.up ? 3 : a.cross? 2 : 1;
-      let novB = b.up ? 3 : b.cross? 2 : 1;
+      // let novA = a.up ? 3 : a.cross? 2 : 1;
+      // let novB = b.up ? 3 : b.cross? 2 : 1;
+      let novA = a.nov;
+      let novB = b.nov;
       return sortFunction(novA, novB,
                           sortMethod === "nov-des"? true : false);
     });
