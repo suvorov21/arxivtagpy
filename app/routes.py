@@ -55,8 +55,7 @@ def papers_list():
                            title=render_title(date_type),
                            cats=session['cats'],
                            tags=tags_dict,
-                           # TODO read from prefs
-                           math_jax=True
+                           math_jax=True if session['pref'].get('tex') else False
                            )
 
 @main_bp.route('/data')
@@ -74,8 +73,7 @@ def data():
         date_type = date_dict.get(request.args['date'])
 
     # define an arXiv API with the categories of interest
-    if 'cats' not in session:
-        session['cats'] = current_user.arxiv_cat
+    load_prefs()
     cats_query = r'%20OR%20'.join(f'cat:{cat}' for cat in session['cats'])
     paper_api = ArxivApi({'search_query': cats_query}#,
                          # TODO
@@ -83,8 +81,8 @@ def data():
                          )
     # further code is paper source independent.
     # Any API can be defined above
-    if 'tags' not in session:
-        session['tags'] = loads(current_user.tags)
+    # if 'tags' not in session:
+    #     session['tags'] = loads(current_user.tags)
     papers = paper_api.get_papers(date_type)
 
     # store the info about last checked paper
@@ -93,9 +91,11 @@ def data():
         # TODO
         last_paper = papers['content'][0].date_up
 
+    print(session['pref'].get('easy_and'))
     papers = process_papers(papers,
                             session['tags'],
-                            session['cats']
+                            session['cats'],
+                            session['pref'].get('easy_and')
                             )
     paper_render = render_papers(papers)
 
@@ -126,7 +126,7 @@ def settings():
                            cats=session['cats'],
                            tags=session['tags'],
                            # TODO read from prefs
-                           math_jax=True,
+                           pref=dumps(session['pref']),
                            page=page
                            )
 
@@ -145,6 +145,11 @@ def load_prefs():
     # if 'tags' not in session:
     session['tags'] = loads(current_user.tags)
 
+    # read preferences
+    # if 'pref' not in session:
+    if "NoneType" not in str(type(current_user.pref)):
+        session['pref'] = loads(current_user.pref)
+
 
 @main_bp.route('/mod_cat', methods=['POST'])
 @login_required
@@ -153,9 +158,9 @@ def mod_cat():
     new_cat = request.form.get('catNew')
     current_user.arxiv_cat = new_cat.split(',')
     db.session.commit()
-    # WARNING Do I really need prefs in settings
+    # WARNING Do I really need prefs in session
     # How much it affect db load?
-    load_prefs()
+    session['cats'] = current_user.arxiv_cat
     flash("Settings saved")
     return redirect(url_for('main_bp.settings'))
 
@@ -172,27 +177,29 @@ def mod_tag():
 
     current_user.tags = str(new_tags)
     db.session.commit()
-    # WARNING Do I really need prefs in settings
+    # WARNING Do I really need prefs in session
     # How much it affect db load?
-    load_prefs()
+    session['tags'] = loads(str(new_tags))
     return dumps({'success':True}), 200
 
 @main_bp.route('/mod_pref', methods=['POST'])
 @login_required
 def mod_pref():
     """Apply preference changes."""
-    new_tags = []
+    new_pref = []
     for arg in request.form.to_dict().keys():
-        new_tags = arg
+        new_pref = arg
 
-    if new_tags == []:
+    print(new_pref)
+    if new_pref == []:
         return dumps({'success': False}), 204
 
-    current_user.tags = str(new_tags)
+    print(new_pref)
+    current_user.pref = str(new_pref)
     db.session.commit()
-    # WARNING Do I really need prefs in settings
+    # WARNING Do I really need prefs in session
     # How much it affect db load?
-    load_prefs()
+    session['pref'] = loads(str(new_pref))
     return dumps({'success':True}), 200
 
 

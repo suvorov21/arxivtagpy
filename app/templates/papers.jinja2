@@ -6,6 +6,7 @@
     var DATA = [];
     var TAGS = {{ tags }};
     var CATS = {{ cats }};
+    var parseTex = false;
   </script>
 
   {% if math_jax %}
@@ -19,7 +20,7 @@
           fontCache: 'global'
         }
       };
-      var parseTex = true;
+      parseTex = true;
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

@@ -6,6 +6,7 @@
   <script type="text/javascript">
     var TAGS = {{ tags }};
     var CATS = {{ cats }};
+    var PREF = {{ pref }};
   </script>
 
   {% if math_jax %}
@@ -28,7 +29,7 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container-fluid">
+  <div class="container-fluid" id="main-container">
     <div class="row mt-4">
       {# Menu #}
       <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
@@ -108,7 +109,7 @@
             {% endif %}
             {% if page == 'pref' %}
               <div id="pref-set">
-                <form class="mb-4" id="mod-set" action="/mod_cat" method="POST" onsubmit="return fillSetForm()">
+                <form class="mb-4" id="mod-set" method="POST" onsubmit="return fillSetForm()">
                   <button class="btn btn-success btn-save disabled">Save</button>
                   <button class="btn btn-secondary btn-save disabled btn-cancel">Cancel</button>
                 </form>

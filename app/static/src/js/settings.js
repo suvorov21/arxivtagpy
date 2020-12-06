@@ -1,6 +1,30 @@
 /*global allCatsArray, CATS, TAGS, parseTex, MathJax*/
 /*eslint no-undef: "error"*/
 
+// ************************** UTILS ********************************************
+function raiseAlert(text="Text", type="alert") {
+  let parent = document.createElement("div");
+  parent.setAttribute("class", "alert alert-dismissible fade show alert-" + type);
+  parent.setAttribute("role", "alert");
+
+  let content = document.createElement("span");
+  content.textContent = text;
+
+  let close = document.createElement("button")
+  close.setAttribute("class", "close");
+  close.setAttribute("data-dismiss", "alert");
+  close.setAttribute("aria-label", "Close");
+
+  let time = document.createElement("span");
+  time.innerHTML = "&times;";
+
+  document.body.insertBefore(parent, document.getElementById("main-container"));
+  parent.appendChild(content);
+  parent.appendChild(close);
+  close.appendChild(time);
+}
+
+
 var catNew = [];
 
 // ************************  RENDERS *******************************************
@@ -70,8 +94,14 @@ function renderTags() {
 }
 
 function renderPref() {
-  // TODO
- return;
+  if (PREF["tex"]) {
+    document.getElementById("tex-check").checked = true;
+  }
+
+  if (PREF["easy_and"]) {
+    document.getElementById("and-check").checked = true;
+  }
+  return;
 }
 
 function reloadSettings() {
@@ -161,8 +191,6 @@ $("#tag-list").click((event) => {
   if (!$(event.target).attr("class").includes("tag-label")) {
     return;
   }
-  // make delete possible
-  $("#btn-del").removeClass("disabled");
   // check if settings were modified
   if (!$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
@@ -209,6 +237,9 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_color"].value = tag.color;
     document.forms["add-tag"]["tag_order"].value = editTagId;
     $("#tag-color").css("background-color", $("#tag-color").val());
+
+    // make delete possible
+    $("#btn-del").removeClass("disabled");
   }
   $("#tag-fields").prop("disabled", false);
 });
@@ -229,9 +260,10 @@ function submitTag() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     $("#btn-del").addClass("disabled");
+    raiseAlert("Settings are saved", "success");
     return true;
   }).fail(function(jqXHR){
-    alert(jqXHR);
+    raiseAlert("Settings are not saved. Please try later", "danger");
     return false;
   });
 }
@@ -281,7 +313,7 @@ function checkTag() {
   submitTag();
 }
 
-function fillTagForm(event) {
+function fillTagForm() {
   if ($(".btn-cancel").hasClass("disabled")) {
     return false;
   }
@@ -290,6 +322,10 @@ function fillTagForm(event) {
 }
 
 $("#btn-del").click((event) => {
+  if (newTag) {
+    event.preventDefault();
+    return;
+  }
   if (confirm("Are you sure you want to delete " + TAGS[parseInt(editTagId, 10)].name + "?")) {
     TAGS.splice(editTagId, 1);
     submitTag();
@@ -300,6 +336,29 @@ $("#btn-del").click((event) => {
   }
 });
 
+// ***************** PREFERENCES ***********************************************
+$(".form-check-input").change((event) => {
+  $(".btn-save").removeClass("disabled");
+});
+
+function fillSetForm() {
+  let url = "mod_pref";
+  let data_set = {"tex": document.getElementById("tex-check").checked,
+                  "easy_and": document.getElementById("and-check").checked
+                  }
+  $.post(url, JSON.stringify(data_set))
+  .done(function(data) {
+    reloadSettings();
+    $(".btn-save").addClass("disabled");
+    raiseAlert("Settings are saved", "success");
+    return false;
+  }).fail(function(jqXHR){
+    raiseAlert("Settings are not saved. Please try later", "danger");
+    return false;
+  });
+
+  return false;
+}
 
 // ************** NAVIGATION ***************************************************
 $(".nav-link").click((event) => {
