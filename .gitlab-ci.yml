@@ -8,8 +8,8 @@ syntax_test:
     alpine:latest
   before_script:
     - apk add python3-dev
-    - apk add gcc musl-dev libffi-dev make
     - apk add py3-wheel py3-pip
+    - apk add gcc musl-dev libffi-dev make
     - python3 -m pip install -r requirements.txt
   script:
     - python -m py_compile app/*.py
