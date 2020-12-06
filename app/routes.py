@@ -44,8 +44,6 @@ def papers_list():
     # load preferences
     load_prefs()
 
-    print(type(session['tags']))
-
     # get rid of tag rule at front-end
     tags_dict = [{'color': tag['color'],
                   'name': tag['name']
@@ -91,7 +89,6 @@ def data():
         # TODO
         last_paper = papers['content'][0].date_up
 
-    print(session['pref'].get('easy_and'))
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
@@ -127,6 +124,7 @@ def settings():
                            tags=session['tags'],
                            # TODO read from prefs
                            pref=dumps(session['pref']),
+                           math_jax=True if session['pref'].get('tex') else False,
                            page=page
                            )
 
@@ -190,11 +188,9 @@ def mod_pref():
     for arg in request.form.to_dict().keys():
         new_pref = arg
 
-    print(new_pref)
     if new_pref == []:
         return dumps({'success': False}), 204
 
-    print(new_pref)
     current_user.pref = str(new_pref)
     db.session.commit()
     # WARNING Do I really need prefs in session
