@@ -168,10 +168,13 @@ def mod_cat():
 def mod_tag():
     """Apply tag changes."""
     new_tags = []
+    # Fix key break with ampersand
     for arg in request.form.to_dict().keys():
-        new_tags = arg
+        new_tags.append(arg)
 
-    if new_tags == []:
+    new_tags = '&'.join(new_tags)
+
+    if new_tags == '':
         return dumps({'success': False}), 204
 
     current_user.tags = str(new_tags)
