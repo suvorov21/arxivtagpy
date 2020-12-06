@@ -49,9 +49,6 @@ class ArxivApi(PaperApi):
 
         response = get(self.URL, self.params)
 
-        print("HEY!")
-        print(response.url)
-
         if response.status_code != 200:
             # TODO add handler
             return 404
@@ -184,7 +181,8 @@ def parse_links(links, link_type='pdf') -> str:
 
 def process_papers(papers: Dict,
                    tags: Dict,
-                   cats: Tuple[str]
+                   cats: Tuple[str],
+                   easy_and: bool
                    ) -> Dict:
     """
     Papers processing
@@ -223,12 +221,12 @@ def process_papers(papers: Dict,
 
         # 2.
         for num, tag in enumerate(tags):
-            if tag_suitable(paper, tag['rule']):
+            if tag_suitable(paper, tag['rule'], easy_and):
                 paper['tags'].append(num)
                 papers['n_tags'][num] += 1
     return papers
 
-def tag_suitable(paper: Dict, rule: str) -> bool:
+def tag_suitable(paper: Dict, rule: str, easy_and: bool) -> bool:
     """
     Check if paper is suitable with a tag rule
 
@@ -249,29 +247,29 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
         start_pos = search(r"(^|\}[&|])(\()", rule).start(2)
         end_pos = search(r"\}(\))", rule).start(1)
         # start_pos = search(r"(.*?)\{.*?\}", rule).start(2))
-        condition = str(tag_suitable(paper, rule[start_pos+1:end_pos]))
+        condition = str(tag_suitable(paper, rule[start_pos+1:end_pos], easy_and))
         new_rule = rule[0:start_pos] + condition + rule[end_pos+1:]
-        return tag_suitable(paper, new_rule)
+        return tag_suitable(paper, new_rule, easy_and)
 
     # parse logic AND
     # while '&' outside {} exists
     if '&' in rule_outside_curly:
         fst, scd, before_fst, after_scd = separate_rules(rule, '&')
-        condition = str(tag_suitable(paper, fst) and tag_suitable(paper, scd))
+        condition = str(tag_suitable(paper, fst, easy_and) and tag_suitable(paper, scd, easy_and))
         new_rule = before_fst + condition + after_scd
-        return tag_suitable(paper, new_rule)
+        return tag_suitable(paper, new_rule, easy_and)
 
     # parse logic OR
     if '|' in rule_outside_curly:
         fst, scd, before_fst, after_scd = separate_rules(rule, '|')
-        condition = str(tag_suitable(paper, fst) or tag_suitable(paper, scd))
+        condition = str(tag_suitable(paper, fst, easy_and) or tag_suitable(paper, scd, easy_and))
         new_rule = before_fst + condition + after_scd
-        return tag_suitable(paper, new_rule)
+        return tag_suitable(paper, new_rule, easy_and)
 
     # parse simple conditions ti/abs/au
     res = search(r'^(ti|abs|au)\{.*?\}', rule)
     if res:
-        return parse_simple_rule(paper, rule, res.group(1))
+        return parse_simple_rule(paper, rule, res.group(1), easy_and)
 
     return False
 
@@ -291,7 +289,7 @@ def separate_rules(rule: str, sign: str):
 
     return fst, scd, rule[0:fst_start], rule[scd_end+2:]
 
-def parse_simple_rule(paper: Dict, rule: str, prefix: str) -> bool:
+def parse_simple_rule(paper: Dict, rule: str, prefix: str, easy_and: bool) -> bool:
     """Parse simple rules as ti/au/abs."""
     rule_dict = {'ti': 'title',
                  'au': 'author',
@@ -306,7 +304,7 @@ def parse_simple_rule(paper: Dict, rule: str, prefix: str) -> bool:
     if isinstance(search_target, list):
         search_target = ', '.join(paper['author'])
 
-    if '&' in condition:
+    if '&' in condition and easy_and:
         cond_list = condition.split('&')
         condition = '(' + condition.replace('&', '.*')
         condition +=')|('
