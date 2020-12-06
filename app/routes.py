@@ -178,7 +178,7 @@ def mod_tag():
     db.session.commit()
     # WARNING Do I really need prefs in session
     # How much it affect db load?
-    session['tags'] = loads(str(new_tags))
+    session['tags'] = loads(current_user.tags)
     return dumps({'success':True}), 200
 
 @main_bp.route('/mod_pref', methods=['POST'])
@@ -196,7 +196,7 @@ def mod_pref():
     db.session.commit()
     # WARNING Do I really need prefs in session
     # How much it affect db load?
-    session['pref'] = loads(str(new_pref))
+    session['pref'] = loads(current_user.pref)
     return dumps({'success':True}), 200
 
 
