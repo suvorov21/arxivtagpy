@@ -31,6 +31,10 @@ class User(UserMixin, db.Model):
                      nullable=True,
                      unique=False
                      )
+    pref = db.Column(db.String(),
+                     nullable=True,
+                     unique=False
+                     )
 
     def __repr__(self):
         """Print user."""
