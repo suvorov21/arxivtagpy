@@ -6,3 +6,4 @@ arXivTag
 app/static/.webassets-cache/*
 varxiv/*
 .idea/*
+*.pyc
