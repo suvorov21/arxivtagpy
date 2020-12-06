@@ -1,4 +1,4 @@
-/*global allCatsArray, CATS, TAGS, parseTex, MathJax*/
+/*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax*/
 /*eslint no-undef: "error"*/
 
 // ************************** UTILS ********************************************
@@ -10,7 +10,7 @@ function raiseAlert(text="Text", type="alert") {
   let content = document.createElement("span");
   content.textContent = text;
 
-  let close = document.createElement("button")
+  let close = document.createElement("button");
   close.setAttribute("class", "close");
   close.setAttribute("data-dismiss", "alert");
   close.setAttribute("aria-label", "Close");
@@ -337,16 +337,16 @@ $("#btn-del").click((event) => {
 });
 
 // ***************** PREFERENCES ***********************************************
-$(".form-check-input").change((event) => {
+$(".form-check-input").change(() => {
   $(".btn-save").removeClass("disabled");
 });
 
 function fillSetForm() {
   let url = "mod_pref";
-  let data_set = {"tex": document.getElementById("tex-check").checked,
+  let dataSet = {"tex": document.getElementById("tex-check").checked,
                   "easy_and": document.getElementById("and-check").checked
                   }
-  $.post(url, JSON.stringify(data_set))
+  $.post(url, JSON.stringify(dataSet))
   .done(function(data) {
     reloadSettings();
     $(".btn-save").addClass("disabled");
