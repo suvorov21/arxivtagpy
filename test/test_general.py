@@ -18,7 +18,8 @@ def test_client():
         user1 = User(email='tester@gmail.com',
                  pasw=generate_password_hash('tester'),
                  arxiv_cat=['hep-ex'],
-                 tags='[{"name": "test", "rule":"ti{test}", "color":"#ff0000"}]'
+                 tags='[{"name": "test", "rule":"ti{test}", "color":"#ff0000"}]',
+                 pref='{"tex":"True", "easy_and":"True"}'
                  )
         db.session.add(user1)
         db.session.commit()
