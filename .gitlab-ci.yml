@@ -2,7 +2,17 @@ stages:
   - test
   - production
 
-test:
+syntax_test:
+  stage: test
+  image:
+    alpine:latest
+  before_script:
+    - apk add python3-dev
+    - python3 -m pip install -r requirements.txt
+  script:
+    - python -m py_compile app/*.py
+
+integration_test:
     stage: test
     image:
       alpine:latest
