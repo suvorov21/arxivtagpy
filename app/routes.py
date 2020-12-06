@@ -89,6 +89,7 @@ def data():
         # TODO
         last_paper = papers['content'][0].date_up
 
+    print(session['pref'].get('easy_and'))
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
