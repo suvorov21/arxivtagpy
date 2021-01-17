@@ -31,10 +31,10 @@
 
 {% block content %}
   <div class="container-fluid" id="main-container">
-    <div class="row mt-4 d-none d-md-block">
+    <div class="row mt-4">
       {# TODO think about removing code duplication #}
       {# Menu #}
-      <div class="col-md-4 col-lg-3 col-xl-2" id="menu-col">
+      <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
         <div class="menu-content ml-auto" id="menu-main">
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
@@ -49,24 +49,20 @@
           </ul>
         </div>
       </div>
-    </div>
     {# Mobile friendly menu #}
-    <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
-        <div class="row d-md-none pt-2">
-          <div class="container pb-3">
-            <ul class="nav nav-pills">
-                <li class="nav-item">
-                  <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
-                </li>
-              </ul>
-            </div>
-          </div>
+
+    <div class="container pb-3 d-md-none">
+      <ul class="nav nav-pills">
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
+          </li>
+        </ul>
       </div>
 
       {# Settings content #}
@@ -75,8 +71,8 @@
           <div class="container pt-3">
             {% if page == 'cat' %}
               <div id="cats-set">
-                <form class="mb-4" id="mod-cat" action="/mod_cat" method="POST" onsubmit="return fillCatForm()">
-                  <button class="btn btn-success btn-save disabled" type="submit">Save</button>
+                <form class="mb-4" id="mod-cat" method="POST" onsubmit="return fillCatForm()">
+                  <button class="btn btn-success btn-save disabled">Save</button>
                   <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
                 </form>
                 <datalist id="catsDataList"></datalist>
@@ -147,10 +143,35 @@
                 </div>
 
                 <h3>Account settings</h3>
+                <h4> Password change</h4>
+                <form action="/change_pasw" method="POST" onsubmit="return changePasw()">
+                  <div class="form-group row pt-2">
+                    <label for="oldPass" class="col-sm-4 col-form-label">Old password</label>
+                    <div class="col-sm-8">
+                      <input type="password" class="form-control" name="oldPass" size="20">
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="newPass1" class="col-sm-4 col-form-label">New password</label>
+                    <div class="col-sm-8">
+                      <input type="password" class="form-control" name="newPass1" size="20">
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <label for="newPass2" class="col-sm-4 col-form-label">Repeat new password</label>
+                    <div class="col-sm-8">
+                      <input type="password" class="form-control" name="newPass2" size="20">
+                    </div>
+                  </div>
+                  <button class="btn btn-primary" type="submit">Change password</button>
+                </form>
+                <form action="delAcc" method="POST" onsubmit="return delAcc()">
+                <button class="btn btn-danger mt-5" id="deleteAcc" type="submit">Delete account</button>
               </div>
             {% endif %}
           </div>
         </div>
+      </div>
     </div>
   </div>
 {% endblock %}
