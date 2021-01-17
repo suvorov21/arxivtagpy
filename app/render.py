@@ -26,11 +26,15 @@ def render_papers(papers: Dict) -> Dict:
             paper['author'].append('et al')
 
         # Put submit date only if updated
-        if paper.get('date_sub') \
-        and paper.get('date_sub') != paper.get('date_up'):
-            paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
-        else:
-            paper['date_sub'] = None
+        # THIS mess up paper sorting at front-end
+        # switch OFF
+        # if paper.get('date_sub') \
+        # and paper.get('date_sub') != paper.get('date_up'):
+        #     paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
+        # else:
+        #     paper['date_sub'] = None
+
+        paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
 
         if paper.get('date_up'):
             paper['date_up'] = paper['date_up'].strftime('%d %B %Y')

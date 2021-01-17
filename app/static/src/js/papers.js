@@ -266,7 +266,7 @@ function renderPapers() {
     date.setAttribute("class", "paper-date");
     date.textContent = content.date_up;
 
-    if (content.date_sub) {
+    if (content.date_sub !== content.date_up) {
       date.textContent += " (v1: " + content.date_sub + ")";
     }
     paper.appendChild(date);
