@@ -372,7 +372,7 @@ function changePasw() {
 }
 
 function delAcc() {
-  if (confirm("Do you want to delete account completely? This action could be not undone!")) {
+  if (confirm("Do you want to delete account completely? This action could not be undone!")) {
     return true;
   } else {
     return false;
