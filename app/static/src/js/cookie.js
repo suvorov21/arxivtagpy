@@ -1,6 +1,3 @@
-/*global MathJax*/
-/*eslint no-undef: "error"*/
-
 var prefs = {
 
   data: {},

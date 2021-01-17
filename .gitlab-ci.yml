@@ -10,8 +10,8 @@ syntax_test:
     - apk add python3-dev
     - apk add postgresql postgresql-dev
     - apk add py3-wheel py3-pip
-    - apk add gcc musl-dev libffi-dev make
-    - python3 -m pip install -r requirements.txt
+    - apk add gcc musl-dev libffi-dev make g++
+    - python3 -m pip install --ignore-installed -r requirements.txt
   script:
     - python3 -m py_compile app/*.py
 
@@ -30,8 +30,8 @@ integration_test:
     - apk add python3-dev
     - apk add postgresql postgresql-dev
     - apk add py3-wheel py3-pip
-    - apk add gcc musl-dev libffi-dev make
-    - python3 -m pip install -r requirements.txt
+    - apk add gcc musl-dev libffi-dev make g++
+    - python3 -m pip install --ignore-installed -r requirements.txt
     - export PGPASSWORD=$POSTGRES_PASSWORD
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"

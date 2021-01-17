@@ -14,10 +14,11 @@ def render_title(date_type: int = 0) -> str:
 
 def render_papers(papers: Dict) -> Dict:
     """Convert papers dict to minimize info"""
-    # cross-fingered nobody will use 1000 tags
-    # otherwise I'm in trouble
     papers['content'] = sorted(papers['content'],
                                key=lambda t: t['tags'] if len(t['tags'])>0 else [1000])
+
+    # cross-fingered nobody will use 1000 tags
+    # otherwise I'm in trouble
 
     for paper in papers['content']:
         if paper.get('author') and len(paper['author']) > 4:
@@ -25,11 +26,15 @@ def render_papers(papers: Dict) -> Dict:
             paper['author'].append('et al')
 
         # Put submit date only if updated
-        if paper.get('date_sub') \
-        and paper.get('date_sub') != paper.get('date_up'):
-            paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
-        else:
-            paper['date_sub'] = None
+        # THIS mess up paper sorting at front-end
+        # switch OFF
+        # if paper.get('date_sub') \
+        # and paper.get('date_sub') != paper.get('date_up'):
+        #     paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
+        # else:
+        #     paper['date_sub'] = None
+
+        paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
 
         if paper.get('date_up'):
             paper['date_up'] = paper['date_up'].strftime('%d %B %Y')

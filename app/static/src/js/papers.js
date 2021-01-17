@@ -266,7 +266,7 @@ function renderPapers() {
     date.setAttribute("class", "paper-date");
     date.textContent = content.date_up;
 
-    if (content.date_sub) {
+    if (content.date_sub !== content.date_up) {
       date.textContent += " (v1: " + content.date_sub + ")";
     }
     paper.appendChild(date);
@@ -377,11 +377,8 @@ function sortPapers() {
   if (sortMethod.includes("tag")) {
 
     DATA.papers.sort((a, b) => {
-      if (b.tags.length === 0) {
+      if (b.tags.length === 0 || a.tags.length === 0) {
         return -1;
-      }
-      if (a.tags.length === 0) {
-        return 1;
       }
       return sortFunction(a.tags[0], b.tags[0],
                           sortMethod === "tag-as"? true : false);
@@ -422,8 +419,6 @@ function sortPapers() {
   // Novelty new-crossref-update
   if (sortMethod.includes("nov")) {
     DATA.papers.sort((a, b) => {
-      // let novA = a.up ? 3 : a.cross? 2 : 1;
-      // let novB = b.up ? 3 : b.cross? 2 : 1;
       let novA = a.nov;
       let novB = b.nov;
       return sortFunction(novA, novB,
@@ -436,9 +431,8 @@ function sortPapers() {
 $("#sort-sel").change(() => {
   $("#sorting-proc").css("display", "block");
   sortPapers();
-  // WARNING
   // dirty fix to throw displayPapers() in the separate thread
-  // and not frise the selector
+  // and not freeze the selector
   setTimeout(function () {
     renderPapers();
     $("#sorting-proc").css("display", "none");
@@ -476,7 +470,7 @@ document.getElementById("filter-button").onclick = function() {
     document.getElementById("menu-col").classList.add("d-none");
     document.getElementById("menu-main").classList.add("ml-auto");
   }
-}
+};
 
 window.onload = function() {
   var url = document.location.href;
@@ -508,19 +502,19 @@ window.onload = function() {
       toggleVis();
     }
   }
-  // ad ahchors for click on novelty labels
+  // add ahchors for click on novelty labels
   anchors = document.getElementsByClassName("item-nov");
   for(let i = 0; i < anchors.length; i++) {
-    let anchor = anchors[i];
+    let anchor = anchors[parseInt(i, 10)];
     anchor.onclick = function(event) {
       let number = event.target.getAttribute("id").split("-")[1];
       document.getElementById("check-nov-"+number).click();
     }
   }
-}
+};
 
 window.onscroll = function() {
   if (!DONE) {
     scrollIfNeeded();
   }
-}
+};

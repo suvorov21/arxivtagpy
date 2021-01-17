@@ -105,10 +105,8 @@ function renderPref() {
 }
 
 function reloadSettings() {
-  if ($("#cats-link").hasClass("active")) {
-    if (CATS !== catNew) {
-      renderCats();
-    }
+  if ($("#cats-link").hasClass("active") && CATS !== catNew) {
+    renderCats();
   }
   else if ($("#tags-link").hasClass("active")) {
     renderTags();
@@ -128,21 +126,31 @@ window.onload = function() {
   });
 
   reloadSettings();
-}
+};
 
 // ******************** CATEGORIES *********************************************
+function submitCat() {
+  let url = "mod_cat"
+  $.post(url, {"list": catNew})
+  .done(function() {
+    CATS = Array.from(catNew);
+    reloadSettings();
+    $(".btn-save").addClass("disabled");
+    raiseAlert("Settings are saved", "success");
+    return false;
+  }).fail(function(){
+    raiseAlert("Settings are not saved. Please try later", "danger");
+    return false;
+  });
+  return false;
+}
+
 function fillCatForm() {
   if ($(".btn-cancel").hasClass("disabled")) {
     return false;
   }
-  let hiddenText = document.createElement("input");
-  hiddenText.setAttribute("type", "text");
-  hiddenText.setAttribute("name", "catNew");
-  hiddenText.setAttribute("style", "display: none;");
-  hiddenText.value = catNew.toString();
-
-  document.forms["mod-cat"].appendChild(hiddenText);
-  return true;
+  submitCat();
+  return false;
 }
 
 $("#add-cat-btn").click(() => {
@@ -185,12 +193,11 @@ var editTagId = -1;
 
 $("#tag-list").click((event) => {
   // consider only tag labels click
-  if (typeof($(event.target).attr("class")) === "undefined") {
+  if (typeof($(event.target).attr("class")) === "undefined" ||
+      !$(event.target).attr("class").includes("tag-label")) {
     return;
   }
-  if (!$(event.target).attr("class").includes("tag-label")) {
-    return;
-  }
+
   // check if settings were modified
   if (!$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
@@ -256,13 +263,13 @@ $("#tag-color").on("change", function() {
 function submitTag() {
   let url = "mod_tag";
   $.post(url, JSON.stringify(TAGS))
-  .done(function(data) {
+  .done(function() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     $("#btn-del").addClass("disabled");
     raiseAlert("Settings are saved", "success");
     return true;
-  }).fail(function(jqXHR){
+  }).fail(function(){
     raiseAlert("Settings are not saved. Please try later", "danger");
     return false;
   });
@@ -322,7 +329,7 @@ function fillTagForm() {
 }
 
 $("#btn-del").click((event) => {
-  if (newTag) {
+  if (newTag || $("#btn-del").hasClass("disabled")) {
     event.preventDefault();
     return;
   }
@@ -358,6 +365,18 @@ function fillSetForm() {
   });
 
   return false;
+}
+
+function changePasw() {
+  return true;
+}
+
+function delAcc() {
+  if (confirm("Do you want to delete account completely? This action could not be undone!")) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // ************** NAVIGATION ***************************************************
