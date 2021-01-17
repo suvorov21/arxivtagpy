@@ -31,11 +31,11 @@
 
 {% block content %}
   <div class="container-fluid" id="main-container">
-    <div class="row mt-4">
+    <div class="row mt-4 d-none d-md-block">
+      {# TODO think about removing code duplication #}
       {# Menu #}
-      <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
+      <div class="col-md-4 col-lg-3 col-xl-2" id="menu-col">
         <div class="menu-content ml-auto" id="menu-main">
-
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
               <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
@@ -49,6 +49,26 @@
           </ul>
         </div>
       </div>
+    </div>
+    {# Mobile friendly menu #}
+    <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
+        <div class="row d-md-none pt-2">
+          <div class="container pb-3">
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                  <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+      </div>
+
       {# Settings content #}
       <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
         <div class="paper-wrapper">
@@ -59,9 +79,7 @@
                   <button class="btn btn-success btn-save disabled" type="submit">Save</button>
                   <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
                 </form>
-
                 <datalist id="catsDataList"></datalist>
-                {# <h2>Your categories:</h2> #}
                 <div id="cats-list">
                 </div>
                 <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
@@ -78,7 +96,6 @@
                   <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
                   <button class="btn btn-danger disabled" type="reset" id="btn-del">Delete</button>
                 </form>
-                {# <h2>Your tags:</h2> #}
                 <div id="tag-list">
                 </div>
                 <form name="add-tag" class="form-group">

@@ -105,10 +105,8 @@ function renderPref() {
 }
 
 function reloadSettings() {
-  if ($("#cats-link").hasClass("active")) {
-    if (CATS !== catNew) {
-      renderCats();
-    }
+  if ($("#cats-link").hasClass("active") && CATS !== catNew) {
+    renderCats();
   }
   else if ($("#tags-link").hasClass("active")) {
     renderTags();
@@ -128,7 +126,7 @@ window.onload = function() {
   });
 
   reloadSettings();
-}
+};
 
 // ******************** CATEGORIES *********************************************
 function fillCatForm() {
@@ -185,12 +183,11 @@ var editTagId = -1;
 
 $("#tag-list").click((event) => {
   // consider only tag labels click
-  if (typeof($(event.target).attr("class")) === "undefined") {
+  if (typeof($(event.target).attr("class")) === "undefined" ||
+      !$(event.target).attr("class").includes("tag-label")) {
     return;
   }
-  if (!$(event.target).attr("class").includes("tag-label")) {
-    return;
-  }
+
   // check if settings were modified
   if (!$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
@@ -256,13 +253,13 @@ $("#tag-color").on("change", function() {
 function submitTag() {
   let url = "mod_tag";
   $.post(url, JSON.stringify(TAGS))
-  .done(function(data) {
+  .done(function() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     $("#btn-del").addClass("disabled");
     raiseAlert("Settings are saved", "success");
     return true;
-  }).fail(function(jqXHR){
+  }).fail(function(){
     raiseAlert("Settings are not saved. Please try later", "danger");
     return false;
   });
@@ -322,7 +319,7 @@ function fillTagForm() {
 }
 
 $("#btn-del").click((event) => {
-  if (newTag) {
+  if (newTag || $("#btn-del").hasClass("disabled")) {
     event.preventDefault();
     return;
   }

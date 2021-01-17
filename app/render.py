@@ -14,10 +14,11 @@ def render_title(date_type: int = 0) -> str:
 
 def render_papers(papers: Dict) -> Dict:
     """Convert papers dict to minimize info"""
-    # cross-fingered nobody will use 1000 tags
-    # otherwise I'm in trouble
     papers['content'] = sorted(papers['content'],
                                key=lambda t: t['tags'] if len(t['tags'])>0 else [1000])
+
+    # cross-fingered nobody will use 1000 tags
+    # otherwise I'm in trouble
 
     for paper in papers['content']:
         if paper.get('author') and len(paper['author']) > 4:

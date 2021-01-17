@@ -9,8 +9,9 @@ from requests import get
 
 
 class PaperApi:
-
-    """API default class."""
+    """
+    API default class.
+    """
 
     def_params = {}
     delay = 0
@@ -19,8 +20,9 @@ class PaperApi:
     last_paper = datetime.now()
 
 class ArxivApi(PaperApi):
-
-    """API for arXiv connection."""
+    """
+    API for arXiv connection.
+    """
 
     def_params = {'start': 0,
                   'max_results': 200,
@@ -35,6 +37,7 @@ class ArxivApi(PaperApi):
     norm_papers = 200
 
     def __init__(self, params: Dict, **kwargs):
+        """Initialise arXiv API."""
         self.params = ArxivApi.def_params
         self.params.update(params)
         if 'last_paper' in kwargs:
