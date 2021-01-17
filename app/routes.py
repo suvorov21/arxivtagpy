@@ -244,6 +244,32 @@ def logout():
     logout_user()
     return redirect(url_for('main_bp.root'))
 
+@main_bp.route('/change_pasw', methods=["POST"])
+@login_required
+def change_pasw():
+    """Change password."""
+    old = request.form.get('oldPass')
+    new = request.form.get('newPass1')
+    new2 = request.form.get('newPass2')
+    if new != new2:
+        flash("New passwords don't match!")
+        return redirect(url_for('main_bp.settings'))
+
+    if not check_password_hash(current_user.pasw, old):
+        flash("Wrong old password!")
+        return redirect(url_for('main_bp.settings'))
+
+    current_user.pasw = generate_password_hash(new)
+    db.session.commit()
+    flash('Password successfully changed!')
+    return redirect(url_for('main_bp.settings'))
+
+@main_bp.route('/delAcc', methods=["POST"])
+@login_required
+def del_acc():
+    """Delete account completely."""
+    print('Account deleted!')
+
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""

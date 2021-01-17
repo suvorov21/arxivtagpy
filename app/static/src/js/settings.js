@@ -367,6 +367,18 @@ function fillSetForm() {
   return false;
 }
 
+function changePasw() {
+  return true;
+}
+
+function delAcc() {
+  if (confirm("Do you want to delete account completely? This action could be not undone!")) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 // ************** NAVIGATION ***************************************************
 $(".nav-link").click((event) => {
   if (!$(".btn-cancel").hasClass("disabled")) {
