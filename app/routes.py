@@ -154,14 +154,16 @@ def load_prefs():
 @login_required
 def mod_cat():
     """Apply category changes."""
-    new_cat = request.form.get('catNew')
-    current_user.arxiv_cat = new_cat.split(',')
+    new_cat = []
+    new_cat = request.form.getlist("list[]")
+    print(new_cat)
+
+    current_user.arxiv_cat = new_cat
     db.session.commit()
     # WARNING Do I really need prefs in session
     # How much it affect db load?
     session['cats'] = current_user.arxiv_cat
-    flash("Settings saved")
-    return redirect(url_for('main_bp.settings'))
+    return dumps({'success':True}), 200
 
 @main_bp.route('/mod_tag', methods=['POST'])
 @login_required

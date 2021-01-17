@@ -129,18 +129,28 @@ window.onload = function() {
 };
 
 // ******************** CATEGORIES *********************************************
+function submitCat() {
+  let url = "mod_cat"
+  $.post(url, {"list": catNew})
+  .done(function() {
+    CATS = Array.from(catNew);
+    reloadSettings();
+    $(".btn-save").addClass("disabled");
+    raiseAlert("Settings are saved", "success");
+    return false;
+  }).fail(function(){
+    raiseAlert("Settings are not saved. Please try later", "danger");
+    return false;
+  });
+  return false;
+}
+
 function fillCatForm() {
   if ($(".btn-cancel").hasClass("disabled")) {
     return false;
   }
-  let hiddenText = document.createElement("input");
-  hiddenText.setAttribute("type", "text");
-  hiddenText.setAttribute("name", "catNew");
-  hiddenText.setAttribute("style", "display: none;");
-  hiddenText.value = catNew.toString();
-
-  document.forms["mod-cat"].appendChild(hiddenText);
-  return true;
+  submitCat();
+  return false;
 }
 
 $("#add-cat-btn").click(() => {
