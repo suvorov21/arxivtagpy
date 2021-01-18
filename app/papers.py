@@ -35,6 +35,7 @@ class ArxivApi(PaperApi):
     max_papers = 1000
     delay = 2
     norm_papers = 200
+    verbose = True
 
     def __init__(self, params: Dict, **kwargs):
         """Initialise arXiv API."""
@@ -52,6 +53,10 @@ class ArxivApi(PaperApi):
 
         response = get(self.URL, self.params)
 
+        if ArxivApi.verbose:
+            print(response.url)
+            print(response.text)
+
         if response.status_code != 200:
             # TODO add handler
             return 404
@@ -65,6 +70,9 @@ class ArxivApi(PaperApi):
         today_date = datetime.strptime(feed.entries[0].updated,
                                        '%Y-%m-%dT%H:%M:%SZ'
                                        )
+
+        if ArxivApi.verbose:
+            print(feed.entries[0].updated, today_date)
 
         if date_type == 0:
             # look at the results of current date
@@ -90,6 +98,9 @@ class ArxivApi(PaperApi):
         if date_type != 4:
             old_date = old_date.replace(hour=17, minute=59, second=59)
 
+        if ArxivApi.verbose:
+            print('old', old_date)
+
         papers = {'n_cats': None,
                   'n_nov': None,
                   'n_tags': None,
@@ -103,6 +114,8 @@ class ArxivApi(PaperApi):
                 date = datetime.strptime(entry.updated,
                                          '%Y-%m-%dT%H:%M:%SZ'
                                          )
+                if ArxivApi.verbose:
+                    print(date, len(papers['content']))
                 if date < old_date:
                     break
 
