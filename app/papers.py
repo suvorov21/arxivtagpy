@@ -35,7 +35,7 @@ class ArxivApi(PaperApi):
     max_papers = 1000
     delay = 2
     norm_papers = 200
-    verbose = True
+    verbose = False
 
     def __init__(self, params: Dict, **kwargs):
         """Initialise arXiv API."""
