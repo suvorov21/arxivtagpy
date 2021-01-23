@@ -24,8 +24,8 @@ function raiseAlert(text="Text", type="alert") {
   close.appendChild(time);
 }
 
-
-var catNew = [];
+var dragTarget;
+var tagEdited = false;
 
 // ************************  RENDERS *******************************************
 function addCat(cat) {
@@ -33,8 +33,20 @@ function addCat(cat) {
   // name for JS elements
   // TODO proper escape dot with \\.
   let parent = document.createElement("div");
-  parent.setAttribute("class", "d-flex");
+  parent.setAttribute("class", "d-flex cat-parent");
   parent.setAttribute("id", "par-cat-"+cat.replaceAll(".", "111"));
+  parent.draggable = true;
+
+  parent.ondragstart = function(event) {
+    let moved = event.target.getAttribute("id").split("-").slice(2);
+    moved = moved.join("-").replaceAll("111", ".");
+    event.dataTransfer.setData("Text", moved);
+  }
+
+  parent.ondragover = function(event) {
+    let target = event.target.getAttribute("id").split("-").slice(2);
+    dragTarget = target.join("-").replaceAll("111", ".");
+  }
 
   let close = document.createElement("button");
   close.setAttribute("id", "close_"+cat.replaceAll(".", "111"));
@@ -46,14 +58,15 @@ function addCat(cat) {
     $("#par-cat-" + name).removeClass("d-flex");
     $("#par-cat-" + name).fadeOut();
     $(".btn").removeClass("disabled");
-    const catId = catNew.indexOf(name.replace("111", "."));
+    const catId = CATS.indexOf(name.replace("111", "."));
     if (catId > -1) {
-      catNew.splice(catId, 1);
+      CATS.splice(catId, 1);
     }
   };
 
   let catElement = document.createElement("div");
   catElement.setAttribute("class", "pl-2");
+  catElement.setAttribute("id", "cat-name-" + cat.replaceAll(".", "111"));
   catElement.textContent = allCatsArray[cat];
 
   document.getElementById("cats-list").appendChild(parent);
@@ -63,12 +76,33 @@ function addCat(cat) {
 
 function renderCats() {
   $("#cats-list").empty();
-  catNew = [];
   CATS.forEach((cat) => {
-    // TODO consider moving function inline?
     addCat(cat);
-    catNew.push(cat);
   });
+
+  document.getElementById("cats-list").ondragover = function(event) {
+    event.preventDefault();
+  }
+  document.getElementById("cats-list").ondrop = function(event) {
+    event.preventDefault();
+    let moved = event.dataTransfer.getData("Text");
+    let movedId = CATS.indexOf(moved);
+    let targetId = CATS.indexOf(dragTarget);
+    CATS[parseInt(movedId, 10)] = dragTarget;
+    CATS[parseInt(targetId, 10)] = moved;
+
+    $(".btn").removeClass("disabled");
+    reloadSettings();
+  }
+}
+
+const findTagIdByName = (name) => {
+  for (let tagId = 0; tagId < TAGS.length; tagId++) {
+    if (TAGS[tagId]["name"] === name) {
+      return tagId;
+    }
+  }
+  return -1;
 }
 
 function renderTags() {
@@ -76,11 +110,47 @@ function renderTags() {
   TAGS.forEach((tag, num) => {
     let tagElement = document.createElement("div");
     tagElement.setAttribute("class", "tag-label");
-    tagElement.setAttribute("id", "tag-label-"+num);
+    tagElement.setAttribute("id", "tag-label-"+tag.name);
     tagElement.setAttribute("style", "background-color: " + tag.color);
+    tagElement.draggable = true;
     tagElement.textContent = tag.name;
     document.getElementById("tag-list").appendChild(tagElement);
+
+    tagElement.ondragstart = function(event) {
+      if (tagEdited) {
+        event.preventDefault();
+        return;
+      }
+      let moved = event.target.getAttribute("id").split("-").slice(2);
+      moved = moved.join("-").replaceAll("111", "-");
+      moved = findTagIdByName(moved);
+      event.dataTransfer.setData("Text", moved);
+    }
+
+    tagElement.ondragover = function(event) {
+      let target = event.target.getAttribute("id").split("-").slice(2);
+      dragTarget = target.join("-").replaceAll("111", "-");
+      dragTarget = findTagIdByName(dragTarget);
+    }
   });
+
+  document.getElementById("tag-list").ondragover = function(event) {
+    event.preventDefault();
+  }
+
+  document.getElementById("tag-list").ondrop = function(event) {
+    event.preventDefault();
+    let moved = event.dataTransfer.getData("Text");
+    let movedId = parseInt(moved, 10);
+    let targetId = parseInt(dragTarget, 10);
+    let buffer = TAGS[movedId];
+    TAGS[parseInt(movedId, 10)] = TAGS[targetId];
+    TAGS[parseInt(targetId, 10)] = buffer;
+
+    $(".btn").removeClass("disabled");
+    reloadSettings();
+  }
+
   if (parseTex) {
     MathJax.typesetPromise();
   }
@@ -105,7 +175,7 @@ function renderPref() {
 }
 
 function reloadSettings() {
-  if ($("#cats-link").hasClass("active") && CATS !== catNew) {
+  if ($("#cats-link").hasClass("active")) {
     renderCats();
   }
   else if ($("#tags-link").hasClass("active")) {
@@ -113,7 +183,6 @@ function reloadSettings() {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
     document.forms["add-tag"]["tag_color"].value = "";
-    document.forms["add-tag"]["tag_order"].value = "";
   }
   else if ($("#pref-link").hasClass("active")) {
     renderPref();
@@ -131,9 +200,9 @@ window.onload = function() {
 // ******************** CATEGORIES *********************************************
 function submitCat() {
   let url = "mod_cat"
-  $.post(url, {"list": catNew})
+  $.post(url, {"list": CATS})
   .done(function() {
-    CATS = Array.from(catNew);
+    CATS = Array.from(CATS);
     reloadSettings();
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
@@ -156,7 +225,7 @@ function fillCatForm() {
 $("#add-cat-btn").click(() => {
   let cat = document.forms["add-cat"]["cat_name"].value;
   // check if already there
-  if (catNew.includes(cat)) {
+  if (CATS.includes(cat)) {
     alert("Catagory already added!");
     return;
   }
@@ -169,7 +238,7 @@ $("#add-cat-btn").click(() => {
   addCat(document.forms["add-cat"]["cat_name"].value);
   document.forms["add-cat"]["cat_name"].value = "";
   // add to array
-  catNew.push(cat);
+  CATS.push(cat);
 });
 
 $(".btn-cancel").click(() => {
@@ -191,6 +260,15 @@ $("#show-rules").click(() => {
 var newTag = true;
 var editTagId = -1;
 
+const findTagIdByName = (name) => {
+  for (let tagId = 0; tagId < TAGS.length; tagId++) {
+    if (TAGS[tagId]["name"] === name) {
+      return tagId;
+    }
+  }
+  return -1;
+}
+
 $("#tag-list").click((event) => {
   // consider only tag labels click
   if (typeof($(event.target).attr("class")) === "undefined" ||
@@ -199,24 +277,25 @@ $("#tag-list").click((event) => {
   }
 
   // check if settings were modified
-  if (!$(".btn-cancel").hasClass("disabled")) {
-    if (confirm("Settings will not be saved. Continue?")) {
-      $(".btn-save").addClass("disabled");
-      event.preventDefault();
-    } else {
-      event.preventDefault();
-      return;
-    }
+  if (tagEdited) {
+    event.preventDefault();
+    return;
   }
-  // highlight the editting tag
+
+  // reset the highlignt of all other tags
   let tagCol = document.getElementsByClassName("tag-label");
   for (let id = 0; id < tagCol.length; id++) {
+    // existing tags
     $("#tag-label-"+parseInt(id, 10)).css("border-color", "transparent");
+    // new tag box
     if ($(tagCol[parseInt(id, 10)]).attr("id") === "add-tag") {
       $("#add-tag").css("border-style", "dashed");
       $("#add-tag").css("border-width", "2px");
     }
   }
+
+  // highlight the editable tag
+  $(event.target).css("border-color", "#000");
 
   if ($(event.target).attr("id") === "add-tag") {
     // TODO consider how to get rif of it
@@ -228,21 +307,20 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
     document.forms["add-tag"]["tag_color"].value = "";
-    document.forms["add-tag"]["tag_order"].value = "";
   } else {
     // TODO consider how to get rif of it
     newTag = false;
 
-    editTagId = $(event.target).attr("id").split("-")[2];
+    let editTagName = $(event.target).attr("id").split("-").slice(2);
+    editTagName = editTagName.join("-");
+    editTagId = findTagIdByName(editTagName);
     let tag = TAGS[parseInt(editTagId, 10)];
 
-    $(event.target).css("border-color", "#000");
 
     $("#tag-fields").prop("disabled", false);
     document.forms["add-tag"]["tag_name"].value = tag.name;
     document.forms["add-tag"]["tag_rule"].value = tag.rule;
     document.forms["add-tag"]["tag_color"].value = tag.color;
-    document.forms["add-tag"]["tag_order"].value = editTagId;
     $("#tag-color").css("background-color", $("#tag-color").val());
 
     // make delete possible
@@ -251,8 +329,22 @@ $("#tag-list").click((event) => {
   $("#tag-fields").prop("disabled", false);
 });
 
-$(".tag-field").on("input", function() {
+function makeTagEdited() {
   $(".btn-save").removeClass("disabled");
+  tagEdited = true;
+  var doms = document.getElementsByClassName("tag-label");
+  for(i = 0; i < doms.length; i++) {
+    doms[i].style.cursor = "not-allowed";
+  }
+}
+
+$(".tag-field").on("input", function() {
+  makeTagEdited();
+});
+
+// TODO should I delete onimput listener?!
+$(".tag-field").on("change", function() {
+  makeTagEdited();
 });
 
 $("#tag-color").on("change", function() {
@@ -267,6 +359,7 @@ function submitTag() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     $("#btn-del").addClass("disabled");
+    tagEdited = false;
     raiseAlert("Settings are saved", "success");
     return true;
   }).fail(function(){
@@ -281,9 +374,13 @@ function checkTag() {
   // check all fields are filled
   if (document.forms["add-tag"]["tag_name"].value === "" ||
       document.forms["add-tag"]["tag_rule"].value === "" ||
-      document.forms["add-tag"]["tag_color"].value === "" ||
-      document.forms["add-tag"]["tag_order"].value === "") {
+      document.forms["add-tag"]["tag_color"].value === "") {
     $(".cat-alert").html("Fill all the fields in the form!");
+    return false;
+  }
+
+  if (findTagIdByName(document.forms["add-tag"]["tag_name"]) !== -1) {
+    $(".cat-alert").html("Tag with this name already exists. Consider a unique name!");
     return false;
   }
 
@@ -300,22 +397,18 @@ function checkTag() {
     return false;
   }
 
-  // check order
-  if (!/^[0-9]+$/i.test(document.forms["add-tag"]["tag_order"].value)) {
-    $(".cat-alert").html("Order should be an integer");
-    return false;
-  }
-
   // tag rules are checked
   let TagDict = {"name": document.forms["add-tag"]["tag_name"].value,
                  "rule": document.forms["add-tag"]["tag_rule"].value,
                  "color": document.forms["add-tag"]["tag_color"].value
                };
-  let order = parseInt(document.forms["add-tag"]["tag_order"].value, 10);
   if (!newTag) {
-    TAGS.splice(editTagId, 1);
+    TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
+    TAGS[parseInt(editTagId, 10)]["rule"] = TagDict["rule"];
+    TAGS[parseInt(editTagId, 10)]["color"] = TagDict["color"];
+  } else {
+    TAGS.push(TagDict);
   }
-  TAGS.splice(order, 0, TagDict);
 
   submitTag();
 }
