@@ -87,13 +87,22 @@ function renderCats() {
     event.preventDefault();
     let moved = event.dataTransfer.getData("Text");
     let movedId = CATS.indexOf(moved);
-    let targetId = CATS.indexOf(dragTarget)
-    CATS[movedId] = dragTarget;
-    CATS[targetId] = moved;
+    let targetId = CATS.indexOf(dragTarget);
+    CATS[parseInt(movedId, 10)] = dragTarget;
+    CATS[parseInt(targetId, 10)] = moved;
 
     $(".btn").removeClass("disabled");
     reloadSettings();
   }
+}
+
+const findTagIdByName = (name) => {
+  for (let tagId = 0; tagId < TAGS.length; tagId++) {
+    if (TAGS[tagId]["name"] === name) {
+      return tagId;
+    }
+  }
+  return -1;
 }
 
 function renderTags() {
@@ -135,8 +144,8 @@ function renderTags() {
     let movedId = parseInt(moved, 10);
     let targetId = parseInt(dragTarget, 10);
     let buffer = TAGS[movedId];
-    TAGS[movedId] = TAGS[targetId];
-    TAGS[targetId] = buffer;
+    TAGS[parseInt(movedId, 10)] = TAGS[targetId];
+    TAGS[parseInt(targetId, 10)] = buffer;
 
     $(".btn").removeClass("disabled");
     reloadSettings();
@@ -394,9 +403,9 @@ function checkTag() {
                  "color": document.forms["add-tag"]["tag_color"].value
                };
   if (!newTag) {
-    TAGS[editTagId]["name"] = TagDict["name"];
-    TAGS[editTagId]["rule"] = TagDict["rule"];
-    TAGS[editTagId]["color"] = TagDict["color"];
+    TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
+    TAGS[parseInt(editTagId, 10)]["rule"] = TagDict["rule"];
+    TAGS[parseInt(editTagId, 10)]["color"] = TagDict["color"];
   } else {
     TAGS.push(TagDict);
   }
