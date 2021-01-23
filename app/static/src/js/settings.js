@@ -26,6 +26,7 @@ function raiseAlert(text="Text", type="alert") {
 
 
 var catNew = [];
+var dragTarget;
 
 // ************************  RENDERS *******************************************
 function addCat(cat) {
@@ -33,8 +34,22 @@ function addCat(cat) {
   // name for JS elements
   // TODO proper escape dot with \\.
   let parent = document.createElement("div");
-  parent.setAttribute("class", "d-flex");
+  parent.setAttribute("class", "d-flex cat-parent");
   parent.setAttribute("id", "par-cat-"+cat.replaceAll(".", "111"));
+  parent.draggable = true;
+
+  parent.ondragstart = function(event) {
+    let moved = event.target.getAttribute("id").split("-");
+    moved = moved.slice(2);
+    moved = moved.join("-").replaceAll("111", ".");
+    event.dataTransfer.setData("Text", moved);
+  }
+
+  parent.ondragover = function(event) {
+    let target = event.target.getAttribute("id").split("-");
+    target = target.slice(2);
+    dragTarget = target.join("-").replaceAll("111", ".");
+  }
 
   let close = document.createElement("button");
   close.setAttribute("id", "close_"+cat.replaceAll(".", "111"));
@@ -54,11 +69,30 @@ function addCat(cat) {
 
   let catElement = document.createElement("div");
   catElement.setAttribute("class", "pl-2");
+  catElement.setAttribute("id", "cat-name-" + cat.replaceAll(".", "111"));
   catElement.textContent = allCatsArray[cat];
 
   document.getElementById("cats-list").appendChild(parent);
   parent.appendChild(close);
   parent.appendChild(catElement);
+}
+
+document.getElementById("cats-list").ondragover = function(event) {
+  event.preventDefault();
+}
+
+document.getElementById("cats-list").ondrop = function(event) {
+  event.preventDefault();
+  let moved = event.dataTransfer.getData("Text");
+  let movedId = catNew.indexOf(moved);
+  let targetId = catNew.indexOf(dragTarget)
+  catNew[movedId] = dragTarget;
+  catNew[targetId] = moved;
+
+  $(".btn").removeClass("disabled");
+  // WARNING do I actually need catNew?? Is that a neccessary buffer?
+  CATS = catNew;
+  reloadSettings();
 }
 
 function renderCats() {
@@ -105,7 +139,7 @@ function renderPref() {
 }
 
 function reloadSettings() {
-  if ($("#cats-link").hasClass("active") && CATS !== catNew) {
+  if ($("#cats-link").hasClass("active")) {
     renderCats();
   }
   else if ($("#tags-link").hasClass("active")) {
