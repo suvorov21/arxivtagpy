@@ -19,6 +19,8 @@ main_bp = Blueprint(
     static_folder='static'
 )
 
+########### MAIN PAGES #################################################
+
 @main_bp.route('/')
 def root():
     """Landing page."""
@@ -50,7 +52,7 @@ def papers_list():
                   } for tag in session['tags']]
 
     return render_template('papers.jinja2',
-                           title=render_title(date_type),
+                           title=render_title(date_type, current_user.login),
                            cats=session['cats'],
                            tags=tags_dict,
                            math_jax=True if session['pref'].get('tex') else False
@@ -73,23 +75,23 @@ def data():
     # define an arXiv API with the categories of interest
     load_prefs()
     cats_query = r'%20OR%20'.join(f'cat:{cat}' for cat in session['cats'])
-    paper_api = ArxivApi({'search_query': cats_query}#,
-                         # TODO
-                         # last_paper=current_user.last_paper
+    paper_api = ArxivApi({'search_query': cats_query},
+                         last_paper=current_user.last_paper
                          )
     # further code is paper source independent.
     # Any API can be defined above
-    # if 'tags' not in session:
-    #     session['tags'] = loads(current_user.tags)
-    papers = paper_api.get_papers(date_type)
+    papers = paper_api.get_papers(date_type,
+                                  last_paper=current_user.last_paper
+                                  )
 
     # store the info about last checked paper
     # descending paper order is assumed
-    if date_type == 3:
-        # TODO
-        last_paper = papers['content'][0].date_up
+    if len(papers['content']) > 0 and papers['content'][0].get('date_up'):
+        # update the date of last visit
+        current_user.login = datetime.now()
+        current_user.last_paper = papers['content'][0]['date_up']
+        db.session.commit()
 
-    print(session['pref'].get('easy_and'))
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
@@ -151,6 +153,9 @@ def load_prefs():
         session['pref'] = loads(current_user.pref)
 
 
+########### Setings change##############################################
+
+
 @main_bp.route('/mod_cat', methods=['POST'])
 @login_required
 def mod_cat():
@@ -206,13 +211,14 @@ def mod_pref():
     return dumps({'success':True}), 200
 
 
+######### LOGIN TOOLS ##################################################
+
+
 @login_manager.user_loader
 def load_user(user_id):
     """Load user function, store username."""
     if user_id is not None:
         usr = User.query.get(user_id)
-        usr.login = datetime.now()
-        db.session.commit()
         return usr
     return None
 
@@ -265,6 +271,8 @@ def new_user():
                 pasw=generate_password_hash(pasw1),
                 arxiv_cat=['hep-ex'],
                 created=datetime.now(),
+                login=datetime.now(),
+                last_paper=datetime.now(),
                 tags='[]',
                 pref='{"tex":"True", "easy_and":"True"}'
                 )

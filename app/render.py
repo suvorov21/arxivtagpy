@@ -1,6 +1,7 @@
 from typing import Dict
+from datetime import datetime
 
-def render_title(date_type: int = 0) -> str:
+def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
     """Put the date type in the title text."""
     if date_type == 0:
         return 'Papers for today'
@@ -9,7 +10,7 @@ def render_title(date_type: int = 0) -> str:
     if date_type == 2:
         return 'Papers for this month'
     if date_type == 3:
-        return 'Papers since your last visit'
+        return 'Papers since your last visit on ' + last_visit.strftime('%d %b %Y')
     return 'Papers'
 
 def render_papers(papers: Dict) -> Dict:
@@ -24,15 +25,6 @@ def render_papers(papers: Dict) -> Dict:
         if paper.get('author') and len(paper['author']) > 4:
             paper['author'] = paper['author'][:4]
             paper['author'].append('et al')
-
-        # Put submit date only if updated
-        # THIS mess up paper sorting at front-end
-        # switch OFF
-        # if paper.get('date_sub') \
-        # and paper.get('date_sub') != paper.get('date_up'):
-        #     paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
-        # else:
-        #     paper['date_sub'] = None
 
         paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
 
