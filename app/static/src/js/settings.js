@@ -269,13 +269,8 @@ $("#tag-list").click((event) => {
 
   // check if settings were modified
   if (tagEdited) {
-    if (confirm("Settings will not be saved. Continue?")) {
-      $(".btn-save").addClass("disabled");
-      event.preventDefault();
-    } else {
-      event.preventDefault();
-      return;
-    }
+    event.preventDefault();
+    return;
   }
 
   // reset the highlignt of all other tags
@@ -325,8 +320,22 @@ $("#tag-list").click((event) => {
   $("#tag-fields").prop("disabled", false);
 });
 
-$(".tag-field").on("input", function() {
+function makeTagEdited() {
   $(".btn-save").removeClass("disabled");
+  tagEdited = true;
+  var doms = document.getElementsByClassName("tag-label");
+  for(i = 0; i < doms.length; i++) {
+    doms[i].style.cursor = "not-allowed";
+  }
+}
+
+$(".tag-field").on("input", function() {
+  makeTagEdited();
+});
+
+// TODO should I delete onimput listener?!
+$(".tag-field").on("change", function() {
+  makeTagEdited();
 });
 
 $("#tag-color").on("change", function() {
@@ -416,10 +425,6 @@ $("#btn-del").click((event) => {
     event.preventDefault();
     return;
   }
-});
-
-$(".tag-field").on("input", (event) => {
-  tagEdited = true;
 });
 
 // ***************** PREFERENCES ***********************************************
