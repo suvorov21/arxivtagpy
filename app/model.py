@@ -19,10 +19,16 @@ class User(UserMixin, db.Model):
     created = db.Column(db.DateTime(),
                         nullable=True,
                         unique=False)
+
     login = db.Column(db.DateTime(),
                       nullable=True,
                       unique=False,
                       )
+    last_paper = db.Column(db.DateTime(),
+                           nullable=True,
+                           unique=False,
+                           )
+
     arxiv_cat = db.Column(db.ARRAY(db.String),
                           nullable=True,
                           unique=False

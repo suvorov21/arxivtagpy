@@ -80,9 +80,6 @@ function renderTitle() {
       start = new Date(dateNew.setDate(dateNew.getDate() - 1));
     }
     title.textContent += ": " +formateDate(start) + " - " + formateDate(end);
-  } else if (title.textContent.includes("visit")) {
-    // TODO
-    // title.textContent += ": " +formateDate(new Date(prefs.data.lastVisit));
   }
 }
 
@@ -484,7 +481,8 @@ window.onload = function() {
     renderPapers();
     $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
-    alert(jqXHR);
+    // alert("Error during paper load. Please try later.");
+    $("#loading-papers").text("Error during paper loading. Please try later.");
   });
   renderTitle();
   renderNov();

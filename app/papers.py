@@ -1,6 +1,6 @@
 from os import linesep
 from time import sleep
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
 from re import findall, search, escape, IGNORECASE
 
@@ -87,8 +87,11 @@ class ArxivApi(PaperApi):
             old_date = old_date - timedelta(days=old_date.weekday()-4)
 
         # papers are submitted by 18:00Z
-        if date_type != 4:
+        if date_type < 3:
             old_date = old_date.replace(hour=17, minute=59, second=59)
+        else:
+            old_date = datetime.combine(old_date,
+                                        time(hour=17, minute=59, second=59))
 
         papers = {'n_cats': None,
                   'n_nov': None,
