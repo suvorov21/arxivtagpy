@@ -162,7 +162,6 @@ def mod_cat():
     """Apply category changes."""
     new_cat = []
     new_cat = request.form.getlist("list[]")
-    print(new_cat)
 
     current_user.arxiv_cat = new_cat
     db.session.commit()

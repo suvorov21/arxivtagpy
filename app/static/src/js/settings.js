@@ -445,7 +445,7 @@ function fillSetForm() {
   let url = "mod_pref";
   let dataSet = {"tex": document.getElementById("tex-check").checked,
                   "easy_and": document.getElementById("and-check").checked
-                  }
+                };
   $.post(url, JSON.stringify(dataSet))
   .done(function(data) {
     reloadSettings();
