@@ -260,15 +260,6 @@ $("#show-rules").click(() => {
 var newTag = true;
 var editTagId = -1;
 
-const findTagIdByName = (name) => {
-  for (let tagId = 0; tagId < TAGS.length; tagId++) {
-    if (TAGS[tagId]["name"] === name) {
-      return tagId;
-    }
-  }
-  return -1;
-}
-
 $("#tag-list").click((event) => {
   // consider only tag labels click
   if (typeof($(event.target).attr("class")) === "undefined" ||
@@ -370,6 +361,11 @@ function submitTag() {
 
 function checkTag() {
   $(".cat-alert").empty();
+  // in case of simple replacement no check required
+  if (!tagEdited) {
+    submitTag();
+    return true;
+  }
 
   // check all fields are filled
   if (document.forms["add-tag"]["tag_name"].value === "" ||
