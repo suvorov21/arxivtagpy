@@ -286,9 +286,9 @@ def tag_suitable(paper: Dict, rule: str, easy_and: bool) -> bool:
         return tag_suitable(paper, new_rule, easy_and)
 
     # parse simple conditions ti/abs/au
-    res = search(r'^(ti|abs|au)\{.*?\}', rule)
+    res = search(r'^(ti|abs|au)\{(.*?)\}', rule)
     if res:
-        return parse_simple_rule(paper, rule, res.group(1), easy_and)
+        return parse_simple_rule(paper, res.group(2), res.group(1), easy_and)
 
     return False
 
@@ -308,7 +308,7 @@ def separate_rules(rule: str, sign: str):
 
     return fst, scd, rule[0:fst_start], rule[scd_end+2:]
 
-def parse_simple_rule(paper: Dict, rule: str, prefix: str, easy_and: bool) -> bool:
+def parse_simple_rule(paper: Dict, condition: str, prefix: str, easy_and: bool) -> bool:
     """Parse simple rules as ti/au/abs."""
     rule_dict = {'ti': 'title',
                  'au': 'author',
@@ -317,7 +317,6 @@ def parse_simple_rule(paper: Dict, rule: str, prefix: str, easy_and: bool) -> bo
     if prefix not in rule_dict:
         raise ValueError('Prefix is unknown')
 
-    condition = search(r'^%s{(.*)}.*' % prefix, rule).group(1)
     search_target = paper[rule_dict[prefix]]
     # in case of author the target is a list
     if isinstance(search_target, list):
