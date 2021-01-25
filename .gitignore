@@ -7,3 +7,5 @@ app/static/.webassets-cache/*
 varxiv/*
 .idea/*
 *.pyc
+cert/*
+cert2/*
