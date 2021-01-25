@@ -41,12 +41,12 @@ function addCat(cat) {
     let moved = event.target.getAttribute("id").split("-").slice(2);
     moved = moved.join("-").replaceAll("111", ".");
     event.dataTransfer.setData("Text", moved);
-  }
+  };
 
   parent.ondragover = function(event) {
     let target = event.target.getAttribute("id").split("-").slice(2);
     dragTarget = target.join("-").replaceAll("111", ".");
-  }
+  };
 
   let close = document.createElement("button");
   close.setAttribute("id", "close_"+cat.replaceAll(".", "111"));
@@ -144,7 +144,7 @@ function renderTags() {
     let movedId = parseInt(moved, 10);
     let targetId = parseInt(dragTarget, 10);
     let buffer = TAGS[movedId];
-    TAGS[parseInt(movedId, 10)] = TAGS[targetId];
+    TAGS[parseInt(movedId, 10)] = TAGS[parseInt(targetId, 10)];
     TAGS[parseInt(targetId, 10)] = buffer;
 
     $(".btn").removeClass("disabled");
@@ -199,7 +199,7 @@ window.onload = function() {
 
 // ******************** CATEGORIES *********************************************
 function submitCat() {
-  let url = "mod_cat"
+  let url = "mod_cat";
   $.post(url, {"list": CATS})
   .done(function() {
     CATS = Array.from(CATS);
@@ -324,7 +324,7 @@ function makeTagEdited() {
   $(".btn-save").removeClass("disabled");
   tagEdited = true;
   var doms = document.getElementsByClassName("tag-label");
-  for(i = 0; i < doms.length; i++) {
+  for(let i = 0; i < doms.length; i++) {
     doms[i].style.cursor = "not-allowed";
   }
 }
