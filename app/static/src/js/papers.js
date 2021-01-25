@@ -472,7 +472,6 @@ document.getElementById("filter-button").onclick = function() {
 window.onload = function() {
   var url = document.location.href;
   url = url.replace("papers", "data");
-  console.log(url);
 
   $.get(url)
   .done(function(data) {
