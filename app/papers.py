@@ -2,10 +2,15 @@ from os import linesep
 from time import sleep
 from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
-from re import findall, search, escape, IGNORECASE
+from re import search, IGNORECASE, sub
 
 from feedparser import parse
 from requests import get
+
+rule_dict = {'ti': 'title',
+             'au': 'author',
+             'abs': 'abstract'
+             }
 
 
 class PaperApi:
@@ -200,8 +205,7 @@ def parse_links(links, link_type='pdf') -> str:
 
 def process_papers(papers: Dict,
                    tags: Dict,
-                   cats: Tuple[str],
-                   easy_and: bool
+                   cats: Tuple[str]
                    ) -> Dict:
     """
     Papers processing
@@ -240,97 +244,118 @@ def process_papers(papers: Dict,
 
         # 2.
         for num, tag in enumerate(tags):
-            if tag_suitable(paper, tag['rule'], easy_and):
+            if tag_suitable(paper, tag['rule']):
                 paper['tags'].append(num)
                 papers['n_tags'][num] += 1
     return papers
 
-def tag_suitable(paper: Dict, rule: str, easy_and: bool) -> bool:
-    """
-    Check if paper is suitable with a tag rule
 
-    :param      paper:  The paper
-    :type       paper:  paper JSON entry
-    :param      rule:    The tag rule
-    :type       rule:    re rule for tag assignment
+def tag_suitable(paper: Dict, rule: str) -> bool:
     """
-    # recursion end
-    if rule == 'True':
-        return True
-    if rule == 'False':
+    Simple rules are expected in the most of th cases,
+    1. Find logic AND / OR outside curly and round brackets
+    2. If no - parse rules inside curly brackets
+    3. OR: and process rule parts one by one separated by |
+    return True at first true condition
+    return False if no matches
+    4. AND: process rule parts separated by &
+    return False at first false match
+    return True if no false matches
+
+    :param      paper:       The paper
+    :type       paper:       Dict
+    :param      rule:        The rule
+    :type       rule:        str
+
+    :returns:   if the paper suits the tag
+    :rtype:     bool
+    """
+    # remove parentheses if the whole rule is inside
+    if rule[0] == '(' and rule[-1] == ')':
+        rule = rule[1:-1]
+
+    brackets = 0
+    or_pos, and_pos = [], []
+    for pos, char in enumerate(rule):
+        if char in ['(', '{']: brackets += 1; continue;
+        if char in [')', '}']: brackets -= 1; continue;
+        if brackets == 0:
+            if char == '|':
+                or_pos.append(pos)
+            elif char == '&':
+                and_pos.append(pos)
+
+    # if no AND/OR found outside brackets process a rule inside curly brackets
+    if (len(and_pos) == 0 and len(or_pos) == 0):
+        return parse_simple_rule(paper, rule)
+
+    # add rule length limits
+    or_pos.insert(0, -1)
+    or_pos.append(len(rule))
+
+    # process logic OR
+    if (len(or_pos) > 2):
+        for num, pos in enumerate(or_pos[:-1]):
+            if tag_suitable(paper, rule[pos+1:or_pos[num+1]]):
+                return True
+
+    # if logic OR was found but True was not returned before
+    if (len(or_pos) > 2):
         return False
 
-    rule_outside_curly = ''.join(findall(r'(.*?)\{.*?\}', rule))
-    # parse brackets () outtside {}
-    if '(' in rule_outside_curly:
-        start_pos = search(r"(^|\}[&|])(\()", rule).start(2)
-        end_pos = search(r"\}(\))", rule).start(1)
-        # start_pos = search(r"(.*?)\{.*?\}", rule).start(2))
-        condition = str(tag_suitable(paper, rule[start_pos+1:end_pos], easy_and))
-        new_rule = rule[0:start_pos] + condition + rule[end_pos+1:]
-        return tag_suitable(paper, new_rule, easy_and)
+    # add rule length limits
+    and_pos.insert(0, -1)
+    and_pos.append(len(rule))
 
-    # parse logic AND
-    # while '&' outside {} exists
-    if '&' in rule_outside_curly:
-        fst, scd, before_fst, after_scd = separate_rules(rule, '&')
-        condition = str(tag_suitable(paper, fst, easy_and) and tag_suitable(paper, scd, easy_and))
-        new_rule = before_fst + condition + after_scd
-        return tag_suitable(paper, new_rule, easy_and)
+    # process logic AND
+    if (len(and_pos) > 2):
+        for num, pos in enumerate(and_pos[:-1]):
+            if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
+                return False
 
-    # parse logic OR
-    if '|' in rule_outside_curly:
-        fst, scd, before_fst, after_scd = separate_rules(rule, '|')
-        condition = str(tag_suitable(paper, fst, easy_and) or tag_suitable(paper, scd, easy_and))
-        new_rule = before_fst + condition + after_scd
-        return tag_suitable(paper, new_rule, easy_and)
+    # if logic AND is inside the rule but False was not found
+    if (len(and_pos) > 2):
+        return True
 
-    # parse simple conditions ti/abs/au
-    res = search(r'^(ti|abs|au)\{(.*?)\}', rule)
-    if res:
-        return parse_simple_rule(paper, res.group(2), res.group(1), easy_and)
-
+    # default safety return
     return False
 
-def separate_rules(rule: str, sign: str):
-    """Split two parts of the rule with sign."""
-    sign_pos = search(r"\{.*?\}(%s).*\{.*?\}" % escape(sign),
-                      rule).start(1)
-
-    fst = (search(r'.*\{(.*?)(&|\||$)',
-                  rule[:sign_pos][::-1]
-                  ).group(0))[::-1]
-
-    scd = rule[sign_pos+1:].split('}')[0] + '}'
-
-    fst_start = sign_pos - len(fst)
-    scd_end = sign_pos + len(scd)
-
-    return fst, scd, rule[0:fst_start], rule[scd_end+2:]
-
-def parse_simple_rule(paper: Dict, condition: str, prefix: str, easy_and: bool) -> bool:
+def parse_simple_rule(paper: Dict, condition: str) -> bool:
     """Parse simple rules as ti/au/abs."""
-    rule_dict = {'ti': 'title',
-                 'au': 'author',
-                 'abs': 'abstract'
-                 }
+    prefix_re = search(r'^(ti|abs|au)\{(.*?)\}', condition)
+    if not prefix_re:
+        return False
+
+    prefix = prefix_re.group(1)
+    condition = prefix_re.group(2)
+
     if prefix not in rule_dict:
         raise ValueError('Prefix is unknown')
 
     search_target = paper[rule_dict[prefix]]
     # in case of author the target is a list
+    # join the list into string
     if isinstance(search_target, list):
         search_target = ', '.join(paper['author'])
 
-    if '&' in condition and easy_and:
+    # cast logic AND to proper REGEX
+    if '&' in condition:
         cond_list = condition.split('&')
         condition = '(' + condition.replace('&', '.*')
         condition +=')|('
         condition += '.*'.join(cond_list[::-1]) + ')'
 
-    if search(condition,
-              search_target,
-              flags=IGNORECASE
-              ) is None:
-        return False
-    return True
+    # inversion of the rule
+    inversion = False
+    if '!' in condition:
+        condition = condition.replace('!', '')
+        inversion = True
+
+    found = search(condition,
+                   search_target,
+                   flags=IGNORECASE
+                   ) is not None
+
+    if  found != inversion:
+        return True
+    return False
