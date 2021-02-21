@@ -41,7 +41,14 @@ def papers_list():
         date_type = date_dict.get(request.args['date'])
 
     if date_type is None:
-        return redirect(url_for('main_bp.papers_list', date='today'))
+        # WARNING a dirty fix to get rid of /flask/flask.wsgi in the adress bar
+        if 'arxivtag' in request.headers['Host'] :
+            # if production, go 3 levels up
+            return redirect('../../../papers?date=today')
+        else:
+            # not a production (local/heroku) let flask care about path
+            return redirect(url_for('main_bp.papers_list', date='today'))
+
 
     # load preferences
     load_prefs()
@@ -94,8 +101,7 @@ def data():
 
     papers = process_papers(papers,
                             session['tags'],
-                            session['cats'],
-                            session['pref'].get('easy_and')
+                            session['cats']
                             )
     paper_render = render_papers(papers)
 
@@ -273,7 +279,7 @@ def new_user():
                 login=datetime.now(),
                 last_paper=datetime.now(),
                 tags='[]',
-                pref='{"tex":"True", "easy_and":"True"}'
+                pref='{"tex":"True"}'
                 )
     db.session.add(user)
     db.session.commit()
