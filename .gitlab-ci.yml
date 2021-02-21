@@ -40,6 +40,8 @@ integration_test:
 production:
   type: deploy
   stage: production
+  image:
+    alpine:latest
   before_script:
     - apk add lftp
     - sed -i "s/DB_ADRESS/$PROD_DB/g" configmodule.py
