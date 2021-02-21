@@ -82,7 +82,7 @@ function renderCats() {
 
   document.getElementById("cats-list").ondragover = function(event) {
     event.preventDefault();
-  }
+  };
   document.getElementById("cats-list").ondrop = function(event) {
     event.preventDefault();
     let moved = event.dataTransfer.getData("Text");
@@ -93,7 +93,7 @@ function renderCats() {
 
     $(".btn").removeClass("disabled");
     reloadSettings();
-  }
+  };
 }
 
 const findTagIdByName = (name) => {
@@ -125,13 +125,13 @@ function renderTags() {
       moved = moved.join("-").replaceAll("111", "-");
       moved = findTagIdByName(moved);
       event.dataTransfer.setData("Text", moved);
-    }
+    };
 
     tagElement.ondragover = function(event) {
       let target = event.target.getAttribute("id").split("-").slice(2);
       dragTarget = target.join("-").replaceAll("111", "-");
       dragTarget = findTagIdByName(dragTarget);
-    }
+    };
   });
 
   document.getElementById("tag-list").ondragover = function(event) {
@@ -143,7 +143,7 @@ function renderTags() {
     let moved = event.dataTransfer.getData("Text");
     let movedId = parseInt(moved, 10);
     let targetId = parseInt(dragTarget, 10);
-    let buffer = TAGS[movedId];
+    let buffer = TAGS[parseInt(movedId, 10)];
     TAGS[parseInt(movedId, 10)] = TAGS[parseInt(targetId, 10)];
     TAGS[parseInt(targetId, 10)] = buffer;
 
@@ -168,9 +168,9 @@ function renderPref() {
     document.getElementById("tex-check").checked = true;
   }
 
-  if (PREF["easy_and"]) {
-    document.getElementById("and-check").checked = true;
-  }
+  // if (PREF["easy_and"]) {
+  //   document.getElementById("and-check").checked = true;
+  // }
   return;
 }
 
@@ -325,7 +325,7 @@ function makeTagEdited() {
   tagEdited = true;
   var doms = document.getElementsByClassName("tag-label");
   for(let i = 0; i < doms.length; i++) {
-    doms[i].style.cursor = "not-allowed";
+    doms[parseInt(i, 10)].style.cursor = "not-allowed";
   }
 }
 
@@ -439,8 +439,8 @@ $(".form-check-input").change(() => {
 
 function fillSetForm() {
   let url = "mod_pref";
-  let dataSet = {"tex": document.getElementById("tex-check").checked,
-                  "easy_and": document.getElementById("and-check").checked
+  let dataSet = {"tex": document.getElementById("tex-check").checked
+                  // "easy_and": document.getElementById("and-check").checked
                 };
   $.post(url, JSON.stringify(dataSet))
   .done(function(data) {
