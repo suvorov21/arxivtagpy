@@ -46,7 +46,7 @@ production:
     - apk add lftp
     - sed -i "s/DB_ADRESS/$PROD_DB/g" configmodule.py
   script:
-    - lftp -c "set ftp:ssl-allow no; open -p $FTP_PORT -u $FTP_NAME,$FTP_PASS $FTP_HOST; mirror -Rnev --ignore-time --parallel=10 --exclude-glob .git* .htaccess --exclude .git/"
+    - lftp -c "set ftp:ssl-allow no; open -u $FTP_NAME,$FTP_PASS $FTP_HOST:-p $FTP_PORT; mirror -Rnev --ignore-time --parallel=10 --exclude-glob .git* .htaccess --exclude .git/"
   only:
     - master
     - develop
