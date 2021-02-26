@@ -278,7 +278,7 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                tags='[]',
+                tags='[{"name":example", "rule":"abs{physics|math}", "color": "#fff2bd"}]',
                 pref='{"tex":"True"}'
                 )
     db.session.add(user)
