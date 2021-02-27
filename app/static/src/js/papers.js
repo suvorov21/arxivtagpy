@@ -384,8 +384,8 @@ function sortPapers() {
   // dates
   if (sortMethod.includes("date")) {
     DATA.papers.sort((a, b) => {
-      let aDate = new Date(a.date_sub);
-      let bDate = new Date(b.date_sub);
+      let aDate = new Date(a.date_up);
+      let bDate = new Date(b.date_up);
       return sortFunction(aDate, bDate,
                           sortMethod === "date-des"? true : false);
     });
