@@ -22,6 +22,10 @@ function raiseAlert(text="Text", type="alert") {
   parent.appendChild(content);
   parent.appendChild(close);
   close.appendChild(time);
+
+  setTimeout(function() {
+    $('.alert').alert('close')
+  } , 2000);
 }
 
 var dragTarget;
