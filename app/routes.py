@@ -91,6 +91,10 @@ def data():
                                   last_paper=current_user.last_paper
                                   )
 
+    # error hahdler
+    if isinstance(papers, int):
+        return dumps({'success':False}), papers
+
     # store the info about last checked paper
     # descending paper order is assumed
     if len(papers['content']) > 0 and papers['content'][0].get('date_up'):

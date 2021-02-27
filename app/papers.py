@@ -63,13 +63,11 @@ class ArxivApi(PaperApi):
             print(response.text)
 
         if response.status_code != 200:
-            # TODO add handler
             return 404
 
         # parse arXiv response
         feed = parse(response.text)
         if len(feed.entries) == 0:
-            # TODO add handler
             return 400
 
         today_date = datetime.strptime(feed.entries[0].updated,
@@ -153,16 +151,13 @@ class ArxivApi(PaperApi):
             sleep(self.delay)
             self.params['start'] += self.params['max_results']
             response = get(self.URL, self.params)
-            # print(response.url)
 
             if response.status_code != 200:
-                # TODO add handler
                 return 404
 
             # parse arXiv response
             feed = parse(response.text)
             if len(feed.entries) == 0:
-                # TODO add handler
                 return 400
 
         return papers
