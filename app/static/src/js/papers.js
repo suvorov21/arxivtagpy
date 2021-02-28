@@ -345,6 +345,17 @@ function renderPapers() {
     btnPanel.appendChild(btnGroup3);
     btnGroup3.appendChild(btnArxiv);
 
+    let btnBook = document.createElement("button");
+    btnBook.setAttribute("class", "btn btn-primary");
+    btnBook.setAttribute("id", "btn-book-"+pId);
+    btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true'></i>";
+
+    let btnGroup4 = document.createElement("div");
+    btnGroup4.setAttribute("class", "btn-group mr-2");
+    btnGroup4.setAttribute("role", "group");
+    btnPanel.appendChild(btnGroup4);
+    btnGroup4.appendChild(btnBook);
+
     let abs = document.createElement("div");
     abs.setAttribute("class", "collapse paper-abs");
     abs.setAttribute("id", "abs-"+pId);
