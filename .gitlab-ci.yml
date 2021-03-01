@@ -46,9 +46,7 @@ production:
     - apk add lftp
     - sed -i "s/DB_ADRESS/$PROD_DB/g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ --reverse --verbose /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
-    # - lftp -e "open $FTP_HOST; user $FTP_NAME $FTP_PASS; port $FTP_PORT; mirror -X .* -X .*/ --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ /home/arxiv/public_html/prod/flask/; bye"
-    #- lftp -c "set ftp:ssl-allow no; open -u $FTP_NAME,$FTP_PASS $FTP_HOST:-p $FTP_PORT; mirror -Rnev --ignore-time --parallel=10 --exclude-glob .git* .htaccess --exclude .git/"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X *.wsgi --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
   only:
     - master
     - develop
