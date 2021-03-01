@@ -2,6 +2,14 @@ stages:
   - test
   - production
 
+include:
+  - template: Code-Quality.gitlab-ci.yml
+
+code_quality:
+  stage: test
+  artifacts:
+    paths: [gl-code-quality-report.json]
+
 syntax_test:
   stage: test
   image:
