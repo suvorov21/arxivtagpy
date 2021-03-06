@@ -27,9 +27,11 @@ def app_init():
         from . import routes
         app.register_blueprint(routes.main_bp)
 
-        if app.config['DEBUG']:
-            from .assets import compile_assets
-            compile_assets(app)
+        from . import auth
+        app.register_blueprint(auth.auth_bp)
+
+        from .assets import compile_assets
+        compile_assets(app)
 
         db.create_all()
 
