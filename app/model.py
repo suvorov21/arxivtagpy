@@ -4,7 +4,6 @@ from flask_login import UserMixin
 # from sqlalchemy.ext.declarative import declarative_base
 
 class User(UserMixin, db.Model):
-
     """User table description."""
     __tablename__ = 'users'
 
@@ -44,7 +43,7 @@ class User(UserMixin, db.Model):
                      unique=False
                      )
 
-    papers = db.relationship('Paper',
+    lists = db.relationship('PaperList',
                              backref='user',
                              lazy=True
                              )
@@ -53,24 +52,62 @@ class User(UserMixin, db.Model):
         """Print user."""
         return f'<id: {self.id} name: {self.name}>'
 
-class Paper(db.Model):
+# helper table to deal with many-to-many relations
+# lists --> papers
+# return papers by paperlist Paper.query.with_parent(some_list)
+tags = db.Table('tags',
+                db.Column('list_ref_id',
+                          db.Integer,
+                          db.ForeignKey('lists.id'),
+                          primary_key=True
+                          ),
+                db.Column('paper_ref_id',
+                          db.Integer,
+                          db.ForeignKey('papers.id'),
+                          primary_key=True
+                          )
+                )
 
-    """User table description."""
+class Paper(db.Model):
+    """Paper table description."""
     __tablename__ = 'papers'
 
     id = db.Column(db.Integer,
                    primary_key = True
                    )
 
+    paper_id = db.Column(db.String(),
+                         unique = True,
+                         nullable=False
+                         )
+
     title = db.Column(db.String(),
-                     unique = False)
+                     unique = False,
+                     nullable=False
+                     )
+
+    list_id = db.relationship('PaperList',
+                              secondary=tags,
+                              lazy='subquery',
+                              backref=db.backref('papers', lazy=True)
+                              )
+
+    def __repr__(self):
+        return f'<id: {self.id} title: {self.title}>'
+
+class PaperList(db.Model):
+    """Paper list table description."""
+    __tablename__ = 'lists'
+    id = db.Column(db.Integer,
+                   primary_key = True
+                   )
+
+    name = db.Column(db.String(),
+                     nullable=False,
+                     unique=False
+                     )
 
     user_id = db.Column(db.Integer,
                         db.ForeignKey('users.id'),
                         nullable=False
                         )
-
-    def __repr__(self):
-        return f'<id: {self.id} title: {self.title}>'
-
-

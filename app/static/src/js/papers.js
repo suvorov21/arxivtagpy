@@ -349,6 +349,26 @@ function renderPapers() {
     btnBook.setAttribute("class", "btn btn-primary");
     btnBook.setAttribute("id", "btn-book-"+pId);
     btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true'></i>";
+    btnBook.onclick = function(event) {
+      let url = "add_bm";
+      let num = event.target.getAttribute("id").split("-")[2];
+      let paperName = DATA.papers[parseInt(num, 10)].title;
+      let paper = DATA.papers[parseInt(num, 10)];
+      // we take paper id w/o version --> do not overload paper DB
+      $.post(url, {"title": paper.title,
+                   "paper_id": paper.id.split("v")[0]})
+      .done(function(data, textStatus, jqXHR) {
+        let status = jqXHR.status;
+        if (status === 200) {
+          raiseAlert("Paper has been already saved", "success");
+        }
+        if (status === 201) {
+          raiseAlert("Paper has been added", "success");
+        }
+      }).fail(function(){
+        raiseAlert("Paper is not saved due to server error", "danger");
+      });
+    }
 
     let btnGroup4 = document.createElement("div");
     btnGroup4.setAttribute("class", "btn-group mr-2");

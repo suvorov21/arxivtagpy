@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify
 from flask_login import current_user, login_required
 
-from .model import db, User
+from .model import db, User, Paper, PaperList, tags
 from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
 
@@ -215,3 +215,47 @@ def mod_pref():
     # How much it affect db load?
     session['pref'] = loads(current_user.pref)
     return dumps({'success':True}), 200
+
+
+##### Bookshelf stuff ##################################################
+@main_bp.route('/add_bm', methods=['POST'])
+@login_required
+def add_bm():
+    """Add bookmark."""
+    # read input
+    title = request.form.get('title')
+    paper_id = request.form.get('paper_id')
+
+    # search if paper is already in the paper DB
+    paper = Paper.query.filter_by(paper_id=paper_id).first()
+    # if paper is not in the paper table
+    # cerate a new one
+    if not paper:
+        paper = Paper(title=title,
+                      paper_id=paper_id
+                      )
+
+        db.session.add(paper)
+
+    # in case no list is there
+    # create a new one
+    # TEMP work with one list for the time beeing
+    paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
+    if paper_list is None:
+        # create a default list
+        paper_list = PaperList(name='Favourite',
+                               user_id=current_user.id
+                               )
+        db.session.add(paper_list)
+
+    # check if paper is already in the given list of the current user
+    result = db.session.query(tags).filter_by(list_ref_id=paper_list.id,
+                                              paper_ref_id=paper.id
+                                              ).first()
+    if result:
+        return dumps({'success':True}), 200
+
+    paper.list_id.append(paper_list)
+    db.session.commit()
+    print('added')
+    return dumps({'success':True}), 201
