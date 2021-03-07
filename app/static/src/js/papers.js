@@ -348,7 +348,7 @@ function renderPapers() {
     let btnBook = document.createElement("button");
     btnBook.setAttribute("class", "btn btn-primary");
     btnBook.setAttribute("id", "btn-book-"+pId);
-    btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true'></i>";
+    btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true' id='a-icon-" + pId + "'></i>";
     btnBook.onclick = function(event) {
       let url = "add_bm";
       let num = event.target.getAttribute("id").split("-")[2];

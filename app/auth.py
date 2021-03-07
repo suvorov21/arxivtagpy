@@ -37,13 +37,13 @@ def login():
 
     usr = User.query.filter_by(email=email).first()
     if not usr:
-        flash("Wrong username/password")
+        flash("ERROR! Wrong username/password")
         return redirect(url_for('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
-        flash("Wrong username/password")
+        flash("ERROR! Wrong username/password")
     return redirect(url_for('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -67,11 +67,11 @@ def new_user():
 
     usr = User.query.filter_by(email=email).first()
     if usr:
-        flash("Email is already registered")
+        flash("ERROR! Email is already registered")
         return redirect(url_for('main_bp.signup'))
 
     if pasw1 != pasw2:
-        flash("Passwords don't match!")
+        flash("ERROR! Passwords don't match!")
         return redirect(url_for('main_bp.signup'))
 
     user = User(email=email,
@@ -101,7 +101,7 @@ def change_pasw():
         return redirect(url_for('main_bp.settings'))
 
     if not check_password_hash(current_user.pasw, old):
-        flash("Wrong old password!")
+        flash("ERROR! Wrong old password!")
         return redirect(url_for('main_bp.settings'))
 
     current_user.pasw = generate_password_hash(new)
