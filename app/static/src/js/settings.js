@@ -1,33 +1,6 @@
 /*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax*/
 /*eslint no-undef: "error"*/
 
-// ************************** UTILS ********************************************
-function raiseAlert(text="Text", type="alert") {
-  let parent = document.createElement("div");
-  parent.setAttribute("class", "alert alert-dismissible fade show alert-" + type);
-  parent.setAttribute("role", "alert");
-
-  let content = document.createElement("span");
-  content.textContent = text;
-
-  let close = document.createElement("button");
-  close.setAttribute("class", "close");
-  close.setAttribute("data-dismiss", "alert");
-  close.setAttribute("aria-label", "Close");
-
-  let time = document.createElement("span");
-  time.innerHTML = "&times;";
-
-  document.body.insertBefore(parent, document.getElementById("main-container"));
-  parent.appendChild(content);
-  parent.appendChild(close);
-  close.appendChild(time);
-
-  setTimeout(function() {
-    $('.alert').alert('close')
-  } , 2000);
-}
-
 var dragTarget;
 var tagEdited = false;
 
