@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from .import login_manager
-from .model import User
+from .model import db, User
 
 auth_bp = Blueprint(
     'auth_bp',
@@ -68,11 +68,11 @@ def new_user():
     usr = User.query.filter_by(email=email).first()
     if usr:
         flash("ERROR! Email is already registered")
-        return redirect(url_for('main_bp.signup'))
+        return redirect(url_for('auth_bp.signup'))
 
     if pasw1 != pasw2:
         flash("ERROR! Passwords don't match!")
-        return redirect(url_for('main_bp.signup'))
+        return redirect(url_for('auth_bp.signup'))
 
     user = User(email=email,
                 pasw=generate_password_hash(pasw1),
@@ -80,7 +80,7 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                tags='[]',
+                tags='[{"name":"example", "rule":"abs{physics|math}", "color": "#fff2bd"}]',
                 pref='{"tex":"True", "easy_and":"True"}'
                 )
     db.session.add(user)
@@ -117,6 +117,7 @@ def del_acc():
     logout_user()
     User.query.filter_by(email=email).delete()
     db.session.commit()
+
     return redirect(url_for('main_bp.root'))
 
 @login_manager.unauthorized_handler

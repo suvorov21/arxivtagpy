@@ -45,6 +45,8 @@ class User(UserMixin, db.Model):
 
     lists = db.relationship('PaperList',
                              backref='user',
+                             cascade='all,delete',
+                             passive_deletes=True,
                              lazy=True
                              )
 
@@ -58,7 +60,9 @@ class User(UserMixin, db.Model):
 tags = db.Table('tags',
                 db.Column('list_ref_id',
                           db.Integer,
-                          db.ForeignKey('lists.id'),
+                          db.ForeignKey('lists.id',
+                                        ondelete='CASCADE'
+                                        ),
                           primary_key=True
                           ),
                 db.Column('paper_ref_id',
@@ -108,6 +112,8 @@ class PaperList(db.Model):
                      )
 
     user_id = db.Column(db.Integer,
-                        db.ForeignKey('users.id'),
+                        db.ForeignKey('users.id',
+                                      ondelete='CASCADE'
+                                      ),
                         nullable=False
                         )
