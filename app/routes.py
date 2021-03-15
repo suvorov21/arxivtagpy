@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify
 from flask_login import current_user, login_required
 
-from .model import db, User, Paper, PaperList, tags
+from .model import db, Paper, PaperList, tags
 from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
 

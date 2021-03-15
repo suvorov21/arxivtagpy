@@ -1,7 +1,5 @@
 from . import db
 from flask_login import UserMixin
-# from sqlalchemy.orm import relationship
-# from sqlalchemy.ext.declarative import declarative_base
 
 class User(UserMixin, db.Model):
     """User table description."""
@@ -97,6 +95,7 @@ class Paper(db.Model):
                               )
 
     def __repr__(self):
+        """Print paper."""
         return f'<id: {self.id} title: {self.title}>'
 
 class PaperList(db.Model):

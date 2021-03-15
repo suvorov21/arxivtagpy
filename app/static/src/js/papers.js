@@ -1,4 +1,4 @@
-/*global MathJax, parseTex, DATA, prefs, CATS, TAGS*/
+/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert*/
 /*eslint no-undef: "error"*/
 
 let PAPERS_TO_RENDER = 20;
@@ -352,7 +352,6 @@ function renderPapers() {
     btnBook.onclick = function(event) {
       let url = "add_bm";
       let num = event.target.getAttribute("id").split("-")[2];
-      let paperName = DATA.papers[parseInt(num, 10)].title;
       let paper = DATA.papers[parseInt(num, 10)];
       // we take paper id w/o version --> do not overload paper DB
       $.post(url, {"title": paper.title,
@@ -368,7 +367,7 @@ function renderPapers() {
       }).fail(function(){
         raiseAlert("Paper is not saved due to server error", "danger");
       });
-    }
+    };
 
     let btnGroup4 = document.createElement("div");
     btnGroup4.setAttribute("class", "btn-group mr-2");
@@ -512,9 +511,9 @@ window.onload = function() {
     renderPapers();
     $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
-    if (jqXHR.status === 404)
+    if (jqXHR.status === 404) {
       $("#loading-papers").text("Paper source website is not responding. Is it down?");
-    else if (jqXHR.status === 400) {
+    } else if (jqXHR.status === 400) {
       $("#loading-papers").text("Paper source website response with no papers for your request");
     } else {
       $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please try later.");
