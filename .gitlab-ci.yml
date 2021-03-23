@@ -44,7 +44,7 @@ production:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s/DB_ADRESS/$PROD_DB/g" configmodule.py
+    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
     - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
   only:
