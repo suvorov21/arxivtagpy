@@ -49,8 +49,6 @@ production:
     - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
   only:
     - master
-    - develop
-
 
 # OLD HEROKU PRODUCTION
 # production:
