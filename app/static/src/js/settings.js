@@ -280,12 +280,13 @@ $("#tag-list").click((event) => {
   // reset the highlignt of all other tags
   let tagCol = document.getElementsByClassName("tag-label");
   for (let id = 0; id < tagCol.length; id++) {
-    // existing tags
-    $("#tag-label-"+parseInt(id, 10)).css("border-color", "transparent");
     // new tag box
     if ($(tagCol[parseInt(id, 10)]).attr("id") === "add-tag") {
       $("#add-tag").css("border-style", "dashed");
       $("#add-tag").css("border-width", "2px");
+    } else {
+      // existing tags
+      tagCol.item(id).style.borderColor =  "transparent";
     }
   }
 
