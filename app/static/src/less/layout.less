@@ -11,7 +11,7 @@ body {
 }
 
 .navbar {
-  background-color: @arxiv_red;
+  background-color: @title_red;
 }
 
 .nav-link {
@@ -25,6 +25,7 @@ body {
   font-family: 'Lucida Grande', helvetica, arial, verdana, sans-serif;
   font-weight: bold;
   text-decoration: none;
+  vertical-align: middle;
 
   a {
     color: #fff;
@@ -56,4 +57,18 @@ body {
   font-size: 1.2rem;
   background-color: #fff;
   overflow: hidden;
+}
+
+.top-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+}
+
+#chi {
+  display: inline;
+  position: relative;
+  top: -6px;
 }
