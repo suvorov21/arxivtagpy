@@ -172,9 +172,11 @@ function renderPref() {
     document.getElementById("tex-check").checked = true;
   }
 
-  // if (PREF["easy_and"]) {
-  //   document.getElementById("and-check").checked = true;
-  // }
+  if (PREF["dark"]) {
+    document.getElementById("radio-dark").checked = true;
+  } else {
+    document.getElementById("radio-light").checked = true;
+  }
   return;
 }
 
@@ -443,15 +445,26 @@ $(".form-check-input").change(() => {
 });
 
 function fillSetForm() {
+  if ($(".btn-cancel").hasClass("disabled")) {
+    return false;
+  }
   let url = "mod_pref";
-  let dataSet = {"tex": document.getElementById("tex-check").checked
-                  // "easy_and": document.getElementById("and-check").checked
+  let dataSet = {"tex": document.getElementById("tex-check").checked,
+                  "dark": document.getElementById("radio-dark").checked
                 };
   $.post(url, JSON.stringify(dataSet))
   .done(function(data) {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
+    // update the stylesheets. Just in case theme was changed
+    var links = document.getElementsByTagName("link");
+    for (var i = 0; i < links.length; i++) {
+      var link = links[i];
+      if (link.rel === "stylesheet") {
+        link.href += "?";
+      }}
+    window.location.reload()
     return false;
   }).fail(function(jqXHR){
     raiseAlert("Settings are not saved. Please try later", "danger");
