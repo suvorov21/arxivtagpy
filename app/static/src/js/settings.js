@@ -460,11 +460,11 @@ function fillSetForm() {
     // update the stylesheets. Just in case theme was changed
     var links = document.getElementsByTagName("link");
     for (var i = 0; i < links.length; i++) {
-      var link = links[i];
+      var link = links[parseInt(i, 10)];
       if (link.rel === "stylesheet") {
         link.href += "?";
       }}
-    window.location.reload()
+    window.location.reload();
     return false;
   }).fail(function(jqXHR){
     raiseAlert("Settings are not saved. Please try later", "danger");
