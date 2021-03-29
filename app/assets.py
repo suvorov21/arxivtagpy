@@ -6,6 +6,25 @@ def compile_layout_assets(app):
     Environment.auto_build = True
     Environment.debug = False
     # Stylesheets Bundle
+    vars_bundle = Bundle(
+        'src/less/vars.less',
+        filters='less,cssmin',
+        output='dist/css/vars.css',
+        extra={'rel': 'stylesheet/less'}
+    )
+
+    # Register assets
+    assets.register('vars', vars_bundle)
+    vars_dark_bundle = Bundle(
+        'src/less/vars_dark.less',
+        filters='less,cssmin',
+        output='dist/css/vars_dark.css',
+        extra={'rel': 'stylesheet/less'}
+    )
+
+    # Register assets
+    assets.register('vars_dark', vars_dark_bundle)
+
     less_bundle = Bundle(
         'src/less/layout.less',
         filters='less,cssmin',
@@ -14,9 +33,12 @@ def compile_layout_assets(app):
     )
 
     # Register assets
-    assets.register('less_all', less_bundle)
+    assets.register('layout', less_bundle)
+
     # Build assets in development mode
     if app.config['DEBUG']:
+        vars_bundle.build(force=True)
+        vars_dark_bundle.build(force=True)
         less_bundle.build(force=True)
 
 def compile_paper_assets(app):
