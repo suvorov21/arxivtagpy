@@ -464,7 +464,7 @@ function fillSetForm() {
       if (link.rel === "stylesheet") {
         link.href += "?";
       }}
-    window.location.reload();
+    window.location.reload(true);
     return false;
   }).fail(function(jqXHR){
     raiseAlert("Settings are not saved. Please try later", "danger");
