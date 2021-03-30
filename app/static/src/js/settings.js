@@ -22,6 +22,10 @@ function raiseAlert(text="Text", type="alert") {
   parent.appendChild(content);
   parent.appendChild(close);
   close.appendChild(time);
+
+  setTimeout(function() {
+    $(".alert").alert("close");
+  } , 2000);
 }
 
 var dragTarget;
@@ -82,7 +86,7 @@ function renderCats() {
 
   document.getElementById("cats-list").ondragover = function(event) {
     event.preventDefault();
-  }
+  };
   document.getElementById("cats-list").ondrop = function(event) {
     event.preventDefault();
     let moved = event.dataTransfer.getData("Text");
@@ -93,7 +97,7 @@ function renderCats() {
 
     $(".btn").removeClass("disabled");
     reloadSettings();
-  }
+  };
 }
 
 const findTagIdByName = (name) => {
@@ -125,13 +129,13 @@ function renderTags() {
       moved = moved.join("-").replaceAll("111", "-");
       moved = findTagIdByName(moved);
       event.dataTransfer.setData("Text", moved);
-    }
+    };
 
     tagElement.ondragover = function(event) {
       let target = event.target.getAttribute("id").split("-").slice(2);
       dragTarget = target.join("-").replaceAll("111", "-");
       dragTarget = findTagIdByName(dragTarget);
-    }
+    };
   });
 
   document.getElementById("tag-list").ondragover = function(event) {
@@ -143,7 +147,7 @@ function renderTags() {
     let moved = event.dataTransfer.getData("Text");
     let movedId = parseInt(moved, 10);
     let targetId = parseInt(dragTarget, 10);
-    let buffer = TAGS[movedId];
+    let buffer = TAGS[parseInt(movedId, 10)];
     TAGS[parseInt(movedId, 10)] = TAGS[parseInt(targetId, 10)];
     TAGS[parseInt(targetId, 10)] = buffer;
 
@@ -168,8 +172,10 @@ function renderPref() {
     document.getElementById("tex-check").checked = true;
   }
 
-  if (PREF["easy_and"]) {
-    document.getElementById("and-check").checked = true;
+  if (PREF["dark"]) {
+    document.getElementById("radio-dark").checked = true;
+  } else {
+    document.getElementById("radio-light").checked = true;
   }
   return;
 }
@@ -276,12 +282,13 @@ $("#tag-list").click((event) => {
   // reset the highlignt of all other tags
   let tagCol = document.getElementsByClassName("tag-label");
   for (let id = 0; id < tagCol.length; id++) {
-    // existing tags
-    $("#tag-label-"+parseInt(id, 10)).css("border-color", "transparent");
     // new tag box
     if ($(tagCol[parseInt(id, 10)]).attr("id") === "add-tag") {
       $("#add-tag").css("border-style", "dashed");
       $("#add-tag").css("border-width", "2px");
+    } else {
+      // existing tags
+      tagCol.item(id).style.borderColor =  "transparent";
     }
   }
 
@@ -325,7 +332,7 @@ function makeTagEdited() {
   tagEdited = true;
   var doms = document.getElementsByClassName("tag-label");
   for(let i = 0; i < doms.length; i++) {
-    doms[i].style.cursor = "not-allowed";
+    doms[parseInt(i, 10)].style.cursor = "not-allowed";
   }
 }
 
@@ -438,15 +445,26 @@ $(".form-check-input").change(() => {
 });
 
 function fillSetForm() {
+  if ($(".btn-cancel").hasClass("disabled")) {
+    return false;
+  }
   let url = "mod_pref";
   let dataSet = {"tex": document.getElementById("tex-check").checked,
-                  "easy_and": document.getElementById("and-check").checked
+                  "dark": document.getElementById("radio-dark").checked
                 };
   $.post(url, JSON.stringify(dataSet))
   .done(function(data) {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
+    // update the stylesheets. Just in case theme was changed
+    var links = document.getElementsByTagName("link");
+    for (var i = 0; i < links.length; i++) {
+      var link = links[parseInt(i, 10)];
+      if (link.rel === "stylesheet") {
+        link.href += "?";
+      }}
+    window.location.reload(true);
     return false;
   }).fail(function(jqXHR){
     raiseAlert("Settings are not saved. Please try later", "danger");

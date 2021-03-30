@@ -8,7 +8,10 @@ class Config(object):
     TESTING = False
 
     # DB
-    SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL')
+    if 'DATABASE_URL' in environ:
+        SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL')
+    else:
+        SQLALCHEMY_DATABASE_URI = 'DB_ADRESS'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # security

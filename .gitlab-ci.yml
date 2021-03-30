@@ -1,5 +1,6 @@
 stages:
   - test
+  - stage
   - production
 
 include:
@@ -45,14 +46,40 @@ integration_test:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
     - pytest
 
+stage_to_beta:
+  stage: stage
+  image:
+    alpine:latest
+  before_script:
+    - apk add lftp
+    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
+  script:
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
+  only:
+    - develop
+
 production:
-    type: deploy
-    stage: production
-    before_script:
-      - apt-get update -qy
-      - apt-get install -y ruby-dev
-      - gem install dpl
-    script:
-        - dpl --provider=heroku --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
-    only:
-        - master
+  type: deploy
+  stage: production
+  image:
+    alpine:latest
+  before_script:
+    - apk add lftp
+    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
+  script:
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
+  only:
+    - master
+
+# OLD HEROKU PRODUCTION
+# production:
+#     type: deploy
+#     stage: production
+#     before_script:
+#       - apt-get update -qy
+#       - apt-get install -y ruby-dev
+#       - gem install dpl
+#     script:
+#         - dpl --provider=heroku --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
+#     only:
+#         - master

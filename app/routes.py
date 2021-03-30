@@ -3,11 +3,8 @@ from json import loads, dumps
 
 from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify
-from flask_login import current_user, login_user, login_required, logout_user
+from flask_login import current_user, login_required
 
-from werkzeug.security import check_password_hash, generate_password_hash
-
-from .import login_manager
 from .model import db, User
 from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
@@ -24,7 +21,7 @@ main_bp = Blueprint(
 @main_bp.route('/')
 def root():
     """Landing page."""
-    return render_template('layout.jinja2')
+    return render_template('about.jinja2')
 
 @main_bp.route('/papers')
 @login_required
@@ -41,7 +38,14 @@ def papers_list():
         date_type = date_dict.get(request.args['date'])
 
     if date_type is None:
-        return redirect(url_for('main_bp.papers_list', date='today'))
+        # WARNING a dirty fix to get rid of /flask/flask.wsgi in the adress bar
+        if 'arxivtag' in request.headers['Host'] :
+            # if production, go 3 levels up
+            return redirect('../../../papers?date=today')
+        else:
+            # not a production (local/heroku) let flask care about path
+            return redirect(url_for('main_bp.papers_list', date='today'))
+
 
     # load preferences
     load_prefs()
@@ -55,7 +59,8 @@ def papers_list():
                            title=render_title(date_type, current_user.login),
                            cats=session['cats'],
                            tags=tags_dict,
-                           math_jax=True if session['pref'].get('tex') else False
+                           math_jax=True if session['pref'].get('tex') else False,
+                           dark=True if session['pref'].get('dark') else False
                            )
 
 @main_bp.route('/data')
@@ -84,6 +89,10 @@ def data():
                                   last_paper=current_user.last_paper
                                   )
 
+    # error hahdler
+    if isinstance(papers, int):
+        return dumps({'success':False}), papers
+
     # store the info about last checked paper
     # descending paper order is assumed
     if len(papers['content']) > 0 and papers['content'][0].get('date_up'):
@@ -94,8 +103,7 @@ def data():
 
     papers = process_papers(papers,
                             session['tags'],
-                            session['cats'],
-                            session['pref'].get('easy_and')
+                            session['cats']
                             )
     paper_render = render_papers(papers)
 
@@ -110,7 +118,9 @@ def data():
 @login_required
 def bookshelf():
     """Bookshelf page."""
-    return render_template('bookshelf.jinja2')
+    return render_template('bookshelf.jinja2',
+                           dark=True if session['pref'].get('dark') else False
+                           )
 
 @main_bp.route('/settings')
 @login_required
@@ -128,13 +138,16 @@ def settings():
                            # TODO read from prefs
                            pref=dumps(session['pref']),
                            math_jax=True if session['pref'].get('tex') else False,
+                           dark=True if session['pref'].get('dark') else False,
                            page=page
                            )
 
 @main_bp.route('/about')
 def about():
     """About page."""
-    return render_template('about.jinja2')
+    return render_template('about.jinja2',
+                           dark=True if session['pref'].get('dark') else False
+                           )
 
 
 def load_prefs():
@@ -208,111 +221,3 @@ def mod_pref():
     # How much it affect db load?
     session['pref'] = loads(current_user.pref)
     return dumps({'success':True}), 200
-
-
-######### LOGIN TOOLS ##################################################
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    """Load user function, store username."""
-    if user_id is not None:
-        usr = User.query.get(user_id)
-        return usr
-    return None
-
-@main_bp.route('/login', methods=['POST'])
-def login():
-    """User log-in logic."""
-    email = request.form.get('i_login')
-    pasw = request.form.get('i_pass')
-
-    usr = User.query.filter_by(email=email).first()
-    if not usr:
-        flash("Wrong username/password")
-        return redirect(url_for('main_bp.root'))
-
-    if check_password_hash(usr.pasw, pasw):
-        login_user(usr)
-    else:
-        flash("Wrong username/password")
-    return redirect(url_for('main_bp.root'))
-
-@main_bp.route('/signup')
-def signup():
-    """Signup page."""
-    return render_template('signup.jinja2')
-
-@main_bp.route('/logout')
-@login_required
-def logout():
-    """User log-out logic."""
-    logout_user()
-    return redirect(url_for('main_bp.root'))
-
-@main_bp.route('/new_user', methods=["POST"])
-def new_user():
-    """New user creation."""
-    email = request.form.get('email')
-    pasw1 = request.form.get('pasw')
-    pasw2 = request.form.get('pasw2')
-
-    usr = User.query.filter_by(email=email).first()
-    if usr:
-        flash("Email is already registered")
-        return redirect(url_for('main_bp.signup'))
-
-    if pasw1 != pasw2:
-        flash("Passwords don't match!")
-        return redirect(url_for('main_bp.signup'))
-
-    user = User(email=email,
-                pasw=generate_password_hash(pasw1),
-                arxiv_cat=['hep-ex'],
-                created=datetime.now(),
-                login=datetime.now(),
-                last_paper=datetime.now(),
-                tags='[]',
-                pref='{"tex":"True", "easy_and":"True"}'
-                )
-    db.session.add(user)
-    db.session.commit()
-    login_user(user)
-    flash('Welcome to arXiv tag! Please setup categories you are interested in!')
-    return redirect(url_for('main_bp.settings'))
-
-@main_bp.route('/change_pasw', methods=["POST"])
-@login_required
-def change_pasw():
-    """Change password."""
-    old = request.form.get('oldPass')
-    new = request.form.get('newPass1')
-    new2 = request.form.get('newPass2')
-    if new != new2:
-        flash("New passwords don't match!")
-        return redirect(url_for('main_bp.settings'))
-
-    if not check_password_hash(current_user.pasw, old):
-        flash("Wrong old password!")
-        return redirect(url_for('main_bp.settings'))
-
-    current_user.pasw = generate_password_hash(new)
-    db.session.commit()
-    flash('Password successfully changed!')
-    return redirect(url_for('main_bp.settings'))
-
-@main_bp.route('/delAcc', methods=["POST"])
-@login_required
-def del_acc():
-    """Delete account completely."""
-    email = current_user.email
-    logout_user()
-    User.query.filter_by(email=email).delete()
-    db.session.commit()
-    return redirect(url_for('main_bp.root'))
-
-@login_manager.unauthorized_handler
-def unauthorized():
-    """Redirect unauthorized users to Login page."""
-    flash('You must be logged in to view this page.')
-    return redirect(url_for('main_bp.about'))

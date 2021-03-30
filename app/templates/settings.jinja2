@@ -103,12 +103,26 @@
                     <small id="ruleHelp" class="form-text text-muted"><span id="show-rules">Show rules hints</span></small>
                     <br/>
                     <div id="tag-help">
-                      <p>The following rules or their combinations can be used:<br/>
-                      <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
-                      <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
-                      <code>au{John Doe}</code> - for papers with "John Doe" in author list</p>
-                      <p>Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. <br/>Regular expressions can be used inside curly brackets. <br/>$\\LaTeX$ is supported.<br/>Rules are case insensitive.<br/><br/>
-                      Example: <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code></p><br/><br/>
+                      <p>
+                        The following rules or their combinations can be used:<br/>
+                        <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
+                        <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
+                        <code>au{John Doe}</code> - for papers with "John Doe" in author list
+                      </p>
+                      <p>
+                        Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. <br/>
+                        <code>!</code> sign can be placed inside curly brackets to invert the rule. <br />
+                        Regular expressions can be used inside curly brackets. <br/>
+                        $\\LaTeX$ is supported.<br/>
+                        Rules are case insensitive.
+                      </p>
+                      <p>
+                        Examples:<br />
+                        <code>ti{Breakthrough}|au{Nobel Winner} </code><br />
+                        <code>ti{quantum}&abs{\Delta x\Delta p>\hbar} </code><br />
+                        <code>ti{cellular}&ti{!biology}</code><br />
+                        <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
+                      </p>
                     </div>
                     <label for="tag-color" >Tag color</label><br/>
                     <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
@@ -123,7 +137,7 @@
               <div id="pref-set">
                 <form class="mb-4" id="mod-set" method="POST" onsubmit="return fillSetForm()">
                   <button class="btn btn-success btn-save disabled">Save</button>
-                  <button class="btn btn-secondary btn-save disabled btn-cancel">Cancel</button>
+                  <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
                 </form>
                 <h3>Display settings</h3>
 
@@ -133,11 +147,17 @@
                   <small class="form-text text-muted">
                     Render TeX formulas may take significant amount of time.
                   </small>
-                  <input class="form-check-input" type="checkbox" id="and-check">
-                  <label class="form-check-label" for="and-check">Easy logic AND in tag rule</label>
-                  <small class="form-text text-muted">
-                    By default the simple tag rule with logic AND <code>{a&b}</code> is replaced with a proper REGEX expression <code>(a.*b)|(b.*a)</code>.<br/> If you want to have full control over the rule REGEX - disable this option.
-                  </small>
+                </div>
+                <div class="form-block">
+                  <label>Theme:</label>
+                  <div class="form-check form-block form-check-inline">
+                    <input class="form-check-input" type="radio" name="theme" id="radio-light" value="light">
+                    <label class="form-check-label" for="inlineRadio1">Light</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="theme" id="radio-dark" value="dark">
+                    <label class="form-check-label" for="inlineRadio2">Dark</label>
+                  </div>
                 </div>
 
                 <h3>Account settings</h3>

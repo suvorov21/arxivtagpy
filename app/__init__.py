@@ -13,10 +13,6 @@ def app_init():
     """Initialise app."""
     app = Flask(__name__, instance_relative_config=True)
 
-    if 'DATABASE_URL' not in environ:
-        print("DB configuration error!")
-        return None
-
     if 'SERVER_CONF' in environ:
         cfg = import_string(environ['SERVER_CONF'])()
     else:
@@ -31,8 +27,12 @@ def app_init():
         from . import routes
         app.register_blueprint(routes.main_bp)
 
-        from .assets import compile_assets
-        compile_assets(app)
+        from . import auth
+        app.register_blueprint(auth.auth_bp)
+
+        if app.config['DEBUG']:
+            from .assets import compile_assets
+            compile_assets(app)
 
         db.create_all()
 

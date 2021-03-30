@@ -384,8 +384,8 @@ function sortPapers() {
   // dates
   if (sortMethod.includes("date")) {
     DATA.papers.sort((a, b) => {
-      let aDate = new Date(a.date_sub);
-      let bDate = new Date(b.date_sub);
+      let aDate = new Date(a.date_up);
+      let bDate = new Date(b.date_up);
       return sortFunction(aDate, bDate,
                           sortMethod === "date-des"? true : false);
     });
@@ -481,8 +481,13 @@ window.onload = function() {
     renderPapers();
     $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
-    // alert("Error during paper load. Please try later.");
-    $("#loading-papers").text("Error during paper loading. Please try later.");
+    if (jqXHR.status === 404) {
+      $("#loading-papers").text("Paper source website is not responding. Is it down?");
+    } else if (jqXHR.status === 400) {
+      $("#loading-papers").text("Paper source website response with no papers for your request");
+    } else {
+      $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please try later.");
+    }
   });
   renderTitle();
   renderNov();

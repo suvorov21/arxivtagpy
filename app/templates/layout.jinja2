@@ -6,7 +6,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 
-  <link href="{{ url_for('static', filename='dist/css/layout.css') }}" rel="stylesheet" type="text/css">
+  {% if dark %}
+    <link href="{{ url_for('static', filename='dist/css/vars_dark.css') }}" rel="stylesheet" type="text/css">
+  {% else %}
+    <link href="{{ url_for('static', filename='dist/css/vars.css') }}" rel="stylesheet" type="text/css">
+  {% endif %}
+
   {% block head_scripts %}{% endblock %}
   <title>arXiv tagger</title>
 </head>
@@ -74,7 +79,11 @@
 
   {# Alert block #}
   {% for message in get_flashed_messages() %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {% if 'Wrong' in message or 'already registered' in message or 'match' in message %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    {% else %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+    {% endif %}
       {{ message }}
       <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
