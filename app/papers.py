@@ -2,7 +2,7 @@ from os import linesep
 from time import sleep
 from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
-from re import search, IGNORECASE, sub
+from re import search, IGNORECASE
 
 from feedparser import parse
 from requests import get

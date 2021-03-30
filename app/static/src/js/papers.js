@@ -481,9 +481,9 @@ window.onload = function() {
     renderPapers();
     $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
-    if (jqXHR.status === 404)
+    if (jqXHR.status === 404) {
       $("#loading-papers").text("Paper source website is not responding. Is it down?");
-    else if (jqXHR.status === 400) {
+    } else if (jqXHR.status === 400) {
       $("#loading-papers").text("Paper source website response with no papers for your request");
     } else {
       $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please try later.");

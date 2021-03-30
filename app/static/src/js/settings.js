@@ -24,7 +24,7 @@ function raiseAlert(text="Text", type="alert") {
   close.appendChild(time);
 
   setTimeout(function() {
-    $('.alert').alert('close')
+    $(".alert").alert("close");
   } , 2000);
 }
 

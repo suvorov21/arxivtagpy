@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from .import login_manager
-from .model import User
+from .model import db, User
 
 auth_bp = Blueprint(
     'auth_bp',
