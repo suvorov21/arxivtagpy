@@ -30,8 +30,9 @@ def app_init():
         from . import auth
         app.register_blueprint(auth.auth_bp)
 
-        from .assets import compile_assets
-        compile_assets(app)
+        if app.config['DEBUG']:
+            from .assets import compile_assets
+            compile_assets(app)
 
         db.create_all()
 

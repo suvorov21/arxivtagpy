@@ -145,9 +145,11 @@ function renderPref() {
     document.getElementById("tex-check").checked = true;
   }
 
-  // if (PREF["easy_and"]) {
-  //   document.getElementById("and-check").checked = true;
-  // }
+  if (PREF["dark"]) {
+    document.getElementById("radio-dark").checked = true;
+  } else {
+    document.getElementById("radio-light").checked = true;
+  }
   return;
 }
 
@@ -253,12 +255,13 @@ $("#tag-list").click((event) => {
   // reset the highlignt of all other tags
   let tagCol = document.getElementsByClassName("tag-label");
   for (let id = 0; id < tagCol.length; id++) {
-    // existing tags
-    $("#tag-label-"+parseInt(id, 10)).css("border-color", "transparent");
     // new tag box
     if ($(tagCol[parseInt(id, 10)]).attr("id") === "add-tag") {
       $("#add-tag").css("border-style", "dashed");
       $("#add-tag").css("border-width", "2px");
+    } else {
+      // existing tags
+      tagCol.item(id).style.borderColor =  "transparent";
     }
   }
 
@@ -415,15 +418,26 @@ $(".form-check-input").change(() => {
 });
 
 function fillSetForm() {
+  if ($(".btn-cancel").hasClass("disabled")) {
+    return false;
+  }
   let url = "mod_pref";
-  let dataSet = {"tex": document.getElementById("tex-check").checked
-                  // "easy_and": document.getElementById("and-check").checked
+  let dataSet = {"tex": document.getElementById("tex-check").checked,
+                  "dark": document.getElementById("radio-dark").checked
                 };
   $.post(url, JSON.stringify(dataSet))
   .done(function(data) {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
+    // update the stylesheets. Just in case theme was changed
+    var links = document.getElementsByTagName("link");
+    for (var i = 0; i < links.length; i++) {
+      var link = links[parseInt(i, 10)];
+      if (link.rel === "stylesheet") {
+        link.href += "?";
+      }}
+    window.location.reload(true);
     return false;
   }).fail(function(jqXHR){
     raiseAlert("Settings are not saved. Please try later", "danger");

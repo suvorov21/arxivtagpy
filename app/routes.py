@@ -21,7 +21,7 @@ main_bp = Blueprint(
 @main_bp.route('/')
 def root():
     """Landing page."""
-    return render_template('layout.jinja2')
+    return render_template('about.jinja2')
 
 @main_bp.route('/papers')
 @login_required
@@ -59,7 +59,8 @@ def papers_list():
                            title=render_title(date_type, current_user.login),
                            cats=session['cats'],
                            tags=tags_dict,
-                           math_jax=True if session['pref'].get('tex') else False
+                           math_jax=True if session['pref'].get('tex') else False,
+                           dark=True if session['pref'].get('dark') else False
                            )
 
 @main_bp.route('/data')
@@ -117,7 +118,9 @@ def data():
 @login_required
 def bookshelf():
     """Bookshelf page."""
-    return render_template('bookshelf.jinja2')
+    return render_template('bookshelf.jinja2',
+                           dark=True if session['pref'].get('dark') else False
+                           )
 
 @main_bp.route('/settings')
 @login_required
@@ -135,13 +138,16 @@ def settings():
                            # TODO read from prefs
                            pref=dumps(session['pref']),
                            math_jax=True if session['pref'].get('tex') else False,
+                           dark=True if session['pref'].get('dark') else False,
                            page=page
                            )
 
 @main_bp.route('/about')
 def about():
     """About page."""
-    return render_template('about.jinja2')
+    return render_template('about.jinja2',
+                           dark=True if session['pref'].get('dark') else False
+                           )
 
 
 def load_prefs():
