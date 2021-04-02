@@ -22,8 +22,10 @@ main_bp = Blueprint(
 def root():
     """Landing page."""
     load_prefs()
+    dark=True if session.get('pref') and session['pref'].get('dark') else False
     return render_template('about.jinja2',
-                           dark=True if session['pref'].get('dark') else False)
+                           dark=dark
+                           )
 
 @main_bp.route('/papers')
 @login_required
