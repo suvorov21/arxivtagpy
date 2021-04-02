@@ -154,7 +154,7 @@ def about():
 
 def load_prefs():
     """Load preferences from DB to session."""
-    if not current_user:
+    if not current_user.is_authenticated:
         return
     # if 'cats' not in session:
     session['cats'] = current_user.arxiv_cat
