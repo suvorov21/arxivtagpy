@@ -21,7 +21,11 @@ main_bp = Blueprint(
 @main_bp.route('/')
 def root():
     """Landing page."""
-    return render_template('about.jinja2')
+    load_prefs()
+    dark=True if session.get('pref') and session['pref'].get('dark') else False
+    return render_template('about.jinja2',
+                           dark=dark
+                           )
 
 @main_bp.route('/papers')
 @login_required
@@ -152,6 +156,8 @@ def about():
 
 def load_prefs():
     """Load preferences from DB to session."""
+    if not current_user.is_authenticated:
+        return
     # if 'cats' not in session:
     session['cats'] = current_user.arxiv_cat
 
