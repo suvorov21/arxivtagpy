@@ -1,3 +1,6 @@
+/*global TAGS*/
+/*eslint no-undef: "error"*/
+
 function renderOcoins(paper) {
   let ocoins = {
     "ctx_ver": "Z39.88-2004",
@@ -54,7 +57,7 @@ function renderPapersBase(content, pId) {
   tagPanel.setAttribute("id", "tag-panel-"+pId);
   paper.appendChild(tagPanel);
 
-  if (content.tags !== undefined) {
+  if ("tags" in content) {
     content.tags.forEach(function(tag) {
       var tagDiv = document.createElement("div");
       tagDiv.setAttribute("class", "tag-panel-item");
@@ -73,7 +76,7 @@ function renderPapersBase(content, pId) {
   let authors = content.author;
   if (authors.length > 4){
     authors = authors.slice(0, 5);
-    authors.push('et al');
+    authors.push("et al");
   }
   au.textContent = authors.join(", ");
   paper.appendChild(au);

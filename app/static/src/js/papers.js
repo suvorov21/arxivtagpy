@@ -1,4 +1,4 @@
-/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert*/
+/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase*/
 /*eslint no-undef: "error"*/
 
 let PAPERS_TO_RENDER = 20;
@@ -180,31 +180,6 @@ function renderCounters() {
   }
 }
 
-function renderOcoins(paper) {
-  let ocoins = {
-    "ctx_ver": "Z39.88-2004",
-    "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
-    "rft_id": encodeURIComponent(paper.ref_web),
-    "rft_id": encodeURIComponent(paper.ref_doi),
-    "rft.atitle": encodeURIComponent(paper.title),
-    "rft.jtitle": encodeURIComponent("arXiv:" + paper.id + " [" + paper.cats[0] + "]"),
-    "rft.date": encodeURIComponent(paper.date_up),
-    "rft.artnum": encodeURIComponent(paper.id),
-    "rft.genre": encodeURIComponent("preprint"),
-    "rft.description": encodeURIComponent(paper.abstract),
-  };
-
-  ocoins = JSON.stringify(ocoins);
-  ocoins = ocoins.replace(/\"/g, "");
-  ocoins = ocoins.replace(/,/g, "&");
-  ocoins = ocoins.replace(/:/g, "=");
-  ocoins = ocoins.slice(1, ocoins.length - 1);
-
-  ocoins += paper.author.map((au) => {return "&rft.au=" + encodeURIComponent(au);}).join();
-
-  return ocoins;
-}
-
 function renderPapers() {
   for(let pId = START; pId < START + PAPERS_TO_RENDER; pId++) {
     if (DATA.papers.length <= pId) {
@@ -213,9 +188,7 @@ function renderPapers() {
     let content = DATA.papers[parseInt(pId, 10)];
 
     let paperBase = renderPapersBase(content, pId);
-    let paper = paperBase[0];
     let btnPanel = paperBase[1];
-
 
     let btnBook = document.createElement("button");
     btnBook.setAttribute("class", "btn btn-primary");

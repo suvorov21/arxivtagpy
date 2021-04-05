@@ -1,20 +1,20 @@
-/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapers*/
+/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase*/
 /*eslint no-undef: "error"*/
 
 function renderLists() {
   LISTS.forEach((listName, num) => {
-    let list_item = document.createElement("div");
-    list_item.setAttribute("class", "menu-item");
+    let listItem = document.createElement("div");
+    listItem.setAttribute("class", "menu-item");
     let link = document.createElement("a");
     link.setAttribute("href", "/");
     link.textContent = listName;
-    document.getElementById("menu-main").append(list_item);
-    list_item.appendChild(link);
+    document.getElementById("menu-main").append(listItem);
+    listItem.appendChild(link);
   });
 }
 
 function renderPapers() {
-  document.getElementById("paper-list-title").textContent = DATA.list
+  document.getElementById("paper-list-title").textContent = DATA.list;
   DATA.papers.forEach((paper, num) => {
     let paperBase = renderPapersBase(paper, num);
 
@@ -59,4 +59,4 @@ function renderPapers() {
 window.onload = function() {
   renderLists();
   renderPapers();
-}
+};
