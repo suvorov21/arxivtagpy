@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify
 from flask_login import current_user, login_required
 
-from .model import db, Paper, PaperList, tags
+from .model import db, Paper, PaperList, paper_associate
 from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
 
@@ -118,14 +118,6 @@ def data():
                }
     return jsonify(content)
 
-@main_bp.route('/bookshelf')
-@login_required
-def bookshelf():
-    """Bookshelf page."""
-    return render_template('bookshelf.jinja2',
-                           dark=True if session['pref'].get('dark') else False
-                           )
-
 @main_bp.route('/settings')
 @login_required
 def settings():
@@ -230,12 +222,48 @@ def mod_pref():
 
 
 ##### Bookshelf stuff ##################################################
+@main_bp.route('/bookshelf')
+@login_required
+def bookshelf():
+    """Bookshelf page."""
+    lists=[]
+    # get all lists for the menu
+    paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
+    for paper_list in paper_lists:
+      lists.append(paper_list.name)
+
+    # get papers in the list
+    paper_list = PaperList.query.filter_by(id=paper_lists[0].id).first()
+
+    papers = {'list': lists[0],
+              'papers': []
+              }
+
+    for paper in paper_list.papers:
+      papers['papers'].append({'title': paper.title,
+                               'id': paper.paper_id,
+                               'author': paper.author,
+                             'date_up': datetime.strftime(paper.date_up,
+                                                          '%d-%M-%Y'
+                                                            ),
+                             'abstract': paper.abstract,
+                             'ref_pdf': paper.ref_pdf,
+                             'ref_web': paper.ref_web,
+                             'ref_doi': paper.ref_doi,
+                             'cats': paper.cats
+                                })
+    return render_template('bookshelf.jinja2',
+                           papers=papers,
+                           lists=lists,
+                           math_jax=True if session['pref'].get('tex') else False,
+                           dark=True if session['pref'].get('dark') else False
+                           )
+
 @main_bp.route('/add_bm', methods=['POST'])
 @login_required
 def add_bm():
     """Add bookmark."""
     # read input
-    title = request.form.get('title')
     paper_id = request.form.get('paper_id')
 
     # search if paper is already in the paper DB
@@ -243,8 +271,20 @@ def add_bm():
     # if paper is not in the paper table
     # cerate a new one
     if not paper:
-        paper = Paper(title=title,
-                      paper_id=paper_id
+        dataIn = request.form.to_dict()
+        print(dataIn)
+        print(dataIn.get('author'))
+        print(request.form.to_dict().keys)
+        print('bl')
+        paper = Paper(title=request.form.get('title'),
+                      paper_id=paper_id,
+                      author=request.form.getlist('author[]'),
+                      date_up=request.form.get('date_up'),
+                      abstract=request.form.get('abstract'),
+                      ref_pdf=request.form.get('ref_pdf'),
+                      ref_web=request.form.get('ref_web'),
+                      ref_doi=request.form.get('ref_doi'),
+                      cats=request.form.getlist('cats[]')
                       )
 
         db.session.add(paper)
@@ -261,7 +301,7 @@ def add_bm():
         db.session.add(paper_list)
 
     # check if paper is already in the given list of the current user
-    result = db.session.query(tags).filter_by(list_ref_id=paper_list.id,
+    result = db.session.query(paper_associate).filter_by(list_ref_id=paper_list.id,
                                               paper_ref_id=paper.id
                                               ).first()
     if result:

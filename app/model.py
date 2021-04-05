@@ -55,20 +55,20 @@ class User(UserMixin, db.Model):
 # helper table to deal with many-to-many relations
 # lists --> papers
 # return papers by paperlist Paper.query.with_parent(some_list)
-tags = db.Table('tags',
-                db.Column('list_ref_id',
-                          db.Integer,
-                          db.ForeignKey('lists.id',
-                                        ondelete='CASCADE'
-                                        ),
-                          primary_key=True
-                          ),
-                db.Column('paper_ref_id',
-                          db.Integer,
-                          db.ForeignKey('papers.id'),
-                          primary_key=True
-                          )
-                )
+paper_associate = db.Table('paper_associate',
+                            db.Column('list_ref_id',
+                                      db.Integer,
+                                      db.ForeignKey('lists.id',
+                                                    ondelete='CASCADE'
+                                                    ),
+                                      primary_key=True
+                                      ),
+                            db.Column('paper_ref_id',
+                                      db.Integer,
+                                      db.ForeignKey('papers.id'),
+                                      primary_key=True
+                                      )
+                            )
 
 class Paper(db.Model):
     """Paper table description."""
@@ -88,10 +88,45 @@ class Paper(db.Model):
                      nullable=False
                      )
 
+    author = db.Column(db.ARRAY(db.String),
+                       unique=False,
+                       nullable=False
+                       )
+
+    date_up = db.Column(db.Date(),
+                        unique=False,
+                        nullable=False
+                        )
+
+    abstract = db.Column(db.String(),
+                         unique=False,
+                         nullable=True
+                         )
+
+    ref_pdf = db.Column(db.String(),
+                        unique=False,
+                        nullable=True
+                        )
+
+    ref_web = db.Column(db.String(),
+                        unique=False,
+                        nullable=True
+                        )
+
+    ref_doi = db.Column(db.String(),
+                        unique=False,
+                        nullable=True
+                        )
+
+    cats = db.Column(db.ARRAY(db.String),
+                     unique=False,
+                     nullable=True
+                     )
+
     list_id = db.relationship('PaperList',
-                              secondary=tags,
+                              secondary=paper_associate,
                               lazy='subquery',
-                              backref=db.backref('papers', lazy=True)
+                              backref=db.backref('paper', lazy=True)
                               )
 
     def __repr__(self):
@@ -116,3 +151,13 @@ class PaperList(db.Model):
                                       ),
                         nullable=False
                         )
+
+    papers = db.relationship('Paper',
+                             secondary=paper_associate,
+                             lazy='subquery',
+                             backref=db.backref('paper_list', lazy=True)
+                             )
+
+    def __repr__(self):
+        """Print paper."""
+        return f'<id: {self.id} title: {self.name}>'

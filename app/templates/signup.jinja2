@@ -1,5 +1,9 @@
 {% extends "layout.jinja2" %}
 
+{% block head_scripts %}
+  <link href="{{ url_for('static', filename='dist/css/layout.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
 {% block content %}
   <div class="container mt-4">
     <div class="row justify-content-center">

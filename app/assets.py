@@ -5,7 +5,7 @@ def compile_layout_assets(app):
     assets = Environment(app)
     Environment.auto_build = True
     Environment.debug = False
-    # Stylesheets Bundle
+    # Light theme
     vars_bundle = Bundle(
         'src/less/vars.less',
         filters='less,cssmin',
@@ -13,8 +13,8 @@ def compile_layout_assets(app):
         extra={'rel': 'stylesheet/less'}
     )
 
-    # Register assets
     assets.register('vars', vars_bundle)
+    # Dark theme
     vars_dark_bundle = Bundle(
         'src/less/vars_dark.less',
         filters='less,cssmin',
@@ -22,7 +22,6 @@ def compile_layout_assets(app):
         extra={'rel': 'stylesheet/less'}
     )
 
-    # Register assets
     assets.register('vars_dark', vars_dark_bundle)
 
     less_bundle = Bundle(
@@ -32,7 +31,6 @@ def compile_layout_assets(app):
         extra={'rel': 'stylesheet/less'}
     )
 
-    # Register assets
     assets.register('layout', less_bundle)
 
     # Build assets in development mode
@@ -57,6 +55,7 @@ def compile_paper_assets(app):
     # JavaScript Bundle
     js_bundle = Bundle(
         'src/js/cookie.js',
+        'src/js/paper_basic.js',
         'src/js/papers.js',
         filters='jsmin',
         output='dist/js/papers.min.js'
@@ -101,6 +100,37 @@ def compile_settings_assets(app):
         less_bundle.build(force=True)
         js_bundle.build()
 
+def compile_bookshelf_assets(app):
+    """Compile boockshelf assets."""
+    assets = Environment(app)
+    Environment.auto_build = True
+    Environment.debug = False
+    # Stylesheets Bundle
+    less_bundle = Bundle(
+        'src/less/layout.less',
+        'src/less/papers.less',
+        filters='less,cssmin',
+        output='dist/css/bookshelf.css',
+        extra={'rel': 'stylesheet/less'}
+    )
+    # JavaScript Bundle
+    js_bundle = Bundle(
+        'src/js/allCatsArray.js',
+        'src/js/cookie.js',
+        'src/js/paper_basic.js',
+        'src/js/bookshelf.js',
+        filters='jsmin',
+        output='dist/js/bookshelf.min.js'
+    )
+
+    # Register assets
+    assets.register('less_all', less_bundle)
+    assets.register('js_all', js_bundle)
+    # Build assets in development mode
+    if app.config['DEBUG']:
+        less_bundle.build(force=True)
+        js_bundle.build()
+
 
 
 def compile_assets(app):
@@ -108,3 +138,4 @@ def compile_assets(app):
     compile_layout_assets(app)
     compile_paper_assets(app)
     compile_settings_assets(app)
+    compile_bookshelf_assets(app)

@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from .import login_manager
-from .model import db, User
+from .model import db, User, PaperList
 
 auth_bp = Blueprint(
     'auth_bp',
@@ -84,7 +84,15 @@ def new_user():
                 pref='{"tex":"True", "easy_and":"True"}'
                 )
     db.session.add(user)
+
     db.session.commit()
+    paper_list = PaperList(name='Favourite',
+                           user_id=user.id
+                           )
+    db.session.add(paper_list)
+
+    db.session.commit()
+
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')
     return redirect(url_for('main_bp.settings'))

@@ -137,7 +137,8 @@ class ArxivApi(PaperApi):
                      'ref_web': parse_links(entry.links, link_type='abs'),
                      'ref_doi': parse_links(entry.links, link_type='doi'),
                      'id': entry.id.split('/')[-1],
-                     'primary': entry.tags[0]['term'],
+                     #  FIXME delete in the future
+                     # 'primary': entry.tags[0]['term'],
                      'cats': parse_cats(entry.tags),
                      'tags': [],
                      'nov': 0
