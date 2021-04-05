@@ -1,4 +1,4 @@
-/*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax*/
+/*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax, raiseAlert*/
 /*eslint no-undef: "error"*/
 
 var dragTarget;
@@ -80,11 +80,11 @@ const findTagIdByName = (name) => {
     }
   }
   return -1;
-}
+};
 
 function renderTags() {
   $("#tag-list").empty();
-  TAGS.forEach((tag, num) => {
+  TAGS.forEach((tag) => {
     let tagElement = document.createElement("div");
     tagElement.setAttribute("class", "tag-label");
     tagElement.setAttribute("id", "tag-label-"+tag.name);
