@@ -291,7 +291,7 @@ def add_bm():
 
     # in case no list is there
     # create a new one
-    # TEMP work with one list for the time beeing
+    # WARNING work with one list for the time beeing
     paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
     if paper_list is None:
         # create a default list
@@ -302,12 +302,28 @@ def add_bm():
 
     # check if paper is already in the given list of the current user
     result = db.session.query(paper_associate).filter_by(list_ref_id=paper_list.id,
-                                              paper_ref_id=paper.id
-                                              ).first()
+                                                         paper_ref_id=paper.id
+                                                         ).first()
     if result:
         return dumps({'success':True}), 200
 
     paper.list_id.append(paper_list)
     db.session.commit()
     print('added')
+    return dumps({'success':True}), 201
+
+
+@main_bp.route('/del_bm', methods=['POST'])
+@login_required
+def del_bm():
+    """Delete bookmark."""
+    paper_id = request.form.get('paper_id')
+    paper = Paper.query.filter_by(paper_id=paper_id).first()
+    if not paper:
+        return dumps({'success':False}), 204
+    # WARNING work with one list for the time beeing
+    paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
+
+    paper.list_id.remove(paper_list)
+    db.session.commit()
     return dumps({'success':True}), 201

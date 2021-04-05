@@ -42,7 +42,7 @@ function renderPapersBase(content, pId) {
 
   let number = document.createElement("span");
   number.setAttribute("id", "paper-num-"+pId);
-  number.textContent = String(pId);
+  number.textContent = String(pId+1);
 
   let titleText = document.createElement("span");
   titleText.textContent = ". " + content.title;

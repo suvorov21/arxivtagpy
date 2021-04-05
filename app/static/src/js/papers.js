@@ -206,7 +206,7 @@ function renderOcoins(paper) {
 }
 
 function renderPapers() {
-  for(let pId = START; pId < START + PAPERS_TO_RENDER; pId ++) {
+  for(let pId = START; pId < START + PAPERS_TO_RENDER; pId++) {
     if (DATA.papers.length <= pId) {
       break;
     }
