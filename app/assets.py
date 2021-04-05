@@ -105,14 +105,7 @@ def compile_bookshelf_assets(app):
     assets = Environment(app)
     Environment.auto_build = True
     Environment.debug = False
-    # Stylesheets Bundle
-    less_bundle = Bundle(
-        'src/less/layout.less',
-        'src/less/papers.less',
-        filters='less,cssmin',
-        output='dist/css/bookshelf.css',
-        extra={'rel': 'stylesheet/less'}
-    )
+
     # JavaScript Bundle
     js_bundle = Bundle(
         'src/js/allCatsArray.js',
@@ -123,12 +116,9 @@ def compile_bookshelf_assets(app):
         output='dist/js/bookshelf.min.js'
     )
 
-    # Register assets
-    assets.register('less_all', less_bundle)
     assets.register('js_all', js_bundle)
     # Build assets in development mode
     if app.config['DEBUG']:
-        less_bundle.build(force=True)
         js_bundle.build()
 
 

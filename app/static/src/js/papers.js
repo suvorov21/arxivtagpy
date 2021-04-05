@@ -92,15 +92,15 @@ function renderCats() {
     }
 
     let parent = document.createElement("div");
-    parent.setAttribute("class", "d-flex menu-item");
+    parent.className = "d-flex menu-item";
 
     let form = document.createElement("div");
-    form.setAttribute("class", "form-check");
+    form.className = "form-check";
 
     var check = document.createElement("input");
     check.setAttribute("type", "checkbox");
-    check.setAttribute("id", "check-cat-"+num);
-    check.setAttribute("class", "form-check-input check-cat");
+    check.id = "check-cat-"+num;
+    check.className = "form-check-input check-cat";
     if (prefs.data.catsShowArr[prefs.data.catsArr.indexOf(cat)]) {
       check.checked = true;
     }
@@ -114,14 +114,14 @@ function renderCats() {
     };
 
     let catElement = document.createElement("label");
-    catElement.setAttribute("class", "form-check-label");
-    catElement.setAttribute("id", "cat-label-"+num);
+    catElement.className = "form-check-label";
+    catElement.id = "cat-label-"+num;
     catElement.setAttribute("for", "check-cat-"+num);
     catElement.textContent = cat;
 
     let counter = document.createElement("div");
-    counter.setAttribute("class", "ml-auto counter");
-    counter.setAttribute("id", "cat-count-"+num);
+    counter.className = "ml-auto counter";
+    counter.id = "cat-count-"+num;
     counter.textContent = "0";
 
     document.getElementById("cats").appendChild(parent);
@@ -135,17 +135,17 @@ function renderCats() {
 function renderTags() {
   TAGS.forEach((tag, num) => {
     let parent = document.createElement("div");
-    parent.setAttribute("class", "d-flex justify-content-between align-items-center");
+    parent.className = "d-flex justify-content-between align-items-center";
 
     let tagElement = document.createElement("div");
-    tagElement.setAttribute("class", "tag-label");
-    tagElement.setAttribute("id", "tag-label-"+num);
-    tagElement.setAttribute("style", "background-color: " + tag.color);
+    tagElement.className = "tag-label";
+    tagElement.id = "tag-label-"+num;
+    tagElement.style = "background-color: " + tag.color;
     tagElement.textContent = tag.name;
 
     let counter = document.createElement("div");
-    counter.setAttribute("class", "counter");
-    counter.setAttribute("id", "tag-count-"+num);
+    counter.className = "counter";
+    counter.id = "tag-count-"+num;
     counter.textContent = "0";
 
     document.getElementById("tags").appendChild(parent);
@@ -180,6 +180,41 @@ function renderCounters() {
   }
 }
 
+function addBookmark(event) {
+  // WARNING
+  // UB addBookmark listener is added to all the buttons, not the bookmark only one
+  // prevent the bookmark addinf for other buttons
+  if (!event.target.id.includes("btn-book") &&
+      !event.target.id.includes("a-icon")) {
+    return;
+  }
+  let url = "add_bm";
+  let num = event.target.getAttribute("id").split("-")[2];
+  let paper = DATA.papers[parseInt(num, 10)];
+  // we take paper id w/o version --> do not overload paper DB
+  $.post(url, {"title": paper.title,
+               "paper_id": paper.id.split("v")[0],
+               "author": paper.author,
+               "date_up": paper.date_up,
+               "abstract": paper.abstract,
+               "ref_pdf": paper.ref_pdf,
+               "ref_web": paper.ref_web,
+               "ref_doi": paper.ref_doi,
+               "cats": paper.cats
+               })
+  .done(function(data, textStatus, jqXHR) {
+    let status = jqXHR.status;
+    if (status === 200) {
+      raiseAlert("Paper has been already saved", "success");
+    }
+    if (status === 201) {
+      raiseAlert("Paper has been added", "success");
+    }
+  }).fail(function(){
+    raiseAlert("Paper is not saved due to server error", "danger");
+  });
+}
+
 function renderPapers() {
   for(let pId = START; pId < START + PAPERS_TO_RENDER; pId++) {
     if (DATA.papers.length <= pId) {
@@ -191,40 +226,14 @@ function renderPapers() {
     let btnPanel = paperBase[1];
 
     let btnBook = document.createElement("button");
-    btnBook.setAttribute("class", "btn btn-primary");
-    btnBook.setAttribute("id", "btn-book-"+pId);
+    btnBook.className = "btn btn-primary";
+    btnBook.id = "btn-book-"+pId;
     btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true' id='a-icon-" + pId + "'></i>";
-    btnBook.onclick = function(event) {
-      let url = "add_bm";
-      let num = event.target.getAttribute("id").split("-")[2];
-      let paper = DATA.papers[parseInt(num, 10)];
-      // we take paper id w/o version --> do not overload paper DB
-      $.post(url, {"title": paper.title,
-                   "paper_id": paper.id.split("v")[0],
-                   "author": paper.author,
-                   "date_up": paper.date_up,
-                   "abstract": paper.abstract,
-                   "ref_pdf": paper.ref_pdf,
-                   "ref_web": paper.ref_web,
-                   "ref_doi": paper.ref_doi,
-                   "cats": paper.cats
-                   })
-      .done(function(data, textStatus, jqXHR) {
-        let status = jqXHR.status;
-        if (status === 200) {
-          raiseAlert("Paper has been already saved", "success");
-        }
-        if (status === 201) {
-          raiseAlert("Paper has been added", "success");
-        }
-      }).fail(function(){
-        raiseAlert("Paper is not saved due to server error", "danger");
-      });
-    };
+    btnBook.onclick = addEventListener("click", addBookmark);
 
     let btnGroup4 = document.createElement("div");
-    btnGroup4.setAttribute("class", "btn-group mr-2");
-    btnGroup4.setAttribute("role", "group");
+    btnGroup4.className = "btn-group mr-2";
+    btnGroup4.role = "group";
     btnPanel.appendChild(btnGroup4);
     btnGroup4.appendChild(btnBook);
   }
@@ -346,10 +355,34 @@ document.getElementById("filter-button").onclick = function() {
   }
 };
 
+function addAnchors() {
+  // add anchors for click on novelty checkbox
+  var anchors = document.getElementsByClassName("check-nov");
+  for(let i = 0; i < anchors.length; i++) {
+    let anchor = anchors[i];
+    anchor.onchange = function(event) {
+      let number = event.target.getAttribute("id").split("-")[2];
+      prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
+      prefs.save();
+      toggleVis();
+    }
+  }
+  // add ahchors for click on novelty labels
+  anchors = document.getElementsByClassName("item-nov");
+  for(let i = 0; i < anchors.length; i++) {
+    let anchor = anchors[parseInt(i, 10)];
+    anchor.onclick = function(event) {
+      let number = event.target.getAttribute("id").split("-")[1];
+      document.getElementById("check-nov-"+number).click();
+    }
+  }
+}
+
 window.onload = function() {
   var url = document.location.href;
   url = url.replace("papers", "data");
 
+  // Get paper data from backend
   $.get(url)
   .done(function(data) {
     document.getElementById("loading-papers").style["display"] = "none";
@@ -371,26 +404,7 @@ window.onload = function() {
   renderCats();
   renderTags();
 
-  // add anchors for click on novelty checkbox
-  var anchors = document.getElementsByClassName("check-nov");
-  for(let i = 0; i < anchors.length; i++) {
-    let anchor = anchors[i];
-    anchor.onchange = function(event) {
-      let number = event.target.getAttribute("id").split("-")[2];
-      prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
-      prefs.save();
-      toggleVis();
-    }
-  }
-  // add ahchors for click on novelty labels
-  anchors = document.getElementsByClassName("item-nov");
-  for(let i = 0; i < anchors.length; i++) {
-    let anchor = anchors[parseInt(i, 10)];
-    anchor.onclick = function(event) {
-      let number = event.target.getAttribute("id").split("-")[1];
-      document.getElementById("check-nov-"+number).click();
-    }
-  }
+  addAnchors();
 };
 
 window.onscroll = function() {
