@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from .import login_manager
-from .model import db, User
+from .model import db, User, PaperList
 
 auth_bp = Blueprint(
     'auth_bp',
@@ -37,13 +37,13 @@ def login():
 
     usr = User.query.filter_by(email=email).first()
     if not usr:
-        flash("Wrong username/password")
+        flash("ERROR! Wrong username/password")
         return redirect(url_for('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
-        flash("Wrong username/password")
+        flash("ERROR! Wrong username/password")
     return redirect(url_for('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -67,12 +67,12 @@ def new_user():
 
     usr = User.query.filter_by(email=email).first()
     if usr:
-        flash("Email is already registered")
-        return redirect(url_for('main_bp.signup'))
+        flash("ERROR! Email is already registered")
+        return redirect(url_for('auth_bp.signup'))
 
     if pasw1 != pasw2:
-        flash("Passwords don't match!")
-        return redirect(url_for('main_bp.signup'))
+        flash("ERROR! Passwords don't match!")
+        return redirect(url_for('auth_bp.signup'))
 
     user = User(email=email,
                 pasw=generate_password_hash(pasw1),
@@ -80,11 +80,19 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                tags='[]',
+                tags='[{"name":"example", "rule":"abs{physics|math}", "color": "#fff2bd"}]',
                 pref='{"tex":"True", "easy_and":"True"}'
                 )
     db.session.add(user)
+
     db.session.commit()
+    paper_list = PaperList(name='Favourite',
+                           user_id=user.id
+                           )
+    db.session.add(paper_list)
+
+    db.session.commit()
+
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')
     return redirect(url_for('main_bp.settings'))
@@ -101,7 +109,7 @@ def change_pasw():
         return redirect(url_for('main_bp.settings'))
 
     if not check_password_hash(current_user.pasw, old):
-        flash("Wrong old password!")
+        flash("ERROR! Wrong old password!")
         return redirect(url_for('main_bp.settings'))
 
     current_user.pasw = generate_password_hash(new)
@@ -117,6 +125,7 @@ def del_acc():
     logout_user()
     User.query.filter_by(email=email).delete()
     db.session.commit()
+
     return redirect(url_for('main_bp.root'))
 
 @login_manager.unauthorized_handler

@@ -1,11 +1,69 @@
 {% extends "layout.jinja2" %}
 
 {% block head_scripts %}
-  <link href="{{ url_for('static', filename='dist/css/layout.css') }}" rel="stylesheet" type="text/css">
+  <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
+
+  <script type="text/javascript">
+    var DATA = {{ papers }};
+    var LISTS = {{ lists }};
+    var parseTex = false;
+  </script>
+
+  {% if math_jax %}
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        },
+        svg: {
+          fontCache: 'global'
+        }
+      };
+      parseTex = true;
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  {% endif %}
 {% endblock %}
 
 
+{% block content %}
+  <div class="container-fluid">
+    <div class="row pt-4" class="main-row">
+      {# menu replacement for mobile #}
+      <div class="d-md-none col-sm-12 mb-3">
+        <button type="button" class="btn btn-secondary" id="filter-button">Lists</button>
+      </div>
+
+      {# Menu #}
+      <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
+        <div class="menu-content ml-auto" id="menu-main">
+        </div>
+      </div>
+
+      {# Paper list #}
+      <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
+        <div class="paper-wrapper">
+          <div id="paper-list-title">
+            {{ title }}
+          </div>
+          <div id="loading-papers" class="paper-footer"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading papers...</div>
+          <div id="paper-list-content">
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
+
+
+
+
 {% block script_footer %}
+<script type="text/javascript" src="{{ url_for('static', filename='dist/js/bookshelf.min.js') }}"></script>
   <script type="text/javascript">
     document.getElementById("shelf-nav").classList.add("active");
   </script>

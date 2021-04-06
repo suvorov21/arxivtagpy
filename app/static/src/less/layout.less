@@ -1,4 +1,4 @@
-
+/* ---------- General ---------- */
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
@@ -16,6 +16,7 @@ body {
   background-color: var(--background_color);
 }
 
+/* ---------- Navbar ---------- */
 .navbar {
   background-color: var(--title_red);
 }
@@ -49,12 +50,66 @@ body {
   z-index: 1;
 }
 
+#chi {
+  display: inline;
+  position: relative;
+  top: -6px;
+}
+
+.top-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+}
+
+/* ------ Bootstrap redefinition --- */
+.btn-primary {
+  color: var(--btn-primary-color);
+  background-color: var(--btn-primary-bg-color);
+  border-color: var(--btn-primary-border-color);
+  &:hover, &:focus {
+    color: var(--btn-primary-color-hover) !important;
+    background-color: var(--btn-primary-bg-color-hover) !important;
+    border-color: var(--btn-primary-border-color-hover) !important;
+  }
+}
+
+/* ---------- Menu ---------- */
+
 .menu-content {
   background-color: var(--menu_content_bg);
   padding: 0.5rem 1rem 2rem 1rem;
   border-radius: var(--border_curv);
   width: var(--menu_width);
 }
+
+.counter {
+  color: #aaa;
+}
+
+.menu-title {
+  font-size: 1.5rem;
+  color: var(--menu_title_color);
+  margin: 20px 0 5px 0;
+}
+
+.menu-item {
+  label,
+  a,
+  input {
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--menu_item_color);
+
+    &:hover {
+      color: var(--menu_item_hover_color);
+    }
+  }
+}
+
+/* ---------- Main conent block ---------- */
 
 .paper-wrapper {
   border-radius: var(--border_curv);
@@ -66,17 +121,4 @@ body {
   overflow: hidden;
 }
 
-.top-alert {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-}
-
-#chi {
-  display: inline;
-  position: relative;
-  top: -6px;
-}
 

@@ -13,13 +13,17 @@
   {% endif %}
 
   {% block head_scripts %}{% endblock %}
-  <title>arXiv tagger</title>
+  <title>ariv tagger</title>
 </head>
 <body>
   <nav class="navbar navbar-expand-md navbar-dark header">
     {% if current_user.is_authenticated %}
       {# show top menu #}
-      <a class="navbar-brand d-flex w-50 mr-auto page-title" href="/">arXiv tagger</a>
+      <a class="navbar-brand d-flex w-50 mr-auto page-title" href="/">ar
+        <span id="chi">
+          &#120536;
+        </span>iv tagger</a>
+        <!-- ;&#x1D6D8;&#x1D74C -->
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -78,18 +82,22 @@
   </nav>
 
   {# Alert block #}
-  {% for message in get_flashed_messages() %}
-    {% if 'Wrong' in message or 'already registered' in message or 'match' in message %}
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-    {% else %}
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-    {% endif %}
-      {{ message }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
+  <div id="alert">
+    {% for message in get_flashed_messages() %}
+      {% if 'ERROR!' in message %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      {% else %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {% endif %}
+        {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    {% endfor %}
+    <div style="padding: 5px;" id="inner-message" class="top-alert">
     </div>
-  {% endfor %}
+  </div>
 
   {% block content %}{% endblock %}
 
