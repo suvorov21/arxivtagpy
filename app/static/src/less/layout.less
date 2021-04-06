@@ -50,6 +50,32 @@ body {
   z-index: 1;
 }
 
+#chi {
+  display: inline;
+  position: relative;
+  top: -6px;
+}
+
+.top-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 999;
+}
+
+/* ------ Bootstrap redefinition --- */
+.btn-primary {
+  color: var(--btn-primary-color);
+  background-color: var(--btn-primary-bg-color);
+  border-color: var(--btn-primary-border-color);
+  &:hover, &:focus {
+    color: var(--btn-primary-color-hover) !important;
+    background-color: var(--btn-primary-bg-color-hover) !important;
+    border-color: var(--btn-primary-border-color-hover) !important;
+  }
+}
+
 /* ---------- Menu ---------- */
 
 .menu-content {
@@ -95,16 +121,4 @@ body {
   overflow: hidden;
 }
 
-.top-alert {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 999;
-}
 
-#chi {
-  display: inline;
-  position: relative;
-  top: -6px;
-}
