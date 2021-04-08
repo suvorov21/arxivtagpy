@@ -58,6 +58,20 @@ def logout():
     logout_user()
     return redirect(url_for('main_bp.root'))
 
+def new_default_list(usr_id):
+    result = PaperList.query.filter_by(user_id=usr_id,
+                                       name='Favourite'
+                                       ).first()
+    if result:
+        return
+
+    paper_list = PaperList(name='Favourite',
+                           user_id=usr_id
+                           )
+    db.session.add(paper_list)
+
+    db.session.commit()
+
 @auth_bp.route('/new_user', methods=["POST"])
 def new_user():
     """New user creation."""
@@ -84,14 +98,9 @@ def new_user():
                 pref='{"tex":"True", "easy_and":"True"}'
                 )
     db.session.add(user)
-
     db.session.commit()
-    paper_list = PaperList(name='Favourite',
-                           user_id=user.id
-                           )
-    db.session.add(paper_list)
 
-    db.session.commit()
+    new_default_list(user.id)
 
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')

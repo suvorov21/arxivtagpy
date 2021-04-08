@@ -19,7 +19,7 @@ def test_client():
                  pasw=generate_password_hash('tester'),
                  arxiv_cat=['hep-ex'],
                  tags='[{"name": "test", "rule":"ti{test}", "color":"#ff0000"}]',
-                 pref='{"tex":"True", "easy_and":"True"}'
+                 pref='{"tex": "True"}'
                  )
         db.session.add(user1)
         db.session.commit()
@@ -45,4 +45,20 @@ def test_data(test_client):
                                 follow_redirects=True
                                 )
     response = test_client.get('/data?date=today')
+    assert response.status_code == 200
+
+def test_delAcc(test_client):
+    response = test_client.post('/delAcc',
+                                follow_redirects=True
+                                )
+    assert response.status_code == 200
+
+def test_change_pass(test_client):
+    response = test_client.post('/change_pasw',
+                                data={'oldPass': 'tester',
+                                      'newPass1': 'tester_new',
+                                      'newPass2': 'tester_new'
+                                      },
+                                follow_redirects=True
+                                )
     assert response.status_code == 200

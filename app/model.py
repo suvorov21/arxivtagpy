@@ -1,6 +1,8 @@
 from . import db
 from flask_login import UserMixin
 
+from sqlalchemy.dialects import postgresql as pg
+
 class User(UserMixin, db.Model):
     """User table description."""
     __tablename__ = 'users'
@@ -93,10 +95,15 @@ class Paper(db.Model):
                        nullable=False
                        )
 
-    date_up = db.Column(db.Date(),
+    date_up = db.Column(db.DateTime(),
                         unique=False,
                         nullable=False
                         )
+
+    date_sub = db.Column(db.DateTime(),
+                         unique=False,
+                         nullable=False
+                         )
 
     abstract = db.Column(db.String(),
                          unique=False,
@@ -118,7 +125,7 @@ class Paper(db.Model):
                         nullable=True
                         )
 
-    cats = db.Column(db.ARRAY(db.String),
+    cats = db.Column(pg.ARRAY(db.Text, dimensions=1),
                      unique=False,
                      nullable=True
                      )

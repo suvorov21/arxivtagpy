@@ -52,9 +52,8 @@ stage_to_beta:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
   only:
     - develop
 
@@ -65,9 +64,8 @@ production:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
   only:
     - master
 
