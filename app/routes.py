@@ -83,9 +83,12 @@ def data():
     if 'date' in request.args:
         date_type = date_dict.get(request.args['date'])
     else:
-        dumps({'success': False}), 422
+        return dumps({'success': False}), 422
 
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
+    if not last_paper:
+        return dumps({'success': False}), 422
+
     today_date = last_paper.date_up
 
     if date_type == 0:
@@ -357,7 +360,6 @@ def add_bm():
 
     paper.list_id.append(paper_list)
     db.session.commit()
-    print('added')
     return dumps({'success':True}), 201
 
 
@@ -392,7 +394,6 @@ def load_papers():
     else:
         last_paper_date = last_paper.date_up
         last_paper_id = last_paper.paper_id
-        print(f"Last paper {last_paper.date_up} {last_paper_id}")
 
     # initiaise paper API
     paper_api = ArxivApi({'search_query': 'all'},

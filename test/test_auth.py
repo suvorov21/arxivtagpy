@@ -39,14 +39,6 @@ def test_log(test_client):
                                 )
     assert response.status_code == 200
 
-def test_data(test_client):
-    response = test_client.post('/login',
-                                data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
-                                follow_redirects=True
-                                )
-    response = test_client.get('/data?date=today')
-    assert response.status_code == 200
-
 def test_delAcc(test_client):
     response = test_client.post('/delAcc',
                                 follow_redirects=True
