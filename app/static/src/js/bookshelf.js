@@ -4,7 +4,7 @@
 function renderLists() {
   LISTS.forEach((listName, num) => {
     let listItem = document.createElement("div");
-    listItem.className = "menu-item";
+    listItem.className = "menu-item-bm";
     let link = document.createElement("a");
     // TODO
     link.href = "/";
@@ -33,6 +33,7 @@ function deleteBookmark(event) {
     if (status === 201) {
       raiseAlert("Paper has been deleted", "success");
     }
+    $("#paper-"+num).css("display", "none");
   }).fail(function(){
     raiseAlert("Paper is not deleted due to server error", "danger");
   });
