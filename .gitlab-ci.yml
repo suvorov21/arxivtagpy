@@ -45,7 +45,11 @@ integration_test:
     - sed -i "s+current_app.config['TOKEN']+'test_token'+g" app/routes.py
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-    - pytest
+    - pytest --cov-report term --cov=app test/
+    - coverage xml -o coverage.xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
 
 stage_to_beta:
   stage: stage
