@@ -13,7 +13,6 @@ from app.model import User, Paper
 
 @pytest.fixture(scope='module', autouse=True)
 def client_with_papers():
-    print('FIXTURE UP')
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
@@ -32,8 +31,6 @@ def client_with_papers():
         yield client_with_papers
         db.session.remove()
         db.drop_all()
-
-    print('FIXTURE DOWN')
 
 def test_paper_API(client_with_papers):
     response = client_with_papers.post('/login',

@@ -42,7 +42,7 @@ integration_test:
     - apk add gcc musl-dev libffi-dev make g++
     - python3 -m pip install --ignore-installed -r requirements.txt
     - export PGPASSWORD=$POSTGRES_PASSWORD
-    - sed -i "s+current_app.config['TOKEN']+'test_token'+g" app/routes.py
+    - echo 'export TOKEN="test_token"' > .env
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
     - pytest --cov-report term --cov=app test/
