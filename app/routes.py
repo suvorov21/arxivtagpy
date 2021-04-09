@@ -11,7 +11,7 @@ from .model import db, Paper, PaperList, paper_associate
 from .render import render_papers, render_title
 from .papers import ArxivApi, process_papers
 from .auth import new_default_list
-from . import mail
+# from . import mail
 
 main_bp = Blueprint(
     'main_bp',
