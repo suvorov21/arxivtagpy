@@ -82,11 +82,11 @@ def new_user():
     usr = User.query.filter_by(email=email).first()
     if usr:
         flash("ERROR! Email is already registered")
-        return redirect(url_for('auth_bp.signup'))
+        return redirect(url_for('auth_bp.signup'), code=303)
 
     if pasw1 != pasw2:
         flash("ERROR! Passwords don't match!")
-        return redirect(url_for('auth_bp.signup'))
+        return redirect(url_for('auth_bp.signup'), code=303)
 
     user = User(email=email,
                 pasw=generate_password_hash(pasw1),
@@ -104,7 +104,7 @@ def new_user():
 
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')
-    return redirect(url_for('main_bp.settings'))
+    return redirect(url_for('main_bp.settings'), code=303)
 
 @auth_bp.route('/change_pasw', methods=["POST"])
 @login_required
@@ -114,7 +114,7 @@ def change_pasw():
     new = request.form.get('newPass1')
     new2 = request.form.get('newPass2')
     if new != new2:
-        flash("New passwords don't match!")
+        flash("ERROR! New passwords don't match!")
         return redirect(url_for('main_bp.settings'))
 
     if not check_password_hash(current_user.pasw, old):
@@ -124,7 +124,7 @@ def change_pasw():
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
     flash('Password successfully changed!')
-    return redirect(url_for('main_bp.settings'))
+    return redirect(url_for('main_bp.settings'), code=303)
 
 @auth_bp.route('/delAcc', methods=["POST"])
 @login_required
@@ -135,10 +135,10 @@ def del_acc():
     User.query.filter_by(email=email).delete()
     db.session.commit()
 
-    return redirect(url_for('main_bp.root'))
+    return redirect(url_for('main_bp.root'), code=303)
 
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
-    flash('You must be logged in to view this page.')
+    flash('ERROR! You must be logged in to view this page.')
     return redirect(url_for('main_bp.about'))
