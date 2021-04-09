@@ -1,11 +1,8 @@
-import os
 import pytest
 from json import loads
 
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
-
-from flask import session
 
 from app import app_init, db
 from app.model import User, Paper
@@ -27,7 +24,7 @@ def client_with_papers():
         db.session.add(user1)
         db.session.commit()
         client_with_papers = app.test_client()
-        response = client_with_papers.get('/load_papers?token=test_token&n_papers=10&search_query=hep-ex')
+        client_with_papers.get('/load_papers?token=test_token&n_papers=10&search_query=hep-ex')
         yield client_with_papers
         db.session.remove()
         db.drop_all()
