@@ -3,11 +3,14 @@ from time import sleep
 from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
 from re import search, IGNORECASE
+import logging
 
 from feedparser import parse
 from requests import get
 
 from .model import Paper
+
+from random import randrange
 
 rule_dict = {'ti': 'title',
              'au': 'author',
@@ -32,16 +35,17 @@ class ArxivApi(PaperApi):
 
     def_params = {'start': 0,
                   'max_results': 500,
-                  'search_query': 'all',
+                  'search_query': 'all:a',
                   'sortBy': 'lastUpdatedDate',
                   'sortOrder': 'descending'
                  }
 
     URL = 'http://export.arxiv.org/api/query'
-    delay = 3
+    delay = 30
     verbose = False
-    max_papers = 10000
+    max_papers = 100000
     last_paper_id = '000'
+    max_attempt_to_fail = 10
 
     def __init__(self, params: Dict, **kwargs):
         """Initialise arXiv API."""
@@ -56,23 +60,38 @@ class ArxivApi(PaperApi):
             self.last_paper = kwargs.get('last_paper')
         if 'last_paper_id' in kwargs:
             self.last_paper_id = kwargs.get('last_paper')
+        if 'n_papers' in kwargs:
+            self.max_papers = kwargs.get('n_papers')
+            if self.max_papers < self.params['max_results']:
+                self.params['max_results'] = self.max_papers
+        if 'search_query' in kwargs:
+            self.params['search_query'] = kwargs.get('search_query')
 
         papers = []
+        fail_attempts = 0
+
+        if ArxivApi.verbose:
+            logging.debug('Start download')
 
         while True:
             response = get(self.URL, self.params)
 
             if ArxivApi.verbose:
-                print(response.url)
-                print(response.text)
+                logging.debug(response.url)
 
             if response.status_code != 200:
                 return 404
 
             # parse arXiv response
             feed = parse(response.text)
-            if len(feed.entries) == 0:
-                return 400
+            if len(feed.entries) != self.params['max_results']:
+                logging.warning(f"Got {len(feed.entries)} results from {self.params['max_results']}. Retrying.")
+                fail_attempts += 1
+                if (fail_attempts > self.max_attempt_to_fail):
+                    logging.error('Download exceeds max fail attempts')
+                    return None
+                sleep(randrange(120, 200))
+                continue
 
             for entry in feed.entries:
                 date = datetime.strptime(entry.updated,
@@ -82,8 +101,10 @@ class ArxivApi(PaperApi):
                 paper_id = paper_id.split('v')[0]
 
                 if ArxivApi.verbose:
-                    print(date, len(papers), paper_id)
-                if date.date() < self.last_paper or paper_id == self.last_paper_id:
+                    logging.debug(f'#{len(papers)} date: {entry.updated} id = {paper_id}')
+                if date < self.last_paper \
+                    or paper_id == self.last_paper_id \
+                    or len(papers) >= self.max_papers:
                     break
 
                 papers.append(Paper(
@@ -101,13 +122,16 @@ class ArxivApi(PaperApi):
                     cats=parse_cats(entry.tags)
                     ))
 
-            if date.date() < self.last_paper \
-                or len(papers) > self.max_papers \
+            if date < self.last_paper \
                 or paper_id == self.last_paper_id:
                 break
 
+            if len(papers) >= self.max_papers:
+                break
+
             # delay for a next request
-            sleep(self.delay)
+            # sleep(self.delay)
+            sleep(randrange(40, 80))
             self.params['start'] += self.params['max_results']
 
         return papers
@@ -150,7 +174,9 @@ def parse_links(links, link_type='pdf') -> str:
 
 def process_papers(papers: Dict,
                    tags: Dict,
-                   cats: Tuple[str]
+                   cats: Tuple[str],
+                   doNov: bool,
+                   doTag: bool
                    ) -> Dict:
     """
     Papers processing
@@ -167,31 +193,33 @@ def process_papers(papers: Dict,
     papers['n_nov'] = [0] * 3
     papers['n_cats'] = [0] * len(cats)
     papers['n_tags'] = [0] * len(tags)
-    for paper in papers['content']:
-        # 1.a count cross-refs
-        for cat in paper['cats']:
-            # increase cat counter
-            if cat in cats:
-                papers['n_cats'][cats.index(cat)] += 1
-            # check if cross-ref
-            if cat not in cats and paper['cats'][0] not in cats:
-                papers['n_nov'][1] += 1 if paper['nov'] != 2 else 0
-                paper['nov'] = 2
+    for paper in papers['papers']:
+        if doNov:
+            # 1.a count cross-refs
+            for cat in paper['cats']:
+                # increase cat counter
+                if cat in cats:
+                    papers['n_cats'][cats.index(cat)] += 1
+                # check if cross-ref
+                if cat not in cats and paper['cats'][0] not in cats:
+                    papers['n_nov'][1] += 1 if paper['nov'] != 2 else 0
+                    paper['nov'] = 2
 
-        # 1.b count updated papers
-        if paper['date_sub'] < papers['last_date']:
-            paper['nov'] = 4
-            papers['n_nov'][2] += 1
+            # 1.b count updated papers
+            if paper['date_sub'] < papers['last_date']:
+                paper['nov'] = 4
+                papers['n_nov'][2] += 1
 
-        if paper['nov'] == 0:
-            paper['nov'] = 1
-            papers['n_nov'][0] += 1
+            if paper['nov'] == 0:
+                paper['nov'] = 1
+                papers['n_nov'][0] += 1
 
         # 2.
-        for num, tag in enumerate(tags):
-            if tag_suitable(paper, tag['rule']):
-                paper['tags'].append(num)
-                papers['n_tags'][num] += 1
+        if doTag:
+            for num, tag in enumerate(tags):
+                if tag_suitable(paper, tag['rule']):
+                    paper['tags'].append(num)
+                    papers['n_tags'][num] += 1
     return papers
 
 

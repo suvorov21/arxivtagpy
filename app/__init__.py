@@ -4,7 +4,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
-from flask_migrate import Migrate, upgrade, migrate
+from flask_migrate import Migrate
 
 from werkzeug.utils import import_string
 
@@ -33,6 +33,13 @@ def app_init():
     login_manager.init_app(app)
     mail.init_app(app)
     migrate.init_app(app, db)
+
+    import logging
+    level = logging.DEBUG if app.config['DEBUG'] else logging.INFO
+    logging.basicConfig(filename='flask.log',
+                        format='%(asctime)s\t%(levelname)s\t%(filename)s\t%(message)s',
+                        level=level
+                        )
 
     with app.app_context():
         from . import routes

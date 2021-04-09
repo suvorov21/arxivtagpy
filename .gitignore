@@ -9,3 +9,5 @@ varxiv/*
 *.pyc
 cert/*
 cert2/*
+.coverage
+coverage.xml

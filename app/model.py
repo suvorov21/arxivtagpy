@@ -130,12 +130,6 @@ class Paper(db.Model):
                      nullable=True
                      )
 
-    list_id = db.relationship('PaperList',
-                              secondary=paper_associate,
-                              lazy='subquery',
-                              backref=db.backref('paper', lazy=True)
-                              )
-
     def __repr__(self):
         """Print paper."""
         return f'<id: {self.id} title: {self.title}>'

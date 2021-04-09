@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, time
 from json import loads, dumps
+import logging
 
 from flask import Blueprint, render_template, flash, session, redirect, \
 url_for, request, jsonify, current_app
@@ -83,10 +84,12 @@ def data():
     if 'date' in request.args:
         date_type = date_dict.get(request.args['date'])
     else:
+        logging.error('Wrong data format')
         return dumps({'success': False}), 422
 
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     if not last_paper:
+        logging.error('Paper table is empty')
         return dumps({'success': False}), 422
 
     today_date = last_paper.date_up
@@ -122,7 +125,7 @@ def data():
               'n_nov': None,
               'n_tags': None,
               'last_date': old_date,
-              'content': []
+              'papers': []
               }
 
     # define categories of interest
@@ -132,7 +135,7 @@ def data():
                                      ).all()
     for paper in paper_query:
         # TODO think about JSON dump method in paper model
-        papers['content'].append({'id': paper.paper_id,
+        papers['papers'].append({'id': paper.paper_id,
                                   'title': paper.title,
                                   'author': paper.author,
                                   'date_sub': paper.date_sub,
@@ -149,32 +152,35 @@ def data():
 
 
     # error hahdler
-    if len(papers['content']) == 0:
+    if len(papers['papers']) == 0:
         # TODO check the agreement with JS error handler
-        return dumps({'success':False}), 422
+        logging.warning('No papers suitable with request')
+        return jsonify(papers)
 
     # store the info about last checked paper
     # descending paper order is assumed
     # TODO checkl the logic. If person visit "today" page the "lat visit"
     # probably should not be reset completely
-    if len(papers['content']) > 0 and papers['content'][0].get('date_up'):
+    if len(papers['papers']) > 0 and papers['papers'][0].get('date_up'):
         # update the date of last visit
         current_user.login = datetime.now()
-        current_user.last_paper = papers['content'][0]['date_up']
+        current_user.last_paper = papers['papers'][0]['date_up']
         db.session.commit()
 
     papers = process_papers(papers,
                             session['tags'],
-                            session['cats']
+                            session['cats'],
+                            doNov=True,
+                            doTag=True
                             )
     paper_render = render_papers(papers)
 
-    content = {'papers': paper_render,
-               'ncat': papers['n_cats'],
-               'ntag': papers['n_tags'],
-               'nnov': papers['n_nov']
-               }
-    return jsonify(content)
+    DATA = {'papers': paper_render,
+            'ncat': papers['n_cats'],
+            'ntag': papers['n_tags'],
+            'nnov': papers['n_nov']
+            }
+    return jsonify(DATA)
 
 @main_bp.route('/settings')
 @login_required
@@ -313,14 +319,23 @@ def bookshelf():
                                  'abstract': paper.abstract,
                                  'ref_pdf': paper.ref_pdf,
                                  'ref_web': paper.ref_web,
-                                 'cats': paper.cats
+                                 'cats': paper.cats,
+                                 'tags': [],
                                   })
         if paper.ref_doi is not None:
             papers['papers'][-1]['ref_doi'] = paper.ref_doi
 
+    papers = process_papers(papers,
+                            session['tags'],
+                            session['cats'],
+                            doNov=False,
+                            doTag=True
+                            )
+
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
+                           tags=session['tags'],
                            math_jax=True if session['pref'].get('tex') else False,
                            dark=True if session['pref'].get('dark') else False
                            )
@@ -329,7 +344,8 @@ def bookshelf():
 @login_required
 def add_bm():
     """
-    Add bookmark.
+    Add bookmark
+
     Take paper_id as an input and add a reference to the paper
     to the given paper list
     """
@@ -347,9 +363,10 @@ def add_bm():
     # create a new one
     # WARNING work with one list for the time beeing
     paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
-    if paper_list is None:
+    if not paper_list:
         # create a default list
         new_default_list(current_user.id)
+        paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
 
     # check if paper is already in the given list of the current user
     result = db.session.query(paper_associate).filter_by(list_ref_id=paper_list.id,
@@ -358,7 +375,7 @@ def add_bm():
     if result:
         return dumps({'success':True}), 200
 
-    paper.list_id.append(paper_list)
+    paper_list.papers.append(paper)
     db.session.commit()
     return dumps({'success':True}), 201
 
@@ -374,21 +391,29 @@ def del_bm():
     # WARNING work with one list for the time beeing
     paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
 
-    paper.list_id.remove(paper_list)
+    paper_list.papers.remove(paper)
     db.session.commit()
     return dumps({'success':True}), 201
 
 @main_bp.route('/load_papers', methods=['GET'])
 def load_papers():
     # auth stuff
+    logging.info('Start paper table update')
     if current_app.config['TOKEN'] != request.args.get('token'):
+        logging.error('Wrong token')
         return dumps({'success':False}), 422
+
+    kwargs = {}
+    if 'n_papers' in request.args:
+        kwargs['n_papers'] = int(request.args.get('n_papers'))
+    if 'search_query' in request.args:
+        kwargs['search_query'] = request.args.get('search_query')
 
     # Get the date of the latest downloaded paper
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     # first ever call with an empty paper db
     if not last_paper:
-        today_date = date.today()
+        today_date = datetime.now()
         last_paper_date = today_date - timedelta(days=today_date.day)
         last_paper_id = '000'
     else:
@@ -396,17 +421,51 @@ def load_papers():
         last_paper_id = last_paper.paper_id
 
     # initiaise paper API
-    paper_api = ArxivApi({'search_query': 'all'},
+    paper_api = ArxivApi({'search_query': "all:a%20OR%20the%20OR%20in%20OR%20at"},
                          last_paper=last_paper_date,
                          last_paper_id=last_paper_id
                          )
     # further code is paper source independent.
     # Any API can be defined above
-    papers = paper_api.get_papers()
+    papers = paper_api.get_papers(**kwargs)
 
+    if not isinstance(papers, list):
+        logging.error('Papers are not a list')
+        return dumps({'success':False}), 422
+
+    updated = 0
+    downloaded = 0
     for paper in papers:
-        db.session.add(paper)
+        paper_prev = Paper.query.filter_by(paper_id=paper.paper_id).first()
+        # paper already exists
+        # update the info
+        if paper_prev:
+            paper_prev.title = paper.title
+            paper_prev.date_up = paper.date_up
+            paper_prev.abstract = paper.abstract
+            paper_prev.ref_pdf = paper.ref_pdf
+            paper_prev.ref_web = paper.ref_web
+            paper_prev.ref_doi = paper.ref_doi
+            paper_prev.cats = paper.cats
+            updated += 1
+        else:
+            db.session.add(paper)
+            downloaded += 1
 
     db.session.commit()
 
+    logging.info(f'Paper update done: {downloaded} new; {updated} updated')
+
     return dumps({'success':True}), 201
+
+
+# TEMP
+# @main_bp.route('/email', methods=['GET'])
+# def email():
+#     msg = Message(body="Hello body\n Here it is some text",
+#                   sender="noreply@arxivtag.tk",
+#                   recipients=["suvorovsb@gmail.com"],
+#                   subject="test topic"
+#                   )
+#     mail.send(msg)
+#     return "send"
