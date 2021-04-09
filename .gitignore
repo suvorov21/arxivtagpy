@@ -11,3 +11,4 @@ cert/*
 cert2/*
 .coverage
 coverage.xml
+*.log

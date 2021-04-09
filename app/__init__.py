@@ -1,5 +1,7 @@
 from  os import environ
 
+import logging
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -34,7 +36,6 @@ def app_init():
     # mail.init_app(app)
     migrate.init_app(app, db)
 
-    import logging
     level = logging.DEBUG if app.config['DEBUG'] else logging.INFO
     logging.basicConfig(filename='flask.log',
                         format='%(asctime)s\t%(levelname)s\t%(filename)s\t%(message)s',
@@ -43,9 +44,8 @@ def app_init():
 
     with app.app_context():
         from . import routes
-        app.register_blueprint(routes.main_bp)
-
         from . import auth
+        app.register_blueprint(routes.main_bp)
         app.register_blueprint(auth.auth_bp)
 
         if app.config['DEBUG']:

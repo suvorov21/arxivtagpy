@@ -1,0 +1,32 @@
+output-format: grouped
+
+strictness: high
+test-warnings: true
+doc-warnings: true
+
+ignore-paths:
+  - migrations/env.py
+  - wsgi.py
+
+pep257:
+  disable:
+    - D205
+  run: true
+
+dodgy:
+  run: true
+
+uses:
+  - flask
+
+mccabe:
+  run: true
+
+pydocstyle:
+  run: true
+
+pyflakes:
+  run: true
+
+vulture:
+  run: true

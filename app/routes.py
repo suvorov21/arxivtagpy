@@ -2,10 +2,10 @@ from datetime import datetime, timedelta, time
 from json import loads, dumps
 import logging
 
-from flask import Blueprint, render_template, flash, session, redirect, \
+from flask import Blueprint, render_template, session, redirect, \
 url_for, request, jsonify, current_app
 from flask_login import current_user, login_required
-from flask_mail import Message
+# from flask_mail import Message
 
 from .model import db, Paper, PaperList, paper_associate
 from .render import render_papers, render_title
@@ -26,7 +26,7 @@ main_bp = Blueprint(
 def root():
     """Landing page."""
     load_prefs()
-    dark=True if session.get('pref') and session['pref'].get('dark') else False
+    dark = session.get('pref') and session['pref'].get('dark')
     return render_template('about.jinja2',
                            dark=dark
                            )
@@ -50,9 +50,8 @@ def papers_list():
         if 'arxivtag' in request.headers['Host'] :
             # if production, go 3 levels up
             return redirect('../../../papers?date=today')
-        else:
-            # not a production (local/heroku) let flask care about path
-            return redirect(url_for('main_bp.papers_list', date='today'))
+        # not a production (local/heroku) let flask care about path
+        return redirect(url_for('main_bp.papers_list', date='today'))
 
 
     # load preferences
@@ -67,8 +66,8 @@ def papers_list():
                            title=render_title(date_type, current_user.login),
                            cats=session['cats'],
                            tags=tags_dict,
-                           math_jax=True if session['pref'].get('tex') else False,
-                           dark=True if session['pref'].get('dark') else False
+                           math_jax=session['pref'].get('tex'),
+                           dark=session['pref'].get('dark')
                            )
 
 @main_bp.route('/data')
@@ -197,8 +196,8 @@ def settings():
                            tags=session['tags'],
                            # TODO read from prefs
                            pref=dumps(session['pref']),
-                           math_jax=True if session['pref'].get('tex') else False,
-                           dark=True if session['pref'].get('dark') else False,
+                           math_jax=session['pref'].get('tex'),
+                           dark=session['pref'].get('dark'),
                            page=page
                            )
 
@@ -206,7 +205,7 @@ def settings():
 def about():
     """About page."""
     load_prefs()
-    dark=True if session.get('pref') and session['pref'].get('dark') else False
+    dark = session.get('pref') and session['pref'].get('dark')
     return render_template('about.jinja2',
                            dark=dark
                            )
@@ -300,7 +299,7 @@ def bookshelf():
         paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
 
     for paper_list in paper_lists:
-      lists.append(paper_list.name)
+        lists.append(paper_list.name)
 
     # get papers in the list
     paper_list = PaperList.query.filter_by(id=paper_lists[0].id).first()
@@ -336,8 +335,8 @@ def bookshelf():
                            papers=papers,
                            lists=lists,
                            tags=session['tags'],
-                           math_jax=True if session['pref'].get('tex') else False,
-                           dark=True if session['pref'].get('dark') else False
+                           math_jax=session['pref'].get('tex'),
+                           dark=session['pref'].get('dark')
                            )
 
 @main_bp.route('/add_bm', methods=['POST'])
@@ -454,7 +453,10 @@ def load_papers():
 
     db.session.commit()
 
-    logging.info(f'Paper update done: {downloaded} new; {updated} updated')
+    logging.info('Paper update done: %i new; %i updated',
+                 downloaded,
+                 updated
+                 )
 
     return dumps({'success':True}), 201
 

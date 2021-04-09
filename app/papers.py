@@ -1,6 +1,6 @@
 from os import linesep
 from time import sleep
-from datetime import datetime, timedelta, time
+from datetime import datetime
 from typing import Dict, Tuple, List
 from re import search, IGNORECASE
 import logging
@@ -85,7 +85,9 @@ class ArxivApi(PaperApi):
             # parse arXiv response
             feed = parse(response.text)
             if len(feed.entries) != self.params['max_results']:
-                logging.warning(f"Got {len(feed.entries)} results from {self.params['max_results']}. Retrying.")
+                logging.warning("Got %i results from %i. Retrying.",
+                                len(feed.entries),
+                                self.params['max_results'])
                 fail_attempts += 1
                 if (fail_attempts > self.max_attempt_to_fail):
                     logging.error('Download exceeds max fail attempts')
@@ -101,7 +103,11 @@ class ArxivApi(PaperApi):
                 paper_id = paper_id.split('v')[0]
 
                 if ArxivApi.verbose:
-                    logging.debug(f'#{len(papers)} date: {entry.updated} id = {paper_id}')
+                    logging.debug('#%i date: %s id = %s',
+                                  len(papers),
+                                  entry.updated,
+                                  paper_id
+                                  )
                 if date < self.last_paper \
                     or paper_id == self.last_paper_id \
                     or len(papers) >= self.max_papers:

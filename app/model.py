@@ -54,6 +54,7 @@ class User(UserMixin, db.Model):
         """Print user."""
         return f'<id: {self.id} name: {self.name}>'
 
+
 # helper table to deal with many-to-many relations
 # lists --> papers
 # return papers by paperlist Paper.query.with_parent(some_list)
