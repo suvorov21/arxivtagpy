@@ -40,7 +40,9 @@ def app_init():
     migrate.init_app(app, db)
 
     level = logging.DEBUG if app.config['DEBUG'] else logging.INFO
-    logging.basicConfig(filename='flask.log',
+    log_file = app.config.get('LOG_PATH') if app.config.get('LOG_PATH') else ''
+    log_file += 'flask.log'
+    logging.basicConfig(filename=log_file,
                         format='%(asctime)s\t%(levelname)s\t%(filename)s\t%(message)s',
                         level=level
                         )

@@ -18,6 +18,8 @@ class Config():
     # keep users logged in
     SESSION_PERMANENT = True
 
+    LOG_PATH = environ.get('LOG_PATH')
+
     # email config
     MAIL_SERVER = environ.get('MAIL_SERVER')
     MAIL_PORT = environ.get('MAIL_PORT')
