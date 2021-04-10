@@ -45,8 +45,9 @@ integration_test:
     - echo 'export TOKEN="test_token"' > .env
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-    - pytest --cov-report term --cov=app test/
+    - pytest --cov=app test/
     - coverage xml -o coverage.xml
+    - bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
   artifacts:
     reports:
       cobertura: coverage.xml
