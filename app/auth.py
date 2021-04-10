@@ -43,13 +43,15 @@ def login():
 
     usr = User.query.filter_by(email=email).first()
     if not usr:
-        flash('ERROR! Wrong username/password! <a href="/restore" class="alert-link">Reset password?</a>')
+        flash('ERROR! Wrong username/password! \
+              <a href="/restore" class="alert-link">Reset password?</a>')
         return redirect(url_for('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
-        flash('ERROR! Wrong username/password! <a href="/restore" class="alert-link">Reset password?</a>')
+        flash('ERROR! Wrong username/password! \
+              <a href="/restore" class="alert-link">Reset password?</a>')
     return redirect(url_for('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -163,7 +165,7 @@ def restore_pass():
     if user:
         # generate new pass
         letters = string.ascii_letters
-        new_pass = ''.join(random.choice(letters) for i in range(15))
+        new_pass = ''.join(random.choice(letters) for i in range(15)) # nosec
         user.pasw = generate_password_hash(new_pass)
         db.session.commit()
 

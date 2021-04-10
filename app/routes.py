@@ -460,7 +460,7 @@ def fix_load_papers():
 
     do_update = request.args.get('update')
 
-    logging.info(f'Date type {date_type}; update {do_update}')
+    logging.info('Date type %i; update %b', date_type, do_update)
 
     # initiaise paper API
     paper_api = ArxivApi({},

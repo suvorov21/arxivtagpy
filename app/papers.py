@@ -142,7 +142,8 @@ def get_arxiv_last_date(today_date: datetime,
                         old_date: datetime,
                         date_type: int
                         ) -> datetime:
-    """Get the data of the previous sumission deadline.
+    """
+    Get the data of the previous sumission deadline.
 
     The method helps to get "today's" submissions. As the submission date
     is actually "yesterday".
