@@ -11,28 +11,22 @@ import pytest
 from app import app_init, db
 from app.model import User, Paper
 
+from test.test_auth import init_app
 
 @pytest.fixture(scope='module', autouse=True)
-def client_with_papers():
+def client_with_papers(init_app):
     """Fixture for filling DB with papers."""
-    app = app_init()
-    cfg = import_string('configmodule.TestingConfig')
-    app.config.from_object(cfg)
-    with app.app_context():
-        db.create_all()
-        user1 = User(email='tester@gmail.com',
-                 pasw=generate_password_hash('tester'),
-                 arxiv_cat=['hep-ex'],
-                 tags='[{"name": "test", "rule":"ti{test}", "color":"#ff0000"}]',
-                 pref='{"tex": "True"}'
-                 )
-        db.session.add(user1)
-        db.session.commit()
-        client_with_papers = app.test_client()
-        client_with_papers.get('/load_papers?token=test_token&n_papers=10&search_query=hep-ex')
-        yield client_with_papers
-        db.session.remove()
-        db.drop_all()
+    init_app.get('/load_papers?token=test_token&n_papers=10&search_query=hep-ex&method=new')
+    response = init_app.post('/new_user',
+                             data={'email': 'tester2@gmail.com',
+                                   'pasw': 'tester2',
+                                   'pasw2': 'tester2'
+                                   },
+                             follow_redirects=True
+                             )
+    yield init_app
+    db.session.remove()
+    db.drop_all()
 
 def test_paper_api(client_with_papers):
     """Test paper download."""
