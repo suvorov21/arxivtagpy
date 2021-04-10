@@ -205,12 +205,12 @@ $("#add-cat-btn").click(() => {
   let cat = document.forms["add-cat"]["cat_name"].value;
   // check if already there
   if (CATS.includes(cat)) {
-    alert("Catagory already added!");
+    raiseAlert("Catagory already added!", "danger");
     return;
   }
   // check if legal category
   if (typeof(allCatsArray[cat]) === "undefined") {
-    alert("Unknown category");
+    raiseAlert("Unknown category", "danger");
     return;
   }
   $(".btn-save").removeClass("disabled");

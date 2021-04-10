@@ -1,3 +1,5 @@
+"""Render utils."""
+
 from typing import Dict
 from datetime import datetime
 
@@ -14,17 +16,17 @@ def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
     return 'Papers'
 
 def render_papers(papers: Dict) -> Dict:
-    """Convert papers dict to minimize info"""
-    papers['content'] = sorted(papers['content'],
-                               key=lambda t: t['tags'] if len(t['tags'])>0 else [1000])
+    """Convert papers dict to minimize info."""
+    papers['papers'] = sorted(papers['papers'],
+                              key=lambda t: t['tags'] if len(t['tags']) > 0 else [1000])
 
     # WARNING cross-fingered nobody will use 1000 tags
     # otherwise I'm in trouble
 
-    for paper in papers['content']:
+    for paper in papers['papers']:
         paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
 
         if paper.get('date_up'):
             paper['date_up'] = paper['date_up'].strftime('%d %B %Y')
 
-    return papers['content']
+    return papers['papers']

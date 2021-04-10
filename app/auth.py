@@ -1,14 +1,20 @@
+"""Authority utilities: login, pass check, account managment."""
+
 from datetime import datetime
+import random
+import string
 
 from flask import Blueprint, render_template, flash, redirect, \
-url_for, request
+url_for, request, current_app
 from flask_login import login_user, logout_user, \
 current_user, login_required
+from flask_mail import Message
 
 from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from .import login_manager
+from . import mail
 from .model import db, User, PaperList
 
 auth_bp = Blueprint(
@@ -37,13 +43,15 @@ def login():
 
     usr = User.query.filter_by(email=email).first()
     if not usr:
-        flash("ERROR! Wrong username/password")
+        flash('ERROR! Wrong username/password! \
+              <a href="/restore" class="alert-link">Reset password?</a>')
         return redirect(url_for('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
-        flash("ERROR! Wrong username/password")
+        flash('ERROR! Wrong username/password! \
+              <a href="/restore" class="alert-link">Reset password?</a>')
     return redirect(url_for('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -58,6 +66,21 @@ def logout():
     logout_user()
     return redirect(url_for('main_bp.root'))
 
+def new_default_list(usr_id):
+    """Create default paper list for a given user."""
+    result = PaperList.query.filter_by(user_id=usr_id,
+                                       name='Favourite'
+                                       ).first()
+    if result:
+        return
+
+    paper_list = PaperList(name='Favourite',
+                           user_id=usr_id
+                           )
+    db.session.add(paper_list)
+
+    db.session.commit()
+
 @auth_bp.route('/new_user', methods=["POST"])
 def new_user():
     """New user creation."""
@@ -68,11 +91,11 @@ def new_user():
     usr = User.query.filter_by(email=email).first()
     if usr:
         flash("ERROR! Email is already registered")
-        return redirect(url_for('auth_bp.signup'))
+        return redirect(url_for('auth_bp.signup'), code=303)
 
     if pasw1 != pasw2:
         flash("ERROR! Passwords don't match!")
-        return redirect(url_for('auth_bp.signup'))
+        return redirect(url_for('auth_bp.signup'), code=303)
 
     user = User(email=email,
                 pasw=generate_password_hash(pasw1),
@@ -84,18 +107,13 @@ def new_user():
                 pref='{"tex":"True", "easy_and":"True"}'
                 )
     db.session.add(user)
-
     db.session.commit()
-    paper_list = PaperList(name='Favourite',
-                           user_id=user.id
-                           )
-    db.session.add(paper_list)
 
-    db.session.commit()
+    new_default_list(user.id)
 
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')
-    return redirect(url_for('main_bp.settings'))
+    return redirect(url_for('main_bp.settings'), code=303)
 
 @auth_bp.route('/change_pasw', methods=["POST"])
 @login_required
@@ -105,7 +123,7 @@ def change_pasw():
     new = request.form.get('newPass1')
     new2 = request.form.get('newPass2')
     if new != new2:
-        flash("New passwords don't match!")
+        flash("ERROR! New passwords don't match!")
         return redirect(url_for('main_bp.settings'))
 
     if not check_password_hash(current_user.pasw, old):
@@ -115,7 +133,7 @@ def change_pasw():
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
     flash('Password successfully changed!')
-    return redirect(url_for('main_bp.settings'))
+    return redirect(url_for('main_bp.settings'), code=303)
 
 @auth_bp.route('/delAcc', methods=["POST"])
 @login_required
@@ -126,10 +144,44 @@ def del_acc():
     User.query.filter_by(email=email).delete()
     db.session.commit()
 
-    return redirect(url_for('main_bp.root'))
+    return redirect(url_for('main_bp.root'), code=303)
 
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
-    flash('You must be logged in to view this page.')
+    flash('ERROR! You must be logged in to view this page.')
     return redirect(url_for('main_bp.about'))
+
+@auth_bp.route('/restore', methods=['GET'])
+def restore():
+    """Page for password reset."""
+    return render_template('restore.jinja2')
+
+@auth_bp.route('/restore_pass', methods=['POST'])
+def restore_pass():
+    """Endpoint for password reset."""
+    email_in = request.form.get('email')
+    user = User.query.filter_by(email=email_in).first()
+    if user:
+        # generate new pass
+        letters = string.ascii_letters
+        new_pass = ''.join(random.choice(letters) for i in range(15)) # nosec
+        user.pasw = generate_password_hash(new_pass)
+        db.session.commit()
+
+        body = 'Hello,\n\nYour password for the website arxivtag.tk'
+        body += ' was reset. The new password is provided below.\n'
+        body += 'Please, consider password change immidietly after login'
+        body += ' at the settings page.'
+        body += '\n\nNew password:\n' + new_pass
+        body += '\n\nRegards, \narXiv tag team.'
+        msg = Message(body=body,
+                      sender="noreply@arxivtag.tk",
+                      recipients=[user.email],
+                      subject="arXiv tag password reset"
+                      )
+        mail.send(msg)
+
+    flash(f'The email with a new password was sent to your email from \
+          {current_app.config["MAIL_DEFAULT_SENDER"]}')
+    return redirect(url_for('main_bp.root'), code=303)

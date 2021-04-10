@@ -135,7 +135,7 @@ function renderPapersBase(content, pId) {
   date.className = "paper-date";
   date.textContent = content.date_up;
 
-  if (content.date_sub !== content.date_up) {
+  if ("date_sub" in content && content.date_sub !== content.date_up) {
     date.textContent += " (v1: " + content.date_sub + ")";
   }
   paper.appendChild(date);

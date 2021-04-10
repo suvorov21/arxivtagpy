@@ -1,5 +1,10 @@
-from . import db
+"""Database model."""
+
 from flask_login import UserMixin
+
+from sqlalchemy.dialects import postgresql as pg
+
+from . import db
 
 class User(UserMixin, db.Model):
     """User table description."""
@@ -52,6 +57,7 @@ class User(UserMixin, db.Model):
         """Print user."""
         return f'<id: {self.id} name: {self.name}>'
 
+
 # helper table to deal with many-to-many relations
 # lists --> papers
 # return papers by paperlist Paper.query.with_parent(some_list)
@@ -75,16 +81,16 @@ class Paper(db.Model):
     __tablename__ = 'papers'
 
     id = db.Column(db.Integer,
-                   primary_key = True
+                   primary_key=True
                    )
 
     paper_id = db.Column(db.String(),
-                         unique = True,
+                         unique=True,
                          nullable=False
                          )
 
     title = db.Column(db.String(),
-                     unique = False,
+                     unique=False,
                      nullable=False
                      )
 
@@ -93,10 +99,15 @@ class Paper(db.Model):
                        nullable=False
                        )
 
-    date_up = db.Column(db.Date(),
+    date_up = db.Column(db.DateTime(),
                         unique=False,
                         nullable=False
                         )
+
+    date_sub = db.Column(db.DateTime(),
+                         unique=False,
+                         nullable=False
+                         )
 
     abstract = db.Column(db.String(),
                          unique=False,
@@ -118,16 +129,10 @@ class Paper(db.Model):
                         nullable=True
                         )
 
-    cats = db.Column(db.ARRAY(db.String),
+    cats = db.Column(pg.ARRAY(db.Text, dimensions=1),
                      unique=False,
                      nullable=True
                      )
-
-    list_id = db.relationship('PaperList',
-                              secondary=paper_associate,
-                              lazy='subquery',
-                              backref=db.backref('paper', lazy=True)
-                              )
 
     def __repr__(self):
         """Print paper."""
@@ -137,7 +142,7 @@ class PaperList(db.Model):
     """Paper list table description."""
     __tablename__ = 'lists'
     id = db.Column(db.Integer,
-                   primary_key = True
+                   primary_key=True
                    )
 
     name = db.Column(db.String(),

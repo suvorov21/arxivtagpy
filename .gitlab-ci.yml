@@ -42,9 +42,14 @@ integration_test:
     - apk add gcc musl-dev libffi-dev make g++
     - python3 -m pip install --ignore-installed -r requirements.txt
     - export PGPASSWORD=$POSTGRES_PASSWORD
+    - echo 'export TOKEN="test_token"' > .env
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-    - pytest
+    - pytest --cov-report term --cov=app test/
+    - coverage xml -o coverage.xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
 
 stage_to_beta:
   stage: stage
@@ -52,9 +57,8 @@ stage_to_beta:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
   only:
     - develop
 
@@ -65,9 +69,8 @@ production:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
   only:
     - master
 
