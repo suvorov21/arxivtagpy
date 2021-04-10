@@ -28,6 +28,7 @@ class PaperApi:
     last_paper = datetime.now()
     max_papers = 1000000
     do_update = False
+    db_commit_period = 100
 
     def download_papers(self, **kwargs):
         """
@@ -67,6 +68,8 @@ class PaperApi:
                 db.session.add(paper)
                 downloaded += 1
             read += 1
+            if read % self.db_commit_period == 0:
+                db.session.commit()
 
         db.session.commit()
 
