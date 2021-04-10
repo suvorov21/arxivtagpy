@@ -8,7 +8,7 @@ import logging
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-# from flask_mail import Mail
+from flask_mail import Mail
 from flask_migrate import Migrate
 
 from werkzeug.utils import import_string
@@ -20,7 +20,7 @@ load_dotenv()
 
 db = SQLAlchemy()
 login_manager = LoginManager()
-# mail = Mail()
+mail = Mail()
 migrate = Migrate()
 
 def app_init():
@@ -36,7 +36,7 @@ def app_init():
 
     db.init_app(app)
     login_manager.init_app(app)
-    # mail.init_app(app)
+    mail.init_app(app)
     migrate.init_app(app, db)
 
     level = logging.DEBUG if app.config['DEBUG'] else logging.INFO

@@ -1,16 +1,20 @@
 """Authority utilities: login, pass check, account managment."""
 
 from datetime import datetime
+import random
+import string
 
 from flask import Blueprint, render_template, flash, redirect, \
-url_for, request
+url_for, request, current_app
 from flask_login import login_user, logout_user, \
 current_user, login_required
+from flask_mail import Message
 
 from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from .import login_manager
+from . import mail
 from .model import db, User, PaperList
 
 auth_bp = Blueprint(
@@ -39,13 +43,13 @@ def login():
 
     usr = User.query.filter_by(email=email).first()
     if not usr:
-        flash("ERROR! Wrong username/password")
+        flash('ERROR! Wrong username/password! <a href="/restore" class="alert-link">Reset password?</a>')
         return redirect(url_for('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
-        flash("ERROR! Wrong username/password")
+        flash('ERROR! Wrong username/password! <a href="/restore" class="alert-link">Reset password?</a>')
     return redirect(url_for('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -145,3 +149,37 @@ def unauthorized():
     """Redirect unauthorized users to Login page."""
     flash('ERROR! You must be logged in to view this page.')
     return redirect(url_for('main_bp.about'))
+
+@auth_bp.route('/restore', methods=['GET'])
+def restore():
+    """Page for password reset."""
+    return render_template('restore.jinja2')
+
+@auth_bp.route('/restore_pass', methods=['POST'])
+def restore_pass():
+    """Endpoint for password reset."""
+    email_in = request.form.get('email')
+    user = User.query.filter_by(email=email_in).first()
+    if user:
+        # generate new pass
+        letters = string.ascii_letters
+        new_pass = ''.join(random.choice(letters) for i in range(15))
+        user.pasw = generate_password_hash(new_pass)
+        db.session.commit()
+
+        body = 'Hello,\n\nYour password for the website arxivtag.tk'
+        body += ' was reset. The new password is provided below.\n'
+        body += 'Please, consider password change immidietly after login'
+        body += ' at the settings page.'
+        body += '\n\nNew password:\n' + new_pass
+        body += '\n\nRegards, \narXiv tag team.'
+        msg = Message(body=body,
+                      sender="noreply@arxivtag.tk",
+                      recipients=[user.email],
+                      subject="arXiv tag password reset"
+                      )
+        mail.send(msg)
+
+    flash(f'The email with a new password was sent to your email from \
+          {current_app.config["MAIL_DEFAULT_SENDER"]}')
+    return redirect(url_for('main_bp.root'), code=303)
