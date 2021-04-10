@@ -2,11 +2,11 @@
 
 from os import linesep
 from time import sleep
-from datetime import datetime
+from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
 from re import search, IGNORECASE
 import logging
-from random import randrange
+from random import randrange # nosec
 
 from feedparser import parse
 from requests import get
@@ -31,8 +31,8 @@ class ArxivApi(PaperApi):
     """API for arXiv connection."""
 
     def_params = {'start': 0,
-                  'max_results': 500,
-                  'search_query': 'all:a',
+                  'max_results': 300,
+                  'search_query': 'all:a%20OR%20the%20OR%20in%20OR%20at',
                   'sortBy': 'lastUpdatedDate',
                   'sortOrder': 'descending'
                  }
@@ -89,7 +89,7 @@ class ArxivApi(PaperApi):
                 if fail_attempts > self.max_attempt_to_fail:
                     logging.error('Download exceeds max fail attempts')
                     return None
-                sleep(randrange(120, 200))
+                sleep(randrange(120, 200)) # nosec
                 continue
 
             for entry in feed.entries:
@@ -133,10 +133,49 @@ class ArxivApi(PaperApi):
                 break
 
             # delay for a next request
-            sleep(randrange(40, 80))
+            sleep(randrange(40, 80)) # nosec
             self.params['start'] += self.params['max_results']
 
         return papers
+
+def get_arxiv_last_date(today_date: datetime,
+                        old_date: datetime,
+                        date_type: int
+                        ) -> datetime:
+    """Get the data of the previous sumission deadline.
+
+    The method helps to get "today's" submissions. As the submission date
+    is actually "yesterday".
+    arXiv has submission deadline at 18:00. So that the papers submitted
+    before the deadline are published the next day, the papers who come
+    after deadline are submitted in two days.
+    """
+    if date_type == 0:
+        # look at the results of current date
+        # last_submission_day - 1 day at 18:00Z
+        old_date = today_date - timedelta(days=1)
+    elif date_type == 1:
+        # if last paper is published on Friday
+        # "this week" starts from next Monday
+        if today_date.weekday() == 4:
+            old_date = today_date - timedelta(days=1)
+        else:
+            old_date = today_date - timedelta(days=today_date.weekday()+4)
+    elif date_type == 2:
+        old_date = today_date - timedelta(days=today_date.day)
+
+    # over weekend cross
+    if old_date.weekday() > 4 and date_type != 4:
+        old_date = old_date - timedelta(days=old_date.weekday()-4)
+
+    # papers are submitted by 18:00Z
+    if date_type < 3:
+        old_date = old_date.replace(hour=17, minute=59, second=59)
+    else:
+        old_date = datetime.combine(old_date,
+                                    time(hour=17, minute=59, second=59))
+
+    return old_date
 
 def fix_xml(xml: str) -> str:
     """

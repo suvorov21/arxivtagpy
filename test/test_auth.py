@@ -1,10 +1,10 @@
 """authorisation tests."""
 # pylint: disable=redefined-outer-name
 
-import pytest
-
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
+
+import pytest
 
 from app import app_init, db
 from app.model import User

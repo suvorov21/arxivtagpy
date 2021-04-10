@@ -32,3 +32,8 @@ mccabe:
 
 pyflakes:
   run: true
+
+pylint:
+  disable:
+    - cyclic-import
+  run: true

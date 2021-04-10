@@ -1,5 +1,4 @@
 """Configuration settings."""
-# pylint: disable=cyclic-import
 
 from os import environ
 

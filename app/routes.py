@@ -1,6 +1,6 @@
 """Main blueprint with all the main pages."""
 
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 from json import loads, dumps
 import logging
 
@@ -11,7 +11,7 @@ from flask_login import current_user, login_required
 
 from .model import db, Paper, PaperList, paper_associate
 from .render import render_papers, render_title
-from .papers import ArxivApi, process_papers
+from .papers import ArxivApi, process_papers, get_arxiv_last_date
 from .auth import new_default_list
 # from . import mail
 
@@ -95,32 +95,8 @@ def data():
 
     today_date = last_paper.date_up
 
-    if date_type == 0:
-        # look at the results of current date
-        # last_submission_day - 1 day at 18:00Z
-        old_date = today_date - timedelta(days=1)
-    elif date_type == 1:
-        # if last paper is published on Friday
-        # "this week" starts from next Monday
-        if today_date.weekday() == 4:
-            old_date = today_date - timedelta(days=1)
-        else:
-            old_date = today_date - timedelta(days=today_date.weekday()+4)
-    elif date_type == 2:
-        old_date = today_date - timedelta(days=today_date.day)
-    else:
-        old_date = current_user.last_paper
-
-    # over weekend cross
-    if old_date.weekday() > 4 and date_type != 4:
-        old_date = old_date - timedelta(days=old_date.weekday()-4)
-
-    # papers are submitted by 18:00Z
-    if date_type < 3:
-        old_date = old_date.replace(hour=17, minute=59, second=59)
-    else:
-        old_date = datetime.combine(old_date,
-                                    time(hour=17, minute=59, second=59))
+    old_date = current_user.last_paper
+    old_date = get_arxiv_last_date(today_date, old_date, date_type)
 
     papers = {'n_cats': None,
               'n_nov': None,
@@ -423,7 +399,7 @@ def load_papers():
         last_paper_id = last_paper.paper_id
 
     # initiaise paper API
-    paper_api = ArxivApi({'search_query': "all:a%20OR%20the%20OR%20in%20OR%20at"},
+    paper_api = ArxivApi({},
                          last_paper=last_paper_date,
                          last_paper_id=last_paper_id
                          )
@@ -463,18 +439,64 @@ def load_papers():
 
     return dumps({'success':True}), 201
 
-# @main_bp.route('/fix_load_papers', methods=['GET'])
-# def fix_load_papers():
+@main_bp.route('/fix_load_papers', methods=['GET'])
+def fix_load_papers():
+    """Fix broken previous download."""
+    logging.info('Start paper table fix')
+    if current_app.config['TOKEN'] != request.args.get('token'):
+        logging.error('Wrong token')
+        return dumps({'success':False}), 422
 
+    date_type = int(request.args.get('date'))
+    if date_type not in (0, 1, 2):
+        logging.error('Date is not provded')
+        return dumps({'success':False}), 422
 
+    today_date = datetime.now()
+    last_paper_date = get_arxiv_last_date(today_date,
+                                          today_date,
+                                          date_type
+                                          )
 
-# TEMP
-# @main_bp.route('/email', methods=['GET'])
-# def email():
-#     msg = Message(body="Hello body\n Here it is some text",
-#                   sender="noreply@arxivtag.tk",
-#                   recipients=["suvorovsb@gmail.com"],
-#                   subject="test topic"
-#                   )
-#     mail.send(msg)
-#     return "send"
+    do_update = request.args.get('update')
+
+    logging.info(f'Date type {date_type}; update {do_update}')
+
+    # initiaise paper API
+    paper_api = ArxivApi({},
+                         last_paper=last_paper_date,
+                         )
+
+    papers = paper_api.get_papers()
+
+    if not isinstance(papers, list):
+        logging.error('Papers are not a list')
+        return dumps({'success':False}), 422
+
+    updated = 0
+    downloaded = 0
+    for paper in papers:
+        paper_prev = Paper.query.filter_by(paper_id=paper.paper_id).first()
+        # paper already exists
+        # update the info
+        if paper_prev and do_update:
+            paper_prev.title = paper.title
+            paper_prev.date_up = paper.date_up
+            paper_prev.abstract = paper.abstract
+            paper_prev.ref_pdf = paper.ref_pdf
+            paper_prev.ref_web = paper.ref_web
+            paper_prev.ref_doi = paper.ref_doi
+            paper_prev.cats = paper.cats
+            updated += 1
+        else:
+            db.session.add(paper)
+            downloaded += 1
+
+    db.session.commit()
+
+    logging.info('Paper fix done: %i new; %i updated',
+                 downloaded,
+                 updated
+                 )
+
+    return dumps({'success':True}), 201
