@@ -422,6 +422,6 @@ def load_papers():
                          )
     # further code is paper source independent.
     # Any API can be defined above
-    papers = paper_api.update_papers()
+    paper_api.update_papers()
 
     return dumps({'success':True}), 201

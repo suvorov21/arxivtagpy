@@ -6,13 +6,12 @@ from werkzeug.security import generate_password_hash
 
 import pytest
 
-from flask import session
-
 from app import app_init, db
 from app.model import User
 
 @pytest.fixture(scope='module', autouse=True)
 def init_app():
+    """Application initialisation function."""
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
@@ -25,6 +24,7 @@ def init_app():
 
 @pytest.fixture
 def create_user(init_app):
+    """Create user fixture."""
     email = 'tester@gmail.com'
     user1 = User(email=email,
                  pasw=generate_password_hash('tester'),

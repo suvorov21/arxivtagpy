@@ -126,7 +126,7 @@ class ArxivApi(PaperApi):
                 logging.error('arXic API response with %i',
                               response.status_code
                               )
-                raise StopIteration()
+                return
 
             # parse arXiv response
             feed = parse(response.text)
@@ -139,7 +139,7 @@ class ArxivApi(PaperApi):
                 fail_attempts += 1
                 if fail_attempts > self.max_attempt_to_fail:
                     logging.error('arXiv download exceeds allowed fail rate')
-                    raise StopIteration()
+                    return
                 sleep(delay)
                 continue
             date = datetime.strptime(feed.entries[0].updated,
@@ -185,7 +185,7 @@ class ArxivApi(PaperApi):
             sleep(randrange(5, 10)) # nosec
             self.params['start'] += self.params['max_results']
 
-        raise StopIteration()
+        return
 
 def get_arxiv_last_date(today_date: datetime,
                         old_date: datetime,

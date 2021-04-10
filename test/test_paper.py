@@ -3,13 +3,10 @@
 
 from json import loads
 
-from werkzeug.utils import import_string
-from werkzeug.security import generate_password_hash
-
 import pytest
 
-from app import app_init, db
-from app.model import User, Paper
+from app import db
+from app.model import Paper
 
 from test.test_auth import init_app
 
@@ -17,13 +14,13 @@ from test.test_auth import init_app
 def client_with_papers(init_app):
     """Fixture for filling DB with papers."""
     init_app.get('/load_papers?token=test_token&n_papers=10&search_query=hep-ex&method=new')
-    response = init_app.post('/new_user',
-                             data={'email': 'tester2@gmail.com',
-                                   'pasw': 'tester2',
-                                   'pasw2': 'tester2'
-                                   },
-                             follow_redirects=True
-                             )
+    init_app.post('/new_user',
+                  data={'email': 'tester2@gmail.com',
+                        'pasw': 'tester2',
+                        'pasw2': 'tester2'
+                        },
+                  follow_redirects=True
+                  )
     yield init_app
     db.session.remove()
     db.drop_all()
