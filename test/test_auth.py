@@ -1,3 +1,6 @@
+"""authorisation tests."""
+# pylint: disable=redefined-outer-name
+
 import pytest
 
 from werkzeug.utils import import_string
@@ -8,6 +11,7 @@ from app.model import User
 
 @pytest.fixture
 def test_client():
+    """Fixture that creates user."""
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
@@ -27,10 +31,12 @@ def test_client():
         db.drop_all()
 
 def test_general(test_client):
+    """Test landing page."""
     response = test_client.get('/')
     assert response.status_code == 200
 
 def test_log(test_client):
+    """Test login."""
     response = test_client.post('/login',
                                 data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                 follow_redirects=True
@@ -38,6 +44,7 @@ def test_log(test_client):
     assert response.status_code == 200
 
 def test_logout(test_client):
+    """Test logout."""
     response = test_client.post('/login',
                                 data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                 follow_redirects=True
@@ -47,7 +54,8 @@ def test_logout(test_client):
                                follow_redirects=True)
     assert response.status_code == 200
 
-def test_newAcc(test_client):
+def test_new_acc(test_client):
+    """Test new account creation."""
     response = test_client.post('/new_user',
                                 data={'email': 'tester2@gmail.com',
                                       'pasw': 'tester2',
@@ -59,13 +67,15 @@ def test_newAcc(test_client):
     assert 'ERROR' not in response.get_data(as_text=True)
     assert 'Welcome' in response.get_data(as_text=True)
 
-def test_delAcc(test_client):
+def test_del_acc(test_client):
+    """Test acount delete."""
     response = test_client.post('/delAcc',
                                 follow_redirects=True
                                 )
     assert response.status_code == 200
 
 def test_change_pass(test_client):
+    """Test password change."""
     response = test_client.post('/login',
                                 data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                 follow_redirects=True
@@ -83,6 +93,7 @@ def test_change_pass(test_client):
     assert 'successfully' in response.get_data(as_text=True)
 
 def test_unauthorised_request(test_client):
+    """Test acccess to login restricted pages."""
     response = test_client.post('/change_pasw',
                                 data={'oldPass': 'tester',
                                       'newPass1': 'tester_new',
@@ -94,6 +105,7 @@ def test_unauthorised_request(test_client):
     assert 'ERROR' in response.get_data(as_text=True)
 
 def test_change_wrong_pass(test_client):
+    """Test login with wrong password."""
     response = test_client.post('/login',
                                 data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                 follow_redirects=True
@@ -120,5 +132,6 @@ def test_change_wrong_pass(test_client):
     assert 'don\'t match!' in response.get_data(as_text=True)
 
 def test_load_papers(test_client):
+    """Test paper loading."""
     response = test_client.get('/load_papers?token=test_token&n_papers=10')
     assert response.status_code == 201

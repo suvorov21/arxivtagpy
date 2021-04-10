@@ -1,3 +1,6 @@
+"""Application initialiser."""
+# pylint: disable=import-outside-toplevel
+
 from  os import environ
 
 import logging

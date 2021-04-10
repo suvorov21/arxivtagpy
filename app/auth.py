@@ -1,3 +1,5 @@
+"""Authority utilities: login, pass check, account managment."""
+
 from datetime import datetime
 
 from flask import Blueprint, render_template, flash, redirect, \
@@ -59,6 +61,7 @@ def logout():
     return redirect(url_for('main_bp.root'))
 
 def new_default_list(usr_id):
+    """Create default paper list for a given user."""
     result = PaperList.query.filter_by(user_id=usr_id,
                                        name='Favourite'
                                        ).first()

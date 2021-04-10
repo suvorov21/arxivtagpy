@@ -1,7 +1,10 @@
-from . import db
+"""Database model."""
+
 from flask_login import UserMixin
 
 from sqlalchemy.dialects import postgresql as pg
+
+from . import db
 
 class User(UserMixin, db.Model):
     """User table description."""
@@ -78,16 +81,16 @@ class Paper(db.Model):
     __tablename__ = 'papers'
 
     id = db.Column(db.Integer,
-                   primary_key = True
+                   primary_key=True
                    )
 
     paper_id = db.Column(db.String(),
-                         unique = True,
+                         unique=True,
                          nullable=False
                          )
 
     title = db.Column(db.String(),
-                     unique = False,
+                     unique=False,
                      nullable=False
                      )
 
@@ -139,7 +142,7 @@ class PaperList(db.Model):
     """Paper list table description."""
     __tablename__ = 'lists'
     id = db.Column(db.Integer,
-                   primary_key = True
+                   primary_key=True
                    )
 
     name = db.Column(db.String(),

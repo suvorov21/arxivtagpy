@@ -1,3 +1,5 @@
+"""Main blueprint with all the main pages."""
+
 from datetime import datetime, timedelta, time
 from json import loads, dumps
 import logging
@@ -47,7 +49,7 @@ def papers_list():
 
     if date_type is None:
         # WARNING a dirty fix to get rid of /flask/flask.wsgi in the adress bar
-        if 'arxivtag' in request.headers['Host'] :
+        if 'arxivtag' in request.headers['Host']:
             # if production, go 3 levels up
             return redirect('../../../papers?date=today')
         # not a production (local/heroku) let flask care about path
@@ -169,17 +171,17 @@ def data():
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
-                            doNov=True,
-                            doTag=True
+                            do_nov=True,
+                            do_tag=True
                             )
     paper_render = render_papers(papers)
 
-    DATA = {'papers': paper_render,
-            'ncat': papers['n_cats'],
-            'ntag': papers['n_tags'],
-            'nnov': papers['n_nov']
-            }
-    return jsonify(DATA)
+    result = {'papers': paper_render,
+              'ncat': papers['n_cats'],
+              'ntag': papers['n_tags'],
+              'nnov': papers['n_nov']
+              }
+    return jsonify(result)
 
 @main_bp.route('/settings')
 @login_required
@@ -291,7 +293,7 @@ def mod_pref():
 @login_required
 def bookshelf():
     """Bookshelf page."""
-    lists=[]
+    lists = []
     # get all lists for the menu
     paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
     if len(paper_lists) == 0:
@@ -327,8 +329,8 @@ def bookshelf():
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
-                            doNov=False,
-                            doTag=True
+                            do_nov=False,
+                            do_tag=True
                             )
 
     return render_template('bookshelf.jinja2',
@@ -343,7 +345,7 @@ def bookshelf():
 @login_required
 def add_bm():
     """
-    Add bookmark
+    Add bookmark.
 
     Take paper_id as an input and add a reference to the paper
     to the given paper list
@@ -396,6 +398,7 @@ def del_bm():
 
 @main_bp.route('/load_papers', methods=['GET'])
 def load_papers():
+    """Load papers and store in the database."""
     # auth stuff
     logging.info('Start paper table update')
     if current_app.config['TOKEN'] != request.args.get('token'):
@@ -459,6 +462,10 @@ def load_papers():
                  )
 
     return dumps({'success':True}), 201
+
+# @main_bp.route('/fix_load_papers', methods=['GET'])
+# def fix_load_papers():
+
 
 
 # TEMP

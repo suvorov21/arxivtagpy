@@ -1,9 +1,10 @@
+"""Configuration settings."""
+# pylint: disable=cyclic-import
+
 from os import environ
 
-class Config(object):
-    """
-    Default config.
-    """
+class Config():
+    """Default config."""
     DEBUG = False
     TESTING = False
 
@@ -27,23 +28,17 @@ class Config(object):
     MAIL_DEFAULT_SENDER = environ.get('MAIL_DEFAULT_SENDER')
 
 class ProductionConfig(Config):
-    """
-    Prod config.
-    """
+    """Prod config."""
     pass
 
 class DevelopmentConfig(Config):
-    """
-    Dev config.
-    """
+    """Dev config."""
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_DEBUG')
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
 
 class TestingConfig(Config):
-    """
-    Testing (staging) config.
-    """
+    """Testing (staging) config."""
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_TEST')
     TESTING = True

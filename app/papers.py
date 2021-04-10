@@ -1,16 +1,17 @@
+"""Papers parsers and donwnload API."""
+
 from os import linesep
 from time import sleep
 from datetime import datetime
 from typing import Dict, Tuple, List
 from re import search, IGNORECASE
 import logging
+from random import randrange
 
 from feedparser import parse
 from requests import get
 
 from .model import Paper
-
-from random import randrange
 
 rule_dict = {'ti': 'title',
              'au': 'author',
@@ -19,9 +20,7 @@ rule_dict = {'ti': 'title',
 
 
 class PaperApi:
-    """
-    API default class.
-    """
+    """API default class."""
 
     def_params = {}
     delay = 0
@@ -29,9 +28,7 @@ class PaperApi:
     last_paper = datetime.now()
 
 class ArxivApi(PaperApi):
-    """
-    API for arXiv connection.
-    """
+    """API for arXiv connection."""
 
     def_params = {'start': 0,
                   'max_results': 500,
@@ -89,7 +86,7 @@ class ArxivApi(PaperApi):
                                 len(feed.entries),
                                 self.params['max_results'])
                 fail_attempts += 1
-                if (fail_attempts > self.max_attempt_to_fail):
+                if fail_attempts > self.max_attempt_to_fail:
                     logging.error('Download exceeds max fail attempts')
                     return None
                 sleep(randrange(120, 200))
@@ -136,7 +133,6 @@ class ArxivApi(PaperApi):
                 break
 
             # delay for a next request
-            # sleep(self.delay)
             sleep(randrange(40, 80))
             self.params['start'] += self.params['max_results']
 
@@ -144,7 +140,7 @@ class ArxivApi(PaperApi):
 
 def fix_xml(xml: str) -> str:
     """
-    Parse xml tag content
+    Parse xml tag content!
 
     Remove line endings and double spaces.
     """
@@ -160,7 +156,7 @@ def parse_cats(cats) -> List:
 
 def parse_links(links, link_type='pdf') -> str:
     """
-    Loop over links and extract hrefs to pdf and arXiv abstract
+    Loop over links and extract hrefs to pdf and arXiv abstract!
 
     parse links
     related & title = pdf --> pdf
@@ -181,11 +177,11 @@ def parse_links(links, link_type='pdf') -> str:
 def process_papers(papers: Dict,
                    tags: Dict,
                    cats: Tuple[str],
-                   doNov: bool,
-                   doTag: bool
+                   do_nov: bool,
+                   do_tag: bool
                    ) -> Dict:
     """
-    Papers processing
+    Papers processing.
 
     Process:
     1. novelty. use 'bit' map
@@ -195,12 +191,11 @@ def process_papers(papers: Dict,
     2. categories
     3. process tags
     """
-
     papers['n_nov'] = [0] * 3
     papers['n_cats'] = [0] * len(cats)
     papers['n_tags'] = [0] * len(tags)
     for paper in papers['papers']:
-        if doNov:
+        if do_nov:
             # 1.a count cross-refs
             for cat in paper['cats']:
                 # increase cat counter
@@ -221,7 +216,7 @@ def process_papers(papers: Dict,
                 papers['n_nov'][0] += 1
 
         # 2.
-        if doTag:
+        if do_tag:
             for num, tag in enumerate(tags):
                 if tag_suitable(paper, tag['rule']):
                     paper['tags'].append(num)
@@ -231,7 +226,8 @@ def process_papers(papers: Dict,
 
 def tag_suitable(paper: Dict, rule: str) -> bool:
     """
-    Simple rules are expected in the most of th cases,
+    Simple rules are expected in the most of th cases.
+
     1. Find logic AND / OR outside curly and round brackets
     2. If no - parse rules inside curly brackets
     3. OR: and process rule parts one by one separated by |
@@ -256,8 +252,12 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     brackets = 0
     or_pos, and_pos = [], []
     for pos, char in enumerate(rule):
-        if char in ['(', '{']: brackets += 1; continue;
-        if char in [')', '}']: brackets -= 1; continue;
+        if char in ['(', '{']:
+            brackets += 1
+            continue
+        if char in [')', '}']:
+            brackets -= 1
+            continue
         if brackets == 0:
             if char == '|':
                 or_pos.append(pos)
@@ -265,7 +265,7 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
                 and_pos.append(pos)
 
     # if no AND/OR found outside brackets process a rule inside curly brackets
-    if (len(and_pos) == 0 and len(or_pos) == 0):
+    if len(and_pos) == 0 and len(or_pos) == 0:
         return parse_simple_rule(paper, rule)
 
     # add rule length limits
@@ -273,13 +273,13 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     or_pos.append(len(rule))
 
     # process logic OR
-    if (len(or_pos) > 2):
+    if len(or_pos) > 2:
         for num, pos in enumerate(or_pos[:-1]):
             if tag_suitable(paper, rule[pos+1:or_pos[num+1]]):
                 return True
 
     # if logic OR was found but True was not returned before
-    if (len(or_pos) > 2):
+    if len(or_pos) > 2:
         return False
 
     # add rule length limits
@@ -287,13 +287,13 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     and_pos.append(len(rule))
 
     # process logic AND
-    if (len(and_pos) > 2):
+    if len(and_pos) > 2:
         for num, pos in enumerate(and_pos[:-1]):
             if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
                 return False
 
     # if logic AND is inside the rule but False was not found
-    if (len(and_pos) > 2):
+    if len(and_pos) > 2:
         return True
 
     # default safety return
@@ -321,7 +321,7 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
     if '&' in condition:
         cond_list = condition.split('&')
         condition = '(' + condition.replace('&', '.*')
-        condition +=')|('
+        condition += ')|('
         condition += '.*'.join(cond_list[::-1]) + ')'
 
     # inversion of the rule

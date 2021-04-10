@@ -1,5 +1,9 @@
-import pytest
+"""Test papers functionality."""
+# pylint: disable=redefined-outer-name
+
 from json import loads
+
+import pytest
 
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
@@ -10,6 +14,7 @@ from app.model import User, Paper
 
 @pytest.fixture(scope='module', autouse=True)
 def client_with_papers():
+    """Fixture for filling DB with papers."""
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
@@ -29,7 +34,8 @@ def client_with_papers():
         db.session.remove()
         db.drop_all()
 
-def test_paper_API(client_with_papers):
+def test_paper_api(client_with_papers):
+    """Test paper download."""
     response = client_with_papers.post('/login',
                                        data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                        follow_redirects=True
@@ -42,6 +48,7 @@ def test_paper_API(client_with_papers):
 
 
 def test_add_bm(client_with_papers):
+    """Test bookmark add."""
     response = client_with_papers.post('/login',
                                        data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                        follow_redirects=True
@@ -53,6 +60,7 @@ def test_add_bm(client_with_papers):
     assert response.status_code == 201
 
 def test_del_bm(client_with_papers):
+    """Test bookmark delete."""
     response = client_with_papers.post('/login',
                                        data={'i_login': 'tester@gmail.com', 'i_pass':'tester'},
                                        follow_redirects=True

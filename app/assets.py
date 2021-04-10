@@ -1,3 +1,5 @@
+"""JS ans CSS bundles generator."""
+
 from flask_assets import Environment, Bundle
 
 def compile_layout_assets(app):
