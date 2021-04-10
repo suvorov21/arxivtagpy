@@ -5,12 +5,20 @@ test-warnings: true
 doc-warnings: true
 
 ignore-paths:
-  - migrations/env.py
+  - migrations
   - wsgi.py
+  - launch_dev.py
+
+pep8:
+  run: false
 
 pep257:
   disable:
+    - D203
+    - D204
     - D205
+    - D211
+    - D212
   run: true
 
 dodgy:
@@ -22,11 +30,5 @@ uses:
 mccabe:
   run: true
 
-pydocstyle:
-  run: true
-
 pyflakes:
-  run: true
-
-vulture:
   run: true
