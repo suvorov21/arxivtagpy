@@ -11,7 +11,7 @@ from random import randrange # nosec
 from feedparser import parse
 from requests import get
 
-from .model import Paper
+from .model import db, Paper
 
 rule_dict = {'ti': 'title',
              'au': 'author',
@@ -26,71 +26,131 @@ class PaperApi:
     delay = 0
     URL = ""
     last_paper = datetime.now()
+    max_papers = 1000000
+    do_update = False
+
+    def download_papers(self, **kwargs):
+        """
+        Generator that yields papers.
+
+        Specifoed for each paper source individually.
+        """
+        raise NotImplementedError
+
+
+    def update_papers(self, **kwargs):
+        """
+        Update paper table.
+
+        Get papers from download_papers() and store in the DB.
+        """
+        updated = 0
+        downloaded = 0
+        read = 0
+
+        for paper in self.download_papers(**kwargs):
+            # stoppers
+            if paper.date_up < self.last_paper_date \
+               or paper.paper_id == self.last_paper_id \
+               or read >= self.max_papers:
+                break
+
+            paper_prev = Paper.query.filter_by(
+                            paper_id=paper.paper_id
+                            ).first()
+
+            if paper_prev:
+                if self.do_update:
+                    update_paper_record(paper_prev, paper)
+                    updated += 1
+            else:
+                db.session.add(paper)
+                downloaded += 1
+            read += 1
+
+        db.session.commit()
+
+        logging.info('Paper update done: %i new; %i updated',
+                     downloaded,
+                     updated
+                     )
 
 class ArxivApi(PaperApi):
     """API for arXiv connection."""
 
     def_params = {'start': 0,
-                  'max_results': 300,
+                  'max_results': 500,
+                  # FIXME a very dirty fix to collect "all" papers
                   'search_query': 'all:a%20OR%20the%20OR%20in%20OR%20at',
                   'sortBy': 'lastUpdatedDate',
                   'sortOrder': 'descending'
                  }
 
     URL = 'http://export.arxiv.org/api/query'
-    delay = 30
-    verbose = False
-    max_papers = 100000
+    delay = 3
+    max_papers = 1000000
     last_paper_id = '000'
     max_attempt_to_fail = 10
+    do_update = False
+    last_paper_date = datetime(year=1970, month=1, day=1)
 
     def __init__(self, params: Dict, **kwargs):
         """Initialise arXiv API."""
+        # default APII params
         self.params = ArxivApi.def_params
+        # update specific API params
         self.params.update(params)
-        self.last_paper = kwargs.get('last_paper')
-        self.last_paper_id = kwargs.get('last_paper_id')
-
-    def get_papers(self, **kwargs) -> List:
-        """Download papers and return a list of Papers models."""
-        if 'last_paper' in kwargs:
-            self.last_paper = kwargs.get('last_paper')
+        # define various loop stoppers
+        if 'last_paper_date' in kwargs:
+            self.last_paper_date = kwargs.get('last_paper_date')
         if 'last_paper_id' in kwargs:
-            self.last_paper_id = kwargs.get('last_paper')
+            self.last_paper_id = kwargs.get('last_paper_id')
         if 'n_papers' in kwargs:
             self.max_papers = kwargs.get('n_papers')
+            # decrease API request N
             if self.max_papers < self.params['max_results']:
                 self.params['max_results'] = self.max_papers
-        if 'search_query' in kwargs:
-            self.params['search_query'] = kwargs.get('search_query')
+        # whether to update existing records
+        self.do_update = kwargs.get('do_update')
 
-        papers = []
+    def download_papers(self, **kwargs):
+        """Download papers and return a list of Papers models."""
         fail_attempts = 0
-
-        if ArxivApi.verbose:
-            logging.debug('Start download')
 
         while True:
             response = get(self.URL, self.params)
 
-            if ArxivApi.verbose:
-                logging.debug(response.url)
+            logging.debug(response.url)
 
             if response.status_code != 200:
-                return 404
+                logging.error('arXic API response with %i',
+                              response.status_code
+                              )
+                raise StopIteration()
 
             # parse arXiv response
             feed = parse(response.text)
             if len(feed.entries) != self.params['max_results']:
-                logging.warning("Got %i results from %i. Retrying.",
+                delay = randrange(120, 200) # nosec
+                logging.warning("Got %i results from %i. Retrying in %i.",
                                 len(feed.entries),
-                                self.params['max_results'])
+                                self.params['max_results'],
+                                delay)
                 fail_attempts += 1
                 if fail_attempts > self.max_attempt_to_fail:
-                    logging.error('Download exceeds max fail attempts')
-                    return None
-                sleep(randrange(120, 200)) # nosec
+                    logging.error('arXiv download exceeds allowed fail rate')
+                    raise StopIteration()
+                sleep(delay)
                 continue
+            date = datetime.strptime(feed.entries[0].updated,
+                                     '%Y-%m-%dT%H:%M:%SZ'
+                                     )
+
+            logging.info('Got %i papers from arXiv. Now at %r',
+                         len(feed.entries),
+                         datetime.strftime(date,
+                                           '%d %B %Y %H:%M:%S')
+                         )
 
             for entry in feed.entries:
                 date = datetime.strptime(entry.updated,
@@ -99,18 +159,12 @@ class ArxivApi(PaperApi):
                 paper_id = entry.id.split('/')[-1]
                 paper_id = paper_id.split('v')[0]
 
-                if ArxivApi.verbose:
-                    logging.debug('#%i date: %s id = %s',
-                                  len(papers),
-                                  entry.updated,
-                                  paper_id
-                                  )
-                if date < self.last_paper \
-                    or paper_id == self.last_paper_id \
-                    or len(papers) >= self.max_papers:
-                    break
+                logging.debug('date: %s id = %s',
+                              entry.updated,
+                              paper_id
+                              )
 
-                papers.append(Paper(
+                paper = Paper(
                     title=fix_xml(entry.title),
                     author=parse_authors(entry.authors),
                     date_sub=datetime.strptime(entry.published,
@@ -123,20 +177,15 @@ class ArxivApi(PaperApi):
                     ref_doi=parse_links(entry.links, link_type='doi'),
                     paper_id=paper_id,
                     cats=parse_cats(entry.tags)
-                    ))
+                    )
 
-            if date < self.last_paper \
-                or paper_id == self.last_paper_id:
-                break
-
-            if len(papers) >= self.max_papers:
-                break
+                yield paper
 
             # delay for a next request
-            sleep(randrange(40, 80)) # nosec
+            sleep(randrange(5, 10)) # nosec
             self.params['start'] += self.params['max_results']
 
-        return papers
+        raise StopIteration()
 
 def get_arxiv_last_date(today_date: datetime,
                         old_date: datetime,
@@ -177,6 +226,16 @@ def get_arxiv_last_date(today_date: datetime,
                                     time(hour=17, minute=59, second=59))
 
     return old_date
+
+def update_paper_record(paper_prev, paper):
+    """Update the paper record."""
+    paper_prev.title = paper.title
+    paper_prev.date_up = paper.date_up
+    paper_prev.abstract = paper.abstract
+    paper_prev.ref_pdf = paper.ref_pdf
+    paper_prev.ref_web = paper.ref_web
+    paper_prev.ref_doi = paper.ref_doi
+    paper_prev.cats = paper.cats
 
 def fix_xml(xml: str) -> str:
     """

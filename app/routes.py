@@ -381,122 +381,47 @@ def load_papers():
         logging.error('Wrong token')
         return dumps({'success':False}), 422
 
+    # method: new / fix
+    method = request.args.get('method')
+    if not method:
+        logging.error('Method is not provided')
+        return dumps({'success':False}), 422
+
+    # API requests args
+    new_params = {}
+    if 'search_query' in request.args:
+        new_params['search_query'] = request.args.get('search_query')
+
+    # update_papers() params
     kwargs = {}
     if 'n_papers' in request.args:
         kwargs['n_papers'] = int(request.args.get('n_papers'))
-    if 'search_query' in request.args:
-        kwargs['search_query'] = request.args.get('search_query')
+    if 'do_update' in request.args:
+        kwargs['do_update'] = request.args.get('do_update')
+    if 'from' in request.args:
+        kwargs['last_paper_date'] = datetime.strptime(request.args['from'],
+                                            '%Y-%m-%d'
+                                             )
 
-    # Get the date of the latest downloaded paper
-    last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     # first ever call with an empty paper db
-    if not last_paper:
-        today_date = datetime.now()
-        last_paper_date = today_date - timedelta(days=today_date.day)
-        last_paper_id = '000'
-    else:
-        last_paper_date = last_paper.date_up
-        last_paper_id = last_paper.paper_id
+    if method == 'new':
+        # Get the date of the latest downloaded paper
+        last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
+        if not last_paper:
+            today_date = datetime.now()
+            kwargs['last_paper_date'] = today_date - timedelta(days=today_date.day)
+        else:
+            kwargs['last_paper_date'] = last_paper.date_up
+            kwargs['last_paper_id'] = last_paper.paper_id
+
+    logging.info('Parameters: %s', kwargs)
 
     # initiaise paper API
-    paper_api = ArxivApi({},
-                         last_paper=last_paper_date,
-                         last_paper_id=last_paper_id
+    paper_api = ArxivApi(new_params,
+                         **kwargs
                          )
     # further code is paper source independent.
     # Any API can be defined above
-    papers = paper_api.get_papers(**kwargs)
-
-    if not isinstance(papers, list):
-        logging.error('Papers are not a list')
-        return dumps({'success':False}), 422
-
-    updated = 0
-    downloaded = 0
-    for paper in papers:
-        paper_prev = Paper.query.filter_by(paper_id=paper.paper_id).first()
-        # paper already exists
-        # update the info
-        if paper_prev:
-            paper_prev.title = paper.title
-            paper_prev.date_up = paper.date_up
-            paper_prev.abstract = paper.abstract
-            paper_prev.ref_pdf = paper.ref_pdf
-            paper_prev.ref_web = paper.ref_web
-            paper_prev.ref_doi = paper.ref_doi
-            paper_prev.cats = paper.cats
-            updated += 1
-        else:
-            db.session.add(paper)
-            downloaded += 1
-
-    db.session.commit()
-
-    logging.info('Paper update done: %i new; %i updated',
-                 downloaded,
-                 updated
-                 )
-
-    return dumps({'success':True}), 201
-
-@main_bp.route('/fix_load_papers', methods=['GET'])
-def fix_load_papers():
-    """Fix broken previous download."""
-    logging.info('Start paper table fix')
-    if current_app.config['TOKEN'] != request.args.get('token'):
-        logging.error('Wrong token')
-        return dumps({'success':False}), 422
-
-    date_type = int(request.args.get('date'))
-    if date_type not in (0, 1, 2):
-        logging.error('Date is not provded')
-        return dumps({'success':False}), 422
-
-    today_date = datetime.now()
-    last_paper_date = get_arxiv_last_date(today_date,
-                                          today_date,
-                                          date_type
-                                          )
-
-    do_update = request.args.get('update')
-
-    logging.info('Date type %i; update %b', date_type, do_update)
-
-    # initiaise paper API
-    paper_api = ArxivApi({},
-                         last_paper=last_paper_date,
-                         )
-
-    papers = paper_api.get_papers()
-
-    if not isinstance(papers, list):
-        logging.error('Papers are not a list')
-        return dumps({'success':False}), 422
-
-    updated = 0
-    downloaded = 0
-    for paper in papers:
-        paper_prev = Paper.query.filter_by(paper_id=paper.paper_id).first()
-        # paper already exists
-        # update the info
-        if paper_prev and do_update:
-            paper_prev.title = paper.title
-            paper_prev.date_up = paper.date_up
-            paper_prev.abstract = paper.abstract
-            paper_prev.ref_pdf = paper.ref_pdf
-            paper_prev.ref_web = paper.ref_web
-            paper_prev.ref_doi = paper.ref_doi
-            paper_prev.cats = paper.cats
-            updated += 1
-        else:
-            db.session.add(paper)
-            downloaded += 1
-
-    db.session.commit()
-
-    logging.info('Paper fix done: %i new; %i updated',
-                 downloaded,
-                 updated
-                 )
+    papers = paper_api.update_papers()
 
     return dumps({'success':True}), 201
