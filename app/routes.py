@@ -383,7 +383,7 @@ def load_papers():
 
     # method: new / fix
     method = request.args.get('method')
-    if not method:
+    if method not in ('new', 'fix'):
         logging.error('Method is not provided')
         return dumps({'success':False}), 422
 
