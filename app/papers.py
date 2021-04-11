@@ -103,6 +103,7 @@ class ArxivApi(PaperApi):
         self.params = ArxivApi.def_params
         # update specific API params
         self.params.update(params)
+        self.db_commit_period = self.params['max_results']
         # define various loop stoppers
         if 'last_paper_date' in kwargs:
             self.last_paper_date = kwargs.get('last_paper_date')
