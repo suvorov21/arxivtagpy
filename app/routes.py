@@ -11,8 +11,9 @@ from flask_login import current_user, login_required
 
 from .model import db, Paper, PaperList, paper_associate
 from .render import render_papers, render_title
-from .papers import ArxivApi, process_papers, get_arxiv_last_date
 from .auth import new_default_list
+from .papers import update_papers, process_papers, render_paper_json
+from .paper_api import ArxivOaiApi, get_arxiv_last_date
 # from . import mail
 
 main_bp = Blueprint(
@@ -111,22 +112,7 @@ def data():
                                      Paper.date_up > old_date
                                      ).all()
     for paper in paper_query:
-        # TODO think about JSON dump method in paper model
-        papers['papers'].append({'id': paper.paper_id,
-                                  'title': paper.title,
-                                  'author': paper.author,
-                                  'date_sub': paper.date_sub,
-                                  'date_up': paper.date_up,
-                                  'abstract': paper.abstract,
-                                  'ref_pdf': paper.ref_pdf,
-                                  'ref_web': paper.ref_web,
-                                  'ref_doi': paper.ref_doi,
-                                  'cats': paper.cats,
-                                  # to be filled later in process_papers()
-                                  'tags': [],
-                                  'nov': 0
-                              })
-
+        papers['papers'].append(render_paper_json(paper))
 
     # error hahdler
     if len(papers['papers']) == 0:
@@ -287,20 +273,7 @@ def bookshelf():
               }
 
     for paper in paper_list.papers:
-        papers['papers'].append({'title': paper.title,
-                                 'id': paper.paper_id,
-                                 'author': paper.author,
-                                 'date_up': datetime.strftime(paper.date_up,
-                                                              '%d %B %Y'
-                                                              ),
-                                 'abstract': paper.abstract,
-                                 'ref_pdf': paper.ref_pdf,
-                                 'ref_web': paper.ref_web,
-                                 'cats': paper.cats,
-                                 'tags': [],
-                                  })
-        if paper.ref_doi is not None:
-            papers['papers'][-1]['ref_doi'] = paper.ref_doi
+        papers['papers'].append(render_paper_json(paper))
 
     papers = process_papers(papers,
                             session['tags'],
@@ -381,47 +354,47 @@ def load_papers():
         logging.error('Wrong token')
         return dumps({'success':False}), 422
 
-    # method: new / fix
-    method = request.args.get('method')
-    if not method:
-        logging.error('Method is not provided')
-        return dumps({'success':False}), 422
-
-    # API requests args
-    new_params = {}
-    if 'search_query' in request.args:
-        new_params['search_query'] = request.args.get('search_query')
+    # last paper in the DB
+    last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
+    today_date = datetime.now()
+    if not last_paper:
+        # if no last paper download for this month
+        last_paper_date = today_date - timedelta(days=today_date.day)
+    else:
+        last_paper_date = last_paper.date_up - timedelta(days=1)
 
     # update_papers() params
-    kwargs = {}
+    # by default updates are on
+    params = {'do_update': True}
     if 'n_papers' in request.args:
-        kwargs['n_papers'] = int(request.args.get('n_papers'))
+        params['n_papers'] = int(request.args.get('n_papers'))
     if 'do_update' in request.args:
-        kwargs['do_update'] = request.args.get('do_update')
+        params['do_update'] = request.args.get('do_update')
     if 'from' in request.args:
-        kwargs['last_paper_date'] = datetime.strptime(request.args['from'],
+        params['last_paper_date'] = datetime.strptime(request.args['from'],
                                             '%Y-%m-%d'
                                              )
+    else:
+        params['last_paper_date'] = last_paper_date
 
-    # first ever call with an empty paper db
-    if method == 'new':
-        # Get the date of the latest downloaded paper
-        last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-        if not last_paper:
-            today_date = datetime.now()
-            kwargs['last_paper_date'] = today_date - timedelta(days=today_date.day)
-        else:
-            kwargs['last_paper_date'] = last_paper.date_up
-            kwargs['last_paper_id'] = last_paper.paper_id
-
-    logging.info('Parameters: %s', kwargs)
+    logging.info('Parameters: %s', params)
 
     # initiaise paper API
-    paper_api = ArxivApi(new_params,
-                         **kwargs
-                         )
+    paper_api = ArxivOaiApi()
+
+    # API cal params
+    if request.args.get('set'):
+        paper_api.set_set(request.args.get('set'))
+    # from argument is privelaged over last paper in the DB
+    if request.args.get('from'):
+        paper_api.set_from(request.args.get('set'))
+    else:
+        paper_api.set_from(datetime.strftime(last_paper_date,
+                                             '%Y-%m-%d'
+                                             ))
+
     # further code is paper source independent.
     # Any API can be defined above
-    paper_api.update_papers()
+    update_papers([paper_api], **params)
 
     return dumps({'success':True}), 201
