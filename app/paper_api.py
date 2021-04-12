@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time
 import logging
 from requests import get
+from re import split
 
 from .model import Paper
 
@@ -67,12 +68,13 @@ class ArxivOaiApi:
                 if 'Retry-After' in response.headers:
                     delay = int(response.headers["Retry-After"])
                     logging.warning('Sleeping for %i',
+                                    delay
                                     )
                     sleep(delay)
 
                 logging.warning('arXiv API response with %i',
-                              response.status_code
-                              )
+                                response.status_code
+                                )
 
                 if fail_attempts > self.MAX_FAIL:
                     logging.error('arXiv exceeds max allowed error limit')
@@ -91,8 +93,7 @@ class ArxivOaiApi:
                                 )
 
             for record in records:
-                meta = record.find(self.OAI + 'metadata')
-                info = meta.find(self.ARXIV + 'arXivRaw')
+                info = record.find(self.OAI + 'metadata').find(self.ARXIV + 'arXivRaw')
 
                 # WARNING is 'v?' tag always ordered?
                 # assum yes, but who knows...
@@ -110,9 +111,14 @@ class ArxivOaiApi:
                 if doi is not None:
                     doi = doi.text.split()[0]
 
+                author = info.find(self.ARXIV + 'authors').text
+                # explicitly for peopple who put affillation in author list
+                author = split(r', | \(.*?\),| and ', author)
+                author[-1] = split(r' \(.*?\),', author[-1])[0]
+
                 paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
                               title=info.find(self.ARXIV + 'title').text,
-                              author=info.find(self.ARXIV + 'authors').text.split(', '),
+                              author=author,
                               date_up=updated,
                               date_sub=created,
                               version=versions[-1].get('version'),
