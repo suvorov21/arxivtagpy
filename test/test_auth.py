@@ -147,5 +147,5 @@ def test_change_wrong_new_pass(create_user):
 
 def test_load_papers(init_app):
     """Test paper loading."""
-    response = init_app.get('/load_papers?token=test_token&n_papers=10&method=new')
+    response = init_app.get('/load_papers?token=test_token&n_papers=10&set=physics:hep-ex')
     assert response.status_code == 201

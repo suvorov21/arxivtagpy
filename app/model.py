@@ -33,7 +33,7 @@ class User(UserMixin, db.Model):
                            unique=False,
                            )
 
-    arxiv_cat = db.Column(db.ARRAY(db.String),
+    arxiv_cat = db.Column(pg.ARRAY(db.Text, dimensions=1),
                           nullable=True,
                           unique=False
                           )
@@ -94,7 +94,7 @@ class Paper(db.Model):
                      nullable=False
                      )
 
-    author = db.Column(db.ARRAY(db.String),
+    author = db.Column(pg.ARRAY(db.Text, dimensions=1),
                        unique=False,
                        nullable=False
                        )
@@ -109,30 +109,34 @@ class Paper(db.Model):
                          nullable=False
                          )
 
+    version = db.Column(db.String(),
+                        unique=False,
+                        nullable=False
+                        )
+
+    doi = db.Column(db.String(),
+                    nullable=True,
+                    unique=False
+                    )
+
     abstract = db.Column(db.String(),
                          unique=False,
                          nullable=True
                          )
 
-    ref_pdf = db.Column(db.String(),
-                        unique=False,
-                        nullable=True
-                        )
-
-    ref_web = db.Column(db.String(),
-                        unique=False,
-                        nullable=True
-                        )
-
-    ref_doi = db.Column(db.String(),
-                        unique=False,
-                        nullable=True
-                        )
-
     cats = db.Column(pg.ARRAY(db.Text, dimensions=1),
                      unique=False,
                      nullable=True
                      )
+
+    # integer source numeration is cheaper then additianal table
+    # Actualy, no need of additianal table so far
+    # by convention:
+    # 1 := arXiv
+    source = db.Column(db.Integer,
+                       unique=False,
+                       nullable=False
+                       )
 
     def __repr__(self):
         """Print paper."""

@@ -1,281 +1,116 @@
-"""Papers parsers and donwnload API."""
+"""Papers parsers utils.
+
+Paper downloader function update the paper DB.
+Tag processor checks if a given paper is suitable with the tag
+"""
 
 from os import linesep
-from time import sleep
 from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
 from re import search, IGNORECASE
 import logging
-from random import randrange # nosec
 
 from feedparser import parse
-from requests import get
+import xml.etree.ElementTree as ET
 
 from .model import db, Paper
+from .paper_api import ArxivOaiApi
 
 rule_dict = {'ti': 'title',
              'au': 'author',
              'abs': 'abstract'
              }
 
+def update_papers(api_list: list, **kwargs):
+    """
+    Update paper table.
 
-class PaperApi:
-    """API default class."""
+    Get papers from all API with download_papers()
+    and store in the DB.
+    """
+    updated = 0
+    downloaded = 0
+    read = 0
 
-    def_params = {}
-    delay = 0
-    URL = ""
-    last_paper = datetime.now()
-    max_papers = 1000000
-    do_update = False
-    db_commit_period = 100
+    Npapers = kwargs.get('n_papers')
+    last_paper_date = kwargs['last_paper_date']
 
-    def download_papers(self, **kwargs):
-        """
-        Generator that yields papers.
+    for api in api_list:
+        for paper in api.download_papers(**kwargs):
 
-        Specifoed for each paper source individually.
-        """
-        raise NotImplementedError
-
-
-    def update_papers(self, **kwargs):
-        """
-        Update paper table.
-
-        Get papers from download_papers() and store in the DB.
-        """
-        updated = 0
-        downloaded = 0
-        read = 0
-
-        for paper in self.download_papers(**kwargs):
             # stoppers
-            if paper.date_up < self.last_paper_date \
-               or paper.paper_id == self.last_paper_id \
-               or read >= self.max_papers:
+            if Npapers and read > Npapers:
                 break
+
+            # too old paper. Skip
+            if paper.date_up < last_paper_date:
+                continue
 
             paper_prev = Paper.query.filter_by(
                             paper_id=paper.paper_id
                             ).first()
 
             if paper_prev:
-                if self.do_update:
+                if kwargs.get('do_update'):
                     update_paper_record(paper_prev, paper)
                     updated += 1
             else:
                 db.session.add(paper)
                 downloaded += 1
             read += 1
-            if read % self.db_commit_period == 0:
+            if read % api.COMMIT_PERIOD == 0:
+                logging.info('read %i papers', read)
                 db.session.commit()
 
-        db.session.commit()
+    db.session.commit()
 
-        logging.info('Paper update done: %i new; %i updated',
-                     downloaded,
-                     updated
-                     )
+    logging.info('Paper update done: %i new; %i updated',
+                 downloaded,
+                 updated
+                 )
 
-class ArxivApi(PaperApi):
-    """API for arXiv connection."""
 
-    def_params = {'start': 0,
-                  'max_results': 500,
-                  # FIXME a very dirty fix to collect "all" papers
-                  'search_query': 'all:a%20OR%20the%20OR%20in%20OR%20at',
-                  'sortBy': 'lastUpdatedDate',
-                  'sortOrder': 'descending'
-                 }
 
-    URL = 'http://export.arxiv.org/api/query'
-    delay = 3
-    max_papers = 1000000
-    last_paper_id = '000'
-    max_attempt_to_fail = 10
-    do_update = False
-    last_paper_date = datetime(year=1970, month=1, day=1)
-
-    def __init__(self, params: Dict, **kwargs):
-        """Initialise arXiv API."""
-        # default APII params
-        self.params = ArxivApi.def_params
-        # update specific API params
-        self.params.update(params)
-        self.db_commit_period = self.params['max_results']
-        # define various loop stoppers
-        if 'last_paper_date' in kwargs:
-            self.last_paper_date = kwargs.get('last_paper_date')
-        if 'last_paper_id' in kwargs:
-            self.last_paper_id = kwargs.get('last_paper_id')
-        if 'n_papers' in kwargs:
-            self.max_papers = kwargs.get('n_papers')
-            # decrease API request N
-            if self.max_papers < self.params['max_results']:
-                self.params['max_results'] = self.max_papers
-        # whether to update existing records
-        self.do_update = kwargs.get('do_update')
-
-    def download_papers(self, **kwargs):
-        """Download papers and return a list of Papers models."""
-        fail_attempts = 0
-
-        while True:
-            response = get(self.URL, self.params)
-
-            logging.debug(response.url)
-
-            if response.status_code != 200:
-                logging.error('arXic API response with %i',
-                              response.status_code
-                              )
-                return
-
-            # parse arXiv response
-            feed = parse(response.text)
-            if len(feed.entries) != self.params['max_results']:
-                delay = randrange(120, 200) # nosec
-                logging.warning("Got %i results from %i. Retrying in %i.",
-                                len(feed.entries),
-                                self.params['max_results'],
-                                delay)
-                fail_attempts += 1
-                if fail_attempts > self.max_attempt_to_fail:
-                    logging.error('arXiv download exceeds allowed fail rate')
-                    return
-                sleep(delay)
-                continue
-            date = datetime.strptime(feed.entries[0].updated,
-                                     '%Y-%m-%dT%H:%M:%SZ'
-                                     )
-
-            logging.info('Got %i papers from arXiv. Now at %r',
-                         len(feed.entries),
-                         datetime.strftime(date,
-                                           '%d %B %Y %H:%M:%S')
-                         )
-
-            for entry in feed.entries:
-                date = datetime.strptime(entry.updated,
-                                         '%Y-%m-%dT%H:%M:%SZ'
-                                         )
-                paper_id = entry.id.split('/')[-1]
-                paper_id = paper_id.split('v')[0]
-
-                logging.debug('date: %s id = %s',
-                              entry.updated,
-                              paper_id
-                              )
-
-                paper = Paper(
-                    title=fix_xml(entry.title),
-                    author=parse_authors(entry.authors),
-                    date_sub=datetime.strptime(entry.published,
-                                                   '%Y-%m-%dT%H:%M:%SZ'
-                                                   ),
-                    date_up=date,
-                    abstract=fix_xml(entry.summary),
-                    ref_pdf=parse_links(entry.links, link_type='pdf'),
-                    ref_web=parse_links(entry.links, link_type='abs'),
-                    ref_doi=parse_links(entry.links, link_type='doi'),
-                    paper_id=paper_id,
-                    cats=parse_cats(entry.tags)
-                    )
-
-                yield paper
-
-            # delay for a next request
-            sleep(randrange(5, 10)) # nosec
-            self.params['start'] += self.params['max_results']
-
-        return
-
-def get_arxiv_last_date(today_date: datetime,
-                        old_date: datetime,
-                        date_type: int
-                        ) -> datetime:
-    """
-    Get the data of the previous sumission deadline.
-
-    The method helps to get "today's" submissions. As the submission date
-    is actually "yesterday".
-    arXiv has submission deadline at 18:00. So that the papers submitted
-    before the deadline are published the next day, the papers who come
-    after deadline are submitted in two days.
-    """
-    if date_type == 0:
-        # look at the results of current date
-        # last_submission_day - 1 day at 18:00Z
-        old_date = today_date - timedelta(days=1)
-    elif date_type == 1:
-        # if last paper is published on Friday
-        # "this week" starts from next Monday
-        if today_date.weekday() == 4:
-            old_date = today_date - timedelta(days=1)
-        else:
-            old_date = today_date - timedelta(days=today_date.weekday()+4)
-    elif date_type == 2:
-        old_date = today_date - timedelta(days=today_date.day)
-
-    # over weekend cross
-    if old_date.weekday() > 4 and date_type != 4:
-        old_date = old_date - timedelta(days=old_date.weekday()-4)
-
-    # papers are submitted by 18:00Z
-    if date_type < 3:
-        old_date = old_date.replace(hour=17, minute=59, second=59)
-    else:
-        old_date = datetime.combine(old_date,
-                                    time(hour=17, minute=59, second=59))
-
-    return old_date
-
-def update_paper_record(paper_prev, paper):
+def update_paper_record(paper_prev: Paper, paper: Paper):
     """Update the paper record."""
     paper_prev.title = paper.title
     paper_prev.date_up = paper.date_up
+    paper_prev.author = paper.author
+    paper_prev.doi = paper.doi
+    paper_prev.version = paper.version
     paper_prev.abstract = paper.abstract
-    paper_prev.ref_pdf = paper.ref_pdf
-    paper_prev.ref_web = paper.ref_web
-    paper_prev.ref_doi = paper.ref_doi
     paper_prev.cats = paper.cats
 
-def fix_xml(xml: str) -> str:
-    """
-    Parse xml tag content!
+def resolve_doi(doi: str) -> str:
+    """Resolve doi string into link."""
+    return 'https://www.doi.org/' + doi
 
-    Remove line endings and double spaces.
-    """
-    return xml.replace(linesep, " ").replace("  ", " ")
+def render_paper_json(paper: Paper) -> Dict:
+    """Render Paper class obkect into JSON for front-end."""
+    result = {'id': paper.paper_id,
+              'title': paper.title,
+              'author': paper.author,
+              'date_sub': paper.date_sub,
+              'date_up': paper.date_up,
+              'abstract': paper.abstract,
+              'cats': paper.cats,
+              # to be filled later in process_papers()
+              'tags': [],
+              'nov': 0
+              }
+    if paper.source == 1:
+        result['ref_pdf'] = ArxivOaiApi().get_ref_pdf(paper.paper_id,
+                                                      paper.version
+                                                      )
+        result['ref_web'] = ArxivOaiApi().get_ref_web(paper.paper_id,
+                                                      paper.version
+                                                      )
 
-def parse_authors(authors) -> List:
-    """Convert authors from freeparser output to list."""
-    return [au.name for au in authors]
+    if paper.doi is not None:
+        result['ref_doi'] = resolve_doi(paper.doi)
 
-def parse_cats(cats) -> List:
-    """Convert categories from freeparser output to list."""
-    return [cat.term for cat in cats]
+    return result
 
-def parse_links(links, link_type='pdf') -> str:
-    """
-    Loop over links and extract hrefs to pdf and arXiv abstract!
-
-    parse links
-    related & title = pdf --> pdf
-    related & title = doi --> doi
-    alternate --> abstract
-    """
-    for link in links:
-        if link.rel == 'alternate' and link_type == 'abs':
-            return link.href
-        if link.rel == 'related':
-            if link.title == 'pdf' and link_type == 'pdf':
-                return link.href
-            if link.title == 'doi' and link_type == 'doi':
-                return link.href
-
-    return None
 
 def process_papers(papers: Dict,
                    tags: Dict,

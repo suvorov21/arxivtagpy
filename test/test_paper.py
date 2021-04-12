@@ -13,7 +13,7 @@ from test.test_auth import init_app
 @pytest.fixture(scope='module', autouse=True)
 def client_with_papers(init_app):
     """Fixture for filling DB with papers."""
-    init_app.get('/load_papers?token=test_token&n_papers=10&search_query=hep-ex&method=new')
+    init_app.get('/load_papers?token=test_token&n_papers=10&set=physics:hep-ex')
     init_app.post('/new_user',
                   data={'email': 'tester2@gmail.com',
                         'pasw': 'tester2',
