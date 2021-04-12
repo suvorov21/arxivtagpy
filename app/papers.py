@@ -8,6 +8,7 @@ Tag processor checks if a given paper is suitable with the tag
 from typing import Dict, Tuple
 from re import search, IGNORECASE
 import logging
+from datetime import datetime
 
 from .model import db, Paper
 from .paper_api import ArxivOaiApi
@@ -86,8 +87,12 @@ def render_paper_json(paper: Paper) -> Dict:
     result = {'id': paper.paper_id,
               'title': paper.title,
               'author': paper.author,
-              'date_sub': paper.date_sub,
-              'date_up': paper.date_up,
+              'date_sub': datetime.strftime(paper.date_sub,
+                                            '%d %B %Y'
+                                            ),
+              'date_up': datetime.strftime(paper.date_up,
+                                           '%d %B %Y'
+                                           ),
               'abstract': paper.abstract,
               'cats': paper.cats,
               # to be filled later in process_papers()
