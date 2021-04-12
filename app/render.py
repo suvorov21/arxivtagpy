@@ -15,9 +15,10 @@ def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
         return 'Papers since your last visit on ' + last_visit.strftime('%d %b %Y')
     return 'Papers'
 
-def render_papers(papers: Dict) -> Dict:
+def render_papers(papers: Dict, sort: bool) -> Dict:
     """Convert papers dict to minimize info."""
-    papers['papers'] = sorted(papers['papers'],
+    if sort:
+        papers['papers'] = sorted(papers['papers'],
                               key=lambda t: t['tags'] if len(t['tags']) > 0 else [1000])
 
     # WARNING cross-fingered nobody will use 1000 tags
