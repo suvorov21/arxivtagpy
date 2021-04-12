@@ -45,10 +45,10 @@ class ArxivOaiApi:
         return self.BASE_URL + '/pdf/' + pid + version + '.pdf'
 
     def get_ref_web(self, pid, version):
-        """FOPrmat ref for webpage with summary."""
+        """Forrmat ref for webpage with summary."""
         return self.BASE_URL + '/abs/' + pid + version
 
-    def download_papers(self, **kwargs):
+    def download_papers(self):
         """Generator for paper downloading."""
         fail_attempts = 0
 
@@ -81,21 +81,19 @@ class ArxivOaiApi:
                 sleep(self.DELAY)
                 continue
 
-            root = ET.fromstring(response.text)
-            lor = root.find(self.OAI + 'ListRecords')
-
+            lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
             records = lor.findall(self.OAI + 'record')
 
             if len(records) != self.BATCH_SIZE:
                 logging.warning('Download may be incomplete. Got %i from %i',
                                 len(records),
-                                self.BATCH_SIZE)
+                                self.BATCH_SIZE
+                                )
 
             for record in records:
                 meta = record.find(self.OAI + 'metadata')
                 info = meta.find(self.ARXIV + 'arXivRaw')
 
-                paper_id = info.find(self.ARXIV + 'id').text
                 # WARNING is 'v?' tag always ordered?
                 # assum yes, but who knows...
                 versions = info.findall(self.ARXIV + 'version')
@@ -107,35 +105,27 @@ class ArxivOaiApi:
                 updated = updated.split(', ')[1]
                 updated = datetime.strptime(updated, "%d %b %Y %H:%M:%S GMT")
 
-                version = versions[-1].get('version')
-
-                categories = info.find(self.ARXIV + 'categories').text.split(' ')
-
-                title = info.find(self.ARXIV + 'title').text
-                author = info.find(self.ARXIV + 'authors').text.split(', ')
-                abstract = info.find(self.ARXIV + 'abstract').text
-
                 # use only first doi
                 doi = info.find(self.ARXIV+"doi")
                 if doi is not None:
                     doi = doi.text.split()[0]
 
-                paper = Paper(paper_id=paper_id,
-                              title=title,
-                              author=author,
+                paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
+                              title=info.find(self.ARXIV + 'title').text,
+                              author=info.find(self.ARXIV + 'authors').text.split(', '),
                               date_up=updated,
                               date_sub=created,
-                              version=version,
+                              version=versions[-1].get('version'),
                               doi=doi,
-                              abstract=abstract,
-                              cats=categories,
+                              abstract=info.find(self.ARXIV + 'abstract').text,
+                              cats=info.find(self.ARXIV + 'categories').text.split(' '),
                               source=1
                               )
 
                 yield paper
 
             # check if the next call is required
-            token = root.find(self.OAI+'ListRecords').find(self.OAI+"resumptionToken")
+            token = lor.find(self.OAI+"resumptionToken")
             if token is None or token.text is None:
                 return
 

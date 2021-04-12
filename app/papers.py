@@ -5,9 +5,7 @@ Paper downloader function update the paper DB.
 Tag processor checks if a given paper is suitable with the tag
 """
 
-from os import linesep
-from datetime import datetime, timedelta, time
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple
 from re import search, IGNORECASE
 import logging
 
@@ -30,14 +28,14 @@ def update_papers(api_list: list, **kwargs):
     downloaded = 0
     read = 0
 
-    Npapers = kwargs.get('n_papers')
+    n_papers = kwargs.get('n_papers')
     last_paper_date = kwargs['last_paper_date']
 
     for api in api_list:
-        for paper in api.download_papers(**kwargs):
+        for paper in api.download_papers():
 
             # stoppers
-            if Npapers and read > Npapers:
+            if n_papers and read > n_papers:
                 break
 
             # too old paper. Skip
