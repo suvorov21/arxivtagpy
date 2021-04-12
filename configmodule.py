@@ -30,7 +30,7 @@ class Config():
 
 class ProductionConfig(Config):
     """Prod config."""
-    pass
+    PROD=True
 
 class DevelopmentConfig(Config):
     """Dev config."""

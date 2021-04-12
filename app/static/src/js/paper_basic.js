@@ -1,4 +1,5 @@
 /*global TAGS*/
+/*exported renderPapersBase */
 /*eslint no-undef: "error"*/
 
 function renderOcoins(paper) {

@@ -4,14 +4,14 @@ from datetime import datetime
 import random
 import string
 
+from werkzeug.security import check_password_hash, \
+generate_password_hash
+
 from flask import Blueprint, render_template, flash, redirect, \
 url_for, request, current_app
 from flask_login import login_user, logout_user, \
 current_user, login_required
 from flask_mail import Message
-
-from werkzeug.security import check_password_hash, \
-generate_password_hash
 
 from .import login_manager
 from . import mail

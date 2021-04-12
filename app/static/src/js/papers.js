@@ -356,7 +356,7 @@ function addAnchors() {
       prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
       prefs.save();
       toggleVis();
-    }
+    };
   }
   // add ahchors for click on novelty labels
   anchors = document.getElementsByClassName("item-nov");

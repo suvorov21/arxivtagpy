@@ -1,4 +1,5 @@
 /*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax, raiseAlert*/
+/*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc*/
 /*eslint no-undef: "error"*/
 
 var dragTarget;
@@ -113,7 +114,7 @@ function renderTags() {
 
   document.getElementById("tag-list").ondragover = function(event) {
     event.preventDefault();
-  }
+  };
 
   document.getElementById("tag-list").ondrop = function(event) {
     event.preventDefault();
@@ -426,7 +427,7 @@ function fillSetForm() {
                   "dark": document.getElementById("radio-dark").checked
                 };
   $.post(url, JSON.stringify(dataSet))
-  .done(function(data) {
+  .done(function() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
@@ -439,7 +440,7 @@ function fillSetForm() {
       }}
     window.location.reload(true);
     return false;
-  }).fail(function(jqXHR){
+  }).fail(function(){
     raiseAlert("Settings are not saved. Please try later", "danger");
     return false;
   });

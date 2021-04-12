@@ -29,5 +29,3 @@ def render_papers(papers: Dict, sort: bool) -> Dict:
 
         if paper.get('date_up'):
             paper['date_up'] = paper['date_up'].strftime('%d %B %Y')
-
-    return papers['papers']

@@ -136,9 +136,9 @@ def data():
                             do_nov=True,
                             do_tag=True
                             )
-    paper_render = render_papers(papers, sort=True)
+    render_papers(papers, sort=True)
 
-    result = {'papers': paper_render,
+    result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
               'ntag': papers['n_tags'],
               'nnov': papers['n_nov']
@@ -282,7 +282,7 @@ def bookshelf():
                             do_tag=True
                             )
 
-    paper_render = render_papers(papers, sort=False)
+    render_papers(papers, sort=False)
 
     return render_template('bookshelf.jinja2',
                            papers=papers,

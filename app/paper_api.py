@@ -4,8 +4,9 @@ from time import sleep
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time
 import logging
-from requests import get
 from re import split
+
+from requests import get
 
 from .model import Paper
 
