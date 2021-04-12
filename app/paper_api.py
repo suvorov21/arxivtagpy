@@ -2,14 +2,15 @@
 
 from time import sleep
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import logging
 from requests import get
 
 from .model import Paper
 
 class ArxivOaiApi:
-    """Arxiv.org harvester with  OAI_PMH v2.0.
+    """
+    Arxiv.org harvester with  OAI_PMH v2.0.
 
     A better option comparing to API call.
     Much faster and no need for dummy search query.
@@ -32,19 +33,23 @@ class ArxivOaiApi:
         self.params = ArxivOaiApi.DEF_PARAMS
 
     def set_set(self, set_var: str):
+        """Set for papers."""
         self.params['set'] = set_var
 
     def set_from(self, from_var):
+        """Set starting date."""
         self.params['from'] = from_var
 
     def get_ref_pdf(self, pid, version):
+        """Format href for pdf doc."""
         return self.BASE_URL + '/pdf/' + pid + version + '.pdf'
 
     def get_ref_web(self, pid, version):
+        """FOPrmat ref for webpage with summary."""
         return self.BASE_URL + '/abs/' + pid + version
 
     def download_papers(self, **kwargs):
-        """Generator for paper downloading/"""
+        """Generator for paper downloading."""
         fail_attempts = 0
 
         while True:
@@ -77,11 +82,9 @@ class ArxivOaiApi:
                 continue
 
             root = ET.fromstring(response.text)
-            OAI = self.OAI
-            ARXIV = self.ARXIV
-            lor = root.find(OAI + 'ListRecords')
+            lor = root.find(self.OAI + 'ListRecords')
 
-            records = lor.findall(OAI + 'record')
+            records = lor.findall(self.OAI + 'record')
 
             if len(records) != self.BATCH_SIZE:
                 logging.warning('Download may be incomplete. Got %i from %i',
@@ -89,31 +92,31 @@ class ArxivOaiApi:
                                 self.BATCH_SIZE)
 
             for record in records:
-                meta = record.find(OAI + 'metadata')
-                info = meta.find(ARXIV + 'arXivRaw')
+                meta = record.find(self.OAI + 'metadata')
+                info = meta.find(self.ARXIV + 'arXivRaw')
 
-                paper_id = info.find(ARXIV + 'id').text
+                paper_id = info.find(self.ARXIV + 'id').text
                 # WARNING is 'v?' tag always ordered?
                 # assum yes, but who knows...
-                versions = info.findall(ARXIV + 'version')
-                created = versions[0].find(ARXIV + 'date').text
+                versions = info.findall(self.ARXIV + 'version')
+                created = versions[0].find(self.ARXIV + 'date').text
                 created = created.split(', ')[1]
                 created = datetime.strptime(created, "%d %b %Y %H:%M:%S GMT")
 
-                updated = versions[-1].find(ARXIV + 'date').text
+                updated = versions[-1].find(self.ARXIV + 'date').text
                 updated = updated.split(', ')[1]
                 updated = datetime.strptime(updated, "%d %b %Y %H:%M:%S GMT")
 
                 version = versions[-1].get('version')
 
-                categories = info.find(ARXIV + 'categories').text.split(' ')
+                categories = info.find(self.ARXIV + 'categories').text.split(' ')
 
-                title = info.find(ARXIV + 'title').text
-                author = info.find(ARXIV + 'authors').text.split(', ')
-                abstract = info.find(ARXIV + 'abstract').text
+                title = info.find(self.ARXIV + 'title').text
+                author = info.find(self.ARXIV + 'authors').text.split(', ')
+                abstract = info.find(self.ARXIV + 'abstract').text
 
                 # use only first doi
-                doi = info.find(ARXIV+"doi")
+                doi = info.find(self.ARXIV+"doi")
                 if doi is not None:
                     doi = doi.text.split()[0]
 
@@ -132,12 +135,12 @@ class ArxivOaiApi:
                 yield paper
 
             # check if the next call is required
-            token = root.find(OAI+'ListRecords').find(OAI+"resumptionToken")
+            token = root.find(self.OAI+'ListRecords').find(self.OAI+"resumptionToken")
             if token is None or token.text is None:
-                break
-            else:
-                logging.info('Going through resumption')
-                self.params = {'resumptionToken': token.text}
+                return
+
+            logging.info('Going through resumption')
+            self.params = {'resumptionToken': token.text}
 
             sleep(self.DELAY)
 

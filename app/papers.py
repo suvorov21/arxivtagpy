@@ -1,4 +1,5 @@
-"""Papers parsers utils.
+"""
+Papers parsers utils.
 
 Paper downloader function update the paper DB.
 Tag processor checks if a given paper is suitable with the tag
@@ -9,9 +10,6 @@ from datetime import datetime, timedelta, time
 from typing import Dict, Tuple, List
 from re import search, IGNORECASE
 import logging
-
-from feedparser import parse
-import xml.etree.ElementTree as ET
 
 from .model import db, Paper
 from .paper_api import ArxivOaiApi
