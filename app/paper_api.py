@@ -1,5 +1,6 @@
 """API for papr downloading."""
 
+from os import linesep
 from time import sleep
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time
@@ -115,16 +116,16 @@ class ArxivOaiApi:
                 author = info.find(self.ARXIV + 'authors').text
                 # explicitly for peopple who put affillation in author list
                 author = split(r', | \(.*?\),| and ', author)
-                author[-1] = split(r' \(.*?\),', author[-1])[0]
+                author[-1] = split(r' \(.*?\)(,| )', author[-1])[0]
 
                 paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
-                              title=info.find(self.ARXIV + 'title').text,
+                              title=fix_xml(info.find(self.ARXIV + 'title').text),
                               author=author,
                               date_up=updated,
                               date_sub=created,
                               version=versions[-1].get('version'),
                               doi=doi,
-                              abstract=info.find(self.ARXIV + 'abstract').text,
+                              abstract=fix_xml(info.find(self.ARXIV + 'abstract').text),
                               cats=info.find(self.ARXIV + 'categories').text.split(' '),
                               source=1
                               )
@@ -182,3 +183,12 @@ def get_arxiv_last_date(today_date: datetime,
                                     time(hour=17, minute=59, second=59))
 
     return old_date
+
+def fix_xml(xml: str) -> str:
+    """
+    Parse xml tag content
+
+    Remove line endings and double spaces.
+    """
+    return xml.replace(linesep, " ").replace("  ", " ")
+
