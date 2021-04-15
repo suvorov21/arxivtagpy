@@ -33,7 +33,6 @@ Jinja2==2.11.3
 jsmin==2.2.2
 lazy-object-proxy==1.4.3
 lesscpy==0.14.0
-lxml==4.6.3
 Mako==1.1.4
 MarkupSafe==1.1.1
 mccabe==0.6.1
