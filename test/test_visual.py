@@ -59,5 +59,6 @@ class TestLiveServer():
         driver.find_element_by_name('i_pass').send_keys('tester')
         driver.find_element_by_class_name('btn-primary').click()
         driver.get(root + '/papers')
+        sleep(3)
         num = driver.find_element_by_id('paper-num-0').text
         assert num == '1'
