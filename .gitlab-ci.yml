@@ -43,7 +43,7 @@ integration_test:
     - python3 -m pip install --ignore-installed -r requirements.txt
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - echo 'export TOKEN="test_token"' > .env
-    - apk add chromium
+    - apk add chromium chromium-chromedriver
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
     - pytest --cov=app test/

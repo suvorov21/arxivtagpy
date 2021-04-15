@@ -2,7 +2,7 @@
 
 import pytest
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
 
@@ -16,7 +16,10 @@ import multiprocessing
 
 @pytest.fixture
 def driver():
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    driver = webdriver.Chrome(options=options)
     yield driver
 
 @pytest.fixture(scope='session')
