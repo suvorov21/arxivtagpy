@@ -5,7 +5,7 @@ from json import loads, dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-url_for, request, jsonify, current_app
+request, jsonify, current_app
 from flask_login import current_user, login_required
 # from flask_mail import Message
 
@@ -14,6 +14,7 @@ from .render import render_papers, render_title
 from .auth import new_default_list
 from .papers import update_papers, process_papers, render_paper_json
 from .paper_api import ArxivOaiApi, get_arxiv_last_date
+from .utils import url
 # from . import mail
 
 main_bp = Blueprint(
@@ -49,12 +50,7 @@ def papers_list():
         date_type = date_dict.get(request.args['date'])
 
     if date_type is None:
-        # WARNING a dirty fix to get rid of /flask/flask.wsgi in the adress bar
-        if 'arxivtag' in request.headers['Host']:
-            # if production, go 3 levels up
-            return redirect('../../../papers?date=today')
-        # not a production (local/heroku) let flask care about path
-        return redirect(url_for('main_bp.papers_list', date='today'))
+        return redirect(url('main_bp.papers_list', date='today'))
 
 
     # load preferences

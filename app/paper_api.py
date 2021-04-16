@@ -10,6 +10,7 @@ from re import split
 from requests import get
 
 from .model import Paper
+from .utils import fix_xml
 
 class ArxivOaiApi:
     """
@@ -17,6 +18,8 @@ class ArxivOaiApi:
 
     A better option comparing to API call.
     Much faster and no need for dummy search query.
+    cons: download old papers where metadata was changed
+    thus the "update" date was recent
     """
     BASE_URL = 'https://arxiv.org/'
     URL = 'http://export.arxiv.org/oai2?verb=ListRecords'
@@ -65,18 +68,14 @@ class ArxivOaiApi:
                 fail_attempts += 1
 
                 logging.warning('arXiv API response with %i',
-                              response.status_code
-                              )
+                                response.status_code
+                                )
                 if 'Retry-After' in response.headers:
                     delay = int(response.headers["Retry-After"])
                     logging.warning('Sleeping for %i',
                                     delay
                                     )
                     sleep(delay)
-
-                logging.warning('arXiv API response with %i',
-                                response.status_code
-                                )
 
                 if fail_attempts > self.MAX_FAIL:
                     logging.error('arXiv exceeds max allowed error limit')
@@ -183,12 +182,3 @@ def get_arxiv_last_date(today_date: datetime,
                                     time(hour=17, minute=59, second=59))
 
     return old_date
-
-def fix_xml(xml: str) -> str:
-    """
-    Parse xml tag content
-
-    Remove line endings and double spaces.
-    """
-    return xml.replace(linesep, " ").replace("  ", " ")
-
