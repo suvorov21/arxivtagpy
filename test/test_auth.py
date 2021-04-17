@@ -9,6 +9,18 @@ import pytest
 from app import app_init, db
 from app.model import User
 
+def make_user(email):
+  """Make a default user."""
+  tag_rule = 'ti{math}|abs{physics}&au{John}'
+  default_tag = '[{"name": "test", "rule":"%s", "color":"#ff0000"}]' % tag_rule
+  user1 = User(email=email,
+               pasw=generate_password_hash('tester'),
+               arxiv_cat=['hep-ex'],
+               tags=default_tag,
+               pref='{"tex": "True"}'
+               )
+  return user1
+
 @pytest.fixture(scope='module', autouse=True)
 def init_app():
     """Application initialisation function."""
@@ -26,12 +38,7 @@ def init_app():
 def create_user(init_app):
     """Create user fixture."""
     email = 'tester@gmail.com'
-    user1 = User(email=email,
-                 pasw=generate_password_hash('tester'),
-                 arxiv_cat=['hep-ex'],
-                 tags='[{"name": "test", "rule":"ti{test}", "color":"#ff0000"}]',
-                 pref='{"tex": "True"}'
-                 )
+    user1 = make_user(email)
     db.session.add(user1)
     db.session.commit()
     yield init_app
