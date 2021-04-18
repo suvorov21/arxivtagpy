@@ -1,10 +1,33 @@
 stages:
+  - build
   - test
   - stage
   - production
 
 include:
   - template: Code-Quality.gitlab-ci.yml
+
+build_assets:
+  stage: build
+  image:
+    alpine:latest
+  before_script:
+    - apk add python3-dev
+    - apk add postgresql postgresql-dev
+    - apk add py3-wheel py3-pip
+    - apk add gcc musl-dev libffi-dev make g++
+    - python3 -m pip install --ignore-installed -r requirements.txt
+    - apk add nodejs nodejs-npm
+    - npm install -g less
+  script:
+    - export BUILD_ASSETS=True
+    - flask assets build
+  artifacts:
+    paths:
+      - app/static/dist/css/*.css
+      - app/static/dist/js/*.js
+    expire_in: 1 week
+
 
 code_quality:
   stage: test
@@ -42,9 +65,17 @@ integration_test:
     - apk add gcc musl-dev libffi-dev make g++
     - python3 -m pip install --ignore-installed -r requirements.txt
     - export PGPASSWORD=$POSTGRES_PASSWORD
+    - echo 'export TOKEN="test_token"' > .env
+    - apk add chromium chromium-chromedriver
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-    - pytest
+    - pytest --cov=app test/
+    - coverage xml -o coverage.xml
+    - wget https://coverage.codacy.com/get.sh
+    - . get.sh report -r coverage.xml
+  artifacts:
+    reports:
+      cobertura: coverage.xml
 
 stage_to_beta:
   stage: stage
@@ -52,9 +83,8 @@ stage_to_beta:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
   only:
     - develop
 
@@ -65,9 +95,8 @@ production:
     alpine:latest
   before_script:
     - apk add lftp
-    - sed -i "s+DB_ADRESS+$PROD_DB+g" configmodule.py
   script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
+    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
   only:
     - master
 

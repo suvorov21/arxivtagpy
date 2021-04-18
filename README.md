@@ -26,4 +26,6 @@ source varxiv/bin/activate
 python3 -m pip install -r requirements.txt
 ```
 
+PostgreSQL database should be setup and the connection information provided in .env file. See .env_example for more configurations.
+
 After installation you can run a server in a dev mode with `./launch_dev.py`.

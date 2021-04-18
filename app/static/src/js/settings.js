@@ -1,8 +1,19 @@
 /*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax, raiseAlert*/
+/*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc*/
 /*eslint no-undef: "error"*/
 
 var dragTarget;
 var tagEdited = false;
+
+function cssVar(name, value) {
+  if (name[0] !=="-") {
+    name = "--" + name; //allow passing with or without --
+  }
+  if (value) {
+    document.documentElement.style.setProperty(name, value);
+  }
+  return getComputedStyle(document.documentElement).getPropertyValue(name);
+}
 
 // ************************  RENDERS *******************************************
 function addCat(cat) {
@@ -113,7 +124,7 @@ function renderTags() {
 
   document.getElementById("tag-list").ondragover = function(event) {
     event.preventDefault();
-  }
+  };
 
   document.getElementById("tag-list").ondrop = function(event) {
     event.preventDefault();
@@ -205,12 +216,12 @@ $("#add-cat-btn").click(() => {
   let cat = document.forms["add-cat"]["cat_name"].value;
   // check if already there
   if (CATS.includes(cat)) {
-    alert("Catagory already added!");
+    raiseAlert("Catagory already added!", "danger");
     return;
   }
   // check if legal category
   if (typeof(allCatsArray[cat]) === "undefined") {
-    alert("Unknown category");
+    raiseAlert("Unknown category", "danger");
     return;
   }
   $(".btn-save").removeClass("disabled");
@@ -266,7 +277,7 @@ $("#tag-list").click((event) => {
   }
 
   // highlight the editable tag
-  $(event.target).css("border-color", "#000");
+  $(event.target).css("border-color", cssVar("--tag_border_color"));
 
   if ($(event.target).attr("id") === "add-tag") {
     // TODO consider how to get rif of it
@@ -278,6 +289,8 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
     document.forms["add-tag"]["tag_color"].value = "";
+    // make delete NOT possible
+    $("#btn-del").addClass("disabled");
   } else {
     // TODO consider how to get rif of it
     newTag = false;
@@ -426,7 +439,7 @@ function fillSetForm() {
                   "dark": document.getElementById("radio-dark").checked
                 };
   $.post(url, JSON.stringify(dataSet))
-  .done(function(data) {
+  .done(function() {
     reloadSettings();
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
@@ -439,7 +452,7 @@ function fillSetForm() {
       }}
     window.location.reload(true);
     return false;
-  }).fail(function(jqXHR){
+  }).fail(function(){
     raiseAlert("Settings are not saved. Please try later", "danger");
     return false;
   });

@@ -4,8 +4,13 @@ __pycache__
 draft/*
 arXivTag
 app/static/.webassets-cache/*
+app/static/dist/js/*.js
+app/static/dist/css/*.css
 varxiv/*
 .idea/*
 *.pyc
 cert/*
 cert2/*
+.coverage
+coverage.xml
+*.log

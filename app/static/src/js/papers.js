@@ -192,16 +192,7 @@ function addBookmark(event) {
   let num = event.target.getAttribute("id").split("-")[2];
   let paper = DATA.papers[parseInt(num, 10)];
   // we take paper id w/o version --> do not overload paper DB
-  $.post(url, {"title": paper.title,
-               "paper_id": paper.id.split("v")[0],
-               "author": paper.author,
-               "date_up": paper.date_up,
-               "abstract": paper.abstract,
-               "ref_pdf": paper.ref_pdf,
-               "ref_web": paper.ref_web,
-               "ref_doi": paper.ref_doi,
-               "cats": paper.cats
-               })
+  $.post(url, {"paper_id": paper.id.split("v")[0]})
   .done(function(data, textStatus, jqXHR) {
     let status = jqXHR.status;
     if (status === 200) {
@@ -365,7 +356,7 @@ function addAnchors() {
       prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
       prefs.save();
       toggleVis();
-    }
+    };
   }
   // add ahchors for click on novelty labels
   anchors = document.getElementsByClassName("item-nov");

@@ -1,0 +1,39 @@
+output-format: grouped
+
+strictness: high
+test-warnings: true
+doc-warnings: true
+
+ignore-paths:
+  - migrations
+  - wsgi.py
+  - launch_dev.py
+
+pep8:
+  run: false
+
+pep257:
+  disable:
+    - D203
+    - D204
+    - D205
+    - D211
+    - D212
+  run: true
+
+dodgy:
+  run: true
+
+uses:
+  - flask
+
+mccabe:
+  run: true
+
+pyflakes:
+  run: true
+
+pylint:
+  disable:
+    - cyclic-import
+  run: true

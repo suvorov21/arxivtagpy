@@ -11,7 +11,6 @@ body {
   }
 }
 
-
 .main-row {
   background-color: var(--background_color);
 }
@@ -34,7 +33,7 @@ body {
   text-decoration: none;
   vertical-align: middle;
 
-  a {
+  & a {
     color: #fff;
   }
 
@@ -58,7 +57,7 @@ body {
 
 .top-alert {
   position: fixed;
-  top: 0;
+  top: 70;
   left: 0;
   width: 100%;
   z-index: 999;
@@ -69,11 +68,17 @@ body {
   color: var(--btn-primary-color);
   background-color: var(--btn-primary-bg-color);
   border-color: var(--btn-primary-border-color);
-  &:hover, &:focus {
+
+  &:hover,
+  &:focus {
     color: var(--btn-primary-color-hover) !important;
     background-color: var(--btn-primary-bg-color-hover) !important;
     border-color: var(--btn-primary-border-color-hover) !important;
   }
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--navlink-bg-color) !important;
 }
 
 /* ---------- Menu ---------- */
@@ -105,6 +110,18 @@ body {
 
     &:hover {
       color: var(--menu_item_hover_color);
+    }
+  }
+}
+
+.menu-item-bm {
+  a {
+    font-size: 1.2rem;
+    color: var(--bm-item-color);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--bm-item-hover-color);
     }
   }
 }

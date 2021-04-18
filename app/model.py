@@ -1,5 +1,10 @@
-from . import db
+"""Database model."""
+
 from flask_login import UserMixin
+
+from sqlalchemy.dialects import postgresql as pg
+
+from . import db
 
 class User(UserMixin, db.Model):
     """User table description."""
@@ -28,7 +33,7 @@ class User(UserMixin, db.Model):
                            unique=False,
                            )
 
-    arxiv_cat = db.Column(db.ARRAY(db.String),
+    arxiv_cat = db.Column(pg.ARRAY(db.Text, dimensions=1),
                           nullable=True,
                           unique=False
                           )
@@ -51,6 +56,7 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         """Print user."""
         return f'<id: {self.id} name: {self.name}>'
+
 
 # helper table to deal with many-to-many relations
 # lists --> papers
@@ -75,59 +81,62 @@ class Paper(db.Model):
     __tablename__ = 'papers'
 
     id = db.Column(db.Integer,
-                   primary_key = True
+                   primary_key=True
                    )
 
     paper_id = db.Column(db.String(),
-                         unique = True,
+                         unique=True,
                          nullable=False
                          )
 
     title = db.Column(db.String(),
-                     unique = False,
+                     unique=False,
                      nullable=False
                      )
 
-    author = db.Column(db.ARRAY(db.String),
+    author = db.Column(pg.ARRAY(db.Text, dimensions=1),
                        unique=False,
                        nullable=False
                        )
 
-    date_up = db.Column(db.Date(),
+    date_up = db.Column(db.DateTime(),
                         unique=False,
                         nullable=False
                         )
+
+    date_sub = db.Column(db.DateTime(),
+                         unique=False,
+                         nullable=False
+                         )
+
+    version = db.Column(db.String(),
+                        unique=False,
+                        nullable=False
+                        )
+
+    doi = db.Column(db.String(),
+                    nullable=True,
+                    unique=False
+                    )
 
     abstract = db.Column(db.String(),
                          unique=False,
                          nullable=True
                          )
 
-    ref_pdf = db.Column(db.String(),
-                        unique=False,
-                        nullable=True
-                        )
-
-    ref_web = db.Column(db.String(),
-                        unique=False,
-                        nullable=True
-                        )
-
-    ref_doi = db.Column(db.String(),
-                        unique=False,
-                        nullable=True
-                        )
-
-    cats = db.Column(db.ARRAY(db.String),
+    cats = db.Column(pg.ARRAY(db.Text, dimensions=1),
                      unique=False,
                      nullable=True
                      )
 
-    list_id = db.relationship('PaperList',
-                              secondary=paper_associate,
-                              lazy='subquery',
-                              backref=db.backref('paper', lazy=True)
-                              )
+    # integer source numeration is cheaper then additianal table
+    # Actualy, no need of additianal table so far
+    # by convention:
+    # 1 := arXiv
+    source = db.Column(db.Integer,
+                       unique=False,
+                       nullable=False
+                       )
 
     def __repr__(self):
         """Print paper."""
@@ -137,7 +146,7 @@ class PaperList(db.Model):
     """Paper list table description."""
     __tablename__ = 'lists'
     id = db.Column(db.Integer,
-                   primary_key = True
+                   primary_key=True
                    )
 
     name = db.Column(db.String(),

@@ -1,210 +1,121 @@
-from os import linesep
-from time import sleep
-from datetime import datetime, timedelta, time
-from typing import Dict, Tuple, List
-from re import search, IGNORECASE
+"""
+Papers parsers utils.
 
-from feedparser import parse
-from requests import get
+Paper downloader function update the paper DB.
+Tag processor checks if a given paper is suitable with the tag
+"""
+
+from typing import Dict, Tuple
+from re import search, IGNORECASE
+import logging
+
+from .model import db, Paper
+from .paper_api import ArxivOaiApi
 
 rule_dict = {'ti': 'title',
              'au': 'author',
              'abs': 'abstract'
              }
 
-
-class PaperApi:
+def update_papers(api_list: list, **kwargs):
     """
-    API default class.
+    Update paper table.
+
+    Get papers from all API with download_papers()
+    and store in the DB.
     """
+    updated = 0
+    downloaded = 0
+    read = 0
 
-    def_params = {}
-    delay = 0
-    URL = ""
-    max_papers = 10000
-    last_paper = datetime.now()
+    n_papers = kwargs.get('n_papers')
+    last_paper_date = kwargs['last_paper_date']
 
-class ArxivApi(PaperApi):
-    """
-    API for arXiv connection.
-    """
+    for api in api_list:
+        for paper in api.download_papers():
 
-    def_params = {'start': 0,
-                  'max_results': 200,
-                  'search_query': 'hep-ex',
-                  'sortBy': 'lastUpdatedDate',
-                  'sortOrder': 'descending'
-                 }
-
-    URL = 'http://export.arxiv.org/api/query'
-    max_papers = 1000
-    delay = 2
-    norm_papers = 200
-    verbose = False
-
-    def __init__(self, params: Dict, **kwargs):
-        """Initialise arXiv API."""
-        self.params = ArxivApi.def_params
-        self.params.update(params)
-        if 'last_paper' in kwargs:
-            self.last_paper = kwargs.get('last_paper')
-
-    def get_papers(self, date_type: int, **kwargs) -> Dict:
-        """Download papers and return an array of Paper class obj."""
-        if date_type == 1:
-            self.params['max_results'] = 600
-        elif date_type == 2:
-            self.params['max_results'] = 900
-
-        response = get(self.URL, self.params)
-
-        if ArxivApi.verbose:
-            print(response.url)
-            print(response.text)
-
-        if response.status_code != 200:
-            return 404
-
-        # parse arXiv response
-        feed = parse(response.text)
-        if len(feed.entries) == 0:
-            return 400
-
-        today_date = datetime.strptime(feed.entries[0].updated,
-                                       '%Y-%m-%dT%H:%M:%SZ'
-                                       )
-
-        if ArxivApi.verbose:
-            print(feed.entries[0].updated, today_date)
-
-        if date_type == 0:
-            # look at the results of current date
-            # last_submission_day - 1 day at 18:00Z
-            old_date = today_date - timedelta(days=1)
-        elif date_type == 1:
-            # if last paper is published on Friday
-            # "this week" starts from next Monday
-            if today_date.weekday() == 4:
-                old_date = today_date - timedelta(days=1)
-            else:
-                old_date = today_date - timedelta(days=today_date.weekday()+4)
-        elif date_type == 2:
-            old_date = today_date - timedelta(days=today_date.day)
-        else:
-            old_date = kwargs.get('last_paper')
-
-        # over weekend cross
-        if old_date.weekday() > 4 and date_type != 4:
-            old_date = old_date - timedelta(days=old_date.weekday()-4)
-
-        # papers are submitted by 18:00Z
-        if date_type < 3:
-            old_date = old_date.replace(hour=17, minute=59, second=59)
-        else:
-            old_date = datetime.combine(old_date,
-                                        time(hour=17, minute=59, second=59))
-
-        if ArxivApi.verbose:
-            print('old', old_date)
-
-        papers = {'n_cats': None,
-                  'n_nov': None,
-                  'n_tags': None,
-                  'last_date': old_date,
-                  'date_type': date_type,
-                  'content': []
-                  }
-
-        while True:
-            for entry in feed.entries:
-                date = datetime.strptime(entry.updated,
-                                         '%Y-%m-%dT%H:%M:%SZ'
-                                         )
-                if ArxivApi.verbose:
-                    print(date, len(papers['content']))
-                if date < old_date:
-                    break
-
-                papers['content'].append(
-                    {'title': fix_xml(entry.title),
-                     'author': parse_authors(entry.authors),
-                     'date_sub': datetime.strptime(entry.published,
-                                                   '%Y-%m-%dT%H:%M:%SZ'
-                                                   ),
-                     'date_up': date,
-                     'abstract': fix_xml(entry.summary),
-                     'ref_pdf': parse_links(entry.links, link_type='pdf'),
-                     'ref_web': parse_links(entry.links, link_type='abs'),
-                     'ref_doi': parse_links(entry.links, link_type='doi'),
-                     'id': entry.id.split('/')[-1],
-                     #  FIXME delete in the future
-                     # 'primary': entry.tags[0]['term'],
-                     'cats': parse_cats(entry.tags),
-                     'tags': [],
-                     'nov': 0
-                    })
-
-            if date <= old_date or len(papers['content']) > 10000:
+            # stoppers
+            if n_papers and read > n_papers:
                 break
 
-            # make a next request
-            # TODO unify all the requests in one function?
-            sleep(self.delay)
-            self.params['start'] += self.params['max_results']
-            response = get(self.URL, self.params)
+            # too old paper. Skip
+            if paper.date_up < last_paper_date:
+                continue
 
-            if response.status_code != 200:
-                return 404
+            paper_prev = Paper.query.filter_by(
+                            paper_id=paper.paper_id
+                            ).first()
 
-            # parse arXiv response
-            feed = parse(response.text)
-            if len(feed.entries) == 0:
-                return 400
+            if paper_prev:
+                if kwargs.get('do_update'):
+                    update_paper_record(paper_prev, paper)
+                    updated += 1
+            else:
+                db.session.add(paper)
+                downloaded += 1
+            read += 1
+            if read % api.COMMIT_PERIOD == 0:
+                logging.info('read %i papers', read)
+                db.session.commit()
 
-        return papers
+    db.session.commit()
 
-def fix_xml(xml: str) -> str:
-    """
-    Parse xml tag content
+    logging.info('Paper update done: %i new; %i updated',
+                 downloaded,
+                 updated
+                 )
 
-    Remove line endings and double spaces.
-    """
-    return xml.replace(linesep, " ").replace("  ", " ")
 
-def parse_authors(authors) -> List:
-    """Convert authors from freeparser output to list."""
-    return [au.name for au in authors]
 
-def parse_cats(cats) -> List:
-    """Convert categories from freeparser output to list."""
-    return [cat.term for cat in cats]
+def update_paper_record(paper_prev: Paper, paper: Paper):
+    """Update the paper record."""
+    paper_prev.title = paper.title
+    paper_prev.date_up = paper.date_up
+    paper_prev.author = paper.author
+    paper_prev.doi = paper.doi
+    paper_prev.version = paper.version
+    paper_prev.abstract = paper.abstract
+    paper_prev.cats = paper.cats
 
-def parse_links(links, link_type='pdf') -> str:
-    """
-    Loop over links and extract hrefs to pdf and arXiv abstract
+def resolve_doi(doi: str) -> str:
+    """Resolve doi string into link."""
+    return 'https://www.doi.org/' + doi
 
-    parse links
-    related & title = pdf --> pdf
-    related & title = doi --> doi
-    alternate --> abstract
-    """
-    for link in links:
-        if link.rel == 'alternate' and link_type == 'abs':
-            return link.href
-        if link.rel == 'related':
-            if link.title == 'pdf' and link_type == 'pdf':
-                return link.href
-            if link.title == 'doi' and link_type == 'doi':
-                return link.href
+def render_paper_json(paper: Paper) -> Dict:
+    """Render Paper class obkect into JSON for front-end."""
+    result = {'id': paper.paper_id,
+              'title': paper.title,
+              'author': paper.author,
+              'date_sub': paper.date_sub,
+              'date_up': paper.date_up,
+              'abstract': paper.abstract,
+              'cats': paper.cats,
+              # to be filled later in process_papers()
+              'tags': [],
+              'nov': 0
+              }
+    if paper.source == 1:
+        result['ref_pdf'] = ArxivOaiApi().get_ref_pdf(paper.paper_id,
+                                                      paper.version
+                                                      )
+        result['ref_web'] = ArxivOaiApi().get_ref_web(paper.paper_id,
+                                                      paper.version
+                                                      )
 
-    return None
+    if paper.doi is not None:
+        result['ref_doi'] = resolve_doi(paper.doi)
+
+    return result
+
 
 def process_papers(papers: Dict,
                    tags: Dict,
-                   cats: Tuple[str]
+                   cats: Tuple[str],
+                   do_nov: bool,
+                   do_tag: bool
                    ) -> Dict:
     """
-    Papers processing
+    Papers processing.
 
     Process:
     1. novelty. use 'bit' map
@@ -214,41 +125,43 @@ def process_papers(papers: Dict,
     2. categories
     3. process tags
     """
-
     papers['n_nov'] = [0] * 3
     papers['n_cats'] = [0] * len(cats)
     papers['n_tags'] = [0] * len(tags)
-    for paper in papers['content']:
-        # 1.a count cross-refs
-        for cat in paper['cats']:
-            # increase cat counter
-            if cat in cats:
-                papers['n_cats'][cats.index(cat)] += 1
-            # check if cross-ref
-            if cat not in cats and paper['cats'][0] not in cats:
-                papers['n_nov'][1] += 1 if paper['nov'] != 2 else 0
-                paper['nov'] = 2
+    for paper in papers['papers']:
+        if do_nov:
+            # 1.a count cross-refs
+            for cat in paper['cats']:
+                # increase cat counter
+                if cat in cats:
+                    papers['n_cats'][cats.index(cat)] += 1
+                # check if cross-ref
+                if cat not in cats and paper['cats'][0] not in cats:
+                    papers['n_nov'][1] += 1 if paper['nov'] != 2 else 0
+                    paper['nov'] = 2
 
-        # 1.b count updated papers
-        if paper['date_sub'] < papers['last_date']:
-            paper['nov'] = 4
-            papers['n_nov'][2] += 1
+            # 1.b count updated papers
+            if paper['date_sub'] < papers['last_date']:
+                paper['nov'] = 4
+                papers['n_nov'][2] += 1
 
-        if paper['nov'] == 0:
-            paper['nov'] = 1
-            papers['n_nov'][0] += 1
+            if paper['nov'] == 0:
+                paper['nov'] = 1
+                papers['n_nov'][0] += 1
 
         # 2.
-        for num, tag in enumerate(tags):
-            if tag_suitable(paper, tag['rule']):
-                paper['tags'].append(num)
-                papers['n_tags'][num] += 1
+        if do_tag:
+            for num, tag in enumerate(tags):
+                if tag_suitable(paper, tag['rule']):
+                    paper['tags'].append(num)
+                    papers['n_tags'][num] += 1
     return papers
 
 
 def tag_suitable(paper: Dict, rule: str) -> bool:
     """
-    Simple rules are expected in the most of th cases,
+    Simple rules are expected in the most of th cases.
+
     1. Find logic AND / OR outside curly and round brackets
     2. If no - parse rules inside curly brackets
     3. OR: and process rule parts one by one separated by |
@@ -273,8 +186,12 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     brackets = 0
     or_pos, and_pos = [], []
     for pos, char in enumerate(rule):
-        if char in ['(', '{']: brackets += 1; continue;
-        if char in [')', '}']: brackets -= 1; continue;
+        if char in ['(', '{']:
+            brackets += 1
+            continue
+        if char in [')', '}']:
+            brackets -= 1
+            continue
         if brackets == 0:
             if char == '|':
                 or_pos.append(pos)
@@ -282,7 +199,7 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
                 and_pos.append(pos)
 
     # if no AND/OR found outside brackets process a rule inside curly brackets
-    if (len(and_pos) == 0 and len(or_pos) == 0):
+    if len(and_pos) == 0 and len(or_pos) == 0:
         return parse_simple_rule(paper, rule)
 
     # add rule length limits
@@ -290,13 +207,13 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     or_pos.append(len(rule))
 
     # process logic OR
-    if (len(or_pos) > 2):
+    if len(or_pos) > 2:
         for num, pos in enumerate(or_pos[:-1]):
             if tag_suitable(paper, rule[pos+1:or_pos[num+1]]):
                 return True
 
     # if logic OR was found but True was not returned before
-    if (len(or_pos) > 2):
+    if len(or_pos) > 2:
         return False
 
     # add rule length limits
@@ -304,13 +221,13 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     and_pos.append(len(rule))
 
     # process logic AND
-    if (len(and_pos) > 2):
+    if len(and_pos) > 2:
         for num, pos in enumerate(and_pos[:-1]):
             if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
                 return False
 
     # if logic AND is inside the rule but False was not found
-    if (len(and_pos) > 2):
+    if len(and_pos) > 2:
         return True
 
     # default safety return
@@ -338,7 +255,7 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
     if '&' in condition:
         cond_list = condition.split('&')
         condition = '(' + condition.replace('&', '.*')
-        condition +=')|('
+        condition += ')|('
         condition += '.*'.join(cond_list[::-1]) + ')'
 
     # inversion of the rule
