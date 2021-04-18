@@ -53,7 +53,7 @@ def app_init():
         app.register_blueprint(routes.main_bp)
         app.register_blueprint(auth.auth_bp)
 
-        if app.config['DEBUG']:
+        if app.config['BUILD_ASSETS']:
             from .assets import compile_assets
             compile_assets(app)
 

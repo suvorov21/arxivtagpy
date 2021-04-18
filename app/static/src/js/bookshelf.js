@@ -1,16 +1,23 @@
-/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase*/
+/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase, displayList*/
 /*eslint no-undef: "error"*/
 
 function renderLists() {
+  let hrefBase = document.location.href.split("=")[0];
   LISTS.forEach((listName, num) => {
-    let listItem = document.createElement("div");
-    listItem.className = "menu-item-bm";
+    let listItem = document.createElement("li");
+    listItem.className = "nav-item";
     let link = document.createElement("a");
-    // TODO
-    link.href = "/";
+    link.href = hrefBase + listName;
+    link.className = "nav-link";
+    if (listName === displayList) {
+      link.className += " active";
+    }
     link.textContent = listName;
-    document.getElementById("menu-main").append(listItem);
     listItem.appendChild(link);
+
+    document.getElementById("menu-list").append(listItem);
+    let clone = listItem.cloneNode(true);
+    document.getElementById("menu-list-mob").append(clone);
   });
 }
 

@@ -12,7 +12,7 @@ def fix_xml(xml: str) -> str:
     """
     return xml.replace(linesep, " ").replace("  ", " ")
 
-def url(adress:str, **kwargs) -> str:
+def url(adress: str, **kwargs) -> str:
     """
     Fix the url removing the wsgi name.
 

@@ -18,6 +18,8 @@ from . import mail
 from .model import db, User, PaperList
 from .utils import url
 
+DEFAULT_LIST = 'Favourite'
+
 auth_bp = Blueprint(
     'auth_bp',
     __name__,
@@ -70,12 +72,12 @@ def logout():
 def new_default_list(usr_id):
     """Create default paper list for a given user."""
     result = PaperList.query.filter_by(user_id=usr_id,
-                                       name='Favourite'
+                                       name=DEFAULT_LIST
                                        ).first()
     if result:
         return
 
-    paper_list = PaperList(name='Favourite',
+    paper_list = PaperList(name=DEFAULT_LIST,
                            user_id=usr_id
                            )
     db.session.add(paper_list)

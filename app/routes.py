@@ -11,7 +11,7 @@ from flask_login import current_user, login_required
 
 from .model import db, Paper, PaperList, paper_associate
 from .render import render_papers, render_title
-from .auth import new_default_list
+from .auth import new_default_list, DEFAULT_LIST
 from .papers import update_papers, process_papers, render_paper_json
 from .paper_api import ArxivOaiApi, get_arxiv_last_date
 from .utils import url
@@ -251,6 +251,11 @@ def mod_pref():
 @login_required
 def bookshelf():
     """Bookshelf page."""
+    # if list is not specified take the default one
+    if 'list' not in request.args:
+        return redirect(url('main_bp.bookshelf', list=DEFAULT_LIST))
+    display_list = request.args['list']
+
     lists = []
     # get all lists for the menu
     paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
@@ -262,7 +267,9 @@ def bookshelf():
         lists.append(paper_list.name)
 
     # get papers in the list
-    paper_list = PaperList.query.filter_by(id=paper_lists[0].id).first()
+    paper_list = PaperList.query.filter_by(user_id=current_user.id,
+                                           name=display_list
+                                           ).first()
 
     papers = {'list': lists[0],
               'papers': []
@@ -283,6 +290,7 @@ def bookshelf():
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
+                           displayList=display_list,
                            tags=session['tags'],
                            math_jax=session['pref'].get('tex'),
                            dark=session['pref'].get('dark')

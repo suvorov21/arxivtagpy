@@ -6,6 +6,7 @@
   <script type="text/javascript">
     var DATA = {{ papers }};
     var TAGS = {{ tags }};
+    var displayList = "{{ displayList }}";
     var LISTS = {{ lists }};
     var parseTex = false;
   </script>
@@ -32,15 +33,38 @@
 {% block content %}
   <div class="container-fluid">
     <div class="row pt-4" class="main-row">
-      {# menu replacement for mobile #}
-      <div class="d-md-none col-sm-12 mb-3">
-        <button type="button" class="btn btn-secondary" id="filter-button">Lists</button>
-      </div>
 
+      {# TODO think about removing code duplication the same code in Settings.jinja2 #}
       {# Menu #}
       <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
         <div class="menu-content ml-auto" id="menu-main">
+          <ul class="nav flex-column nav-pills" id="menu-list">
+            {# <li class="nav-item">
+              <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a> #}
+            </li>
+          </ul>
         </div>
+      </div>
+    {# Mobile friendly menu #}
+
+    <div class="container pb-3 d-md-none">
+      <ul class="nav nav-pills" id="menu-list-mob">
+         {#  <li class="nav-item">
+            <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
+          </li> #}
+        </ul>
       </div>
 
       {# Paper list #}
