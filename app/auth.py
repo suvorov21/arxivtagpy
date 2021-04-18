@@ -8,7 +8,7 @@ from werkzeug.security import check_password_hash, \
 generate_password_hash
 
 from flask import Blueprint, render_template, flash, redirect, \
-url_for, request, current_app
+request, current_app
 from flask_login import login_user, logout_user, \
 current_user, login_required
 from flask_mail import Message
@@ -16,6 +16,7 @@ from flask_mail import Message
 from .import login_manager
 from . import mail
 from .model import db, User, PaperList
+from .utils import url
 
 auth_bp = Blueprint(
     'auth_bp',
@@ -45,14 +46,14 @@ def login():
     if not usr:
         flash('ERROR! Wrong username/password! \
               <a href="/restore" class="alert-link">Reset password?</a>')
-        return redirect(url_for('main_bp.root'))
+        return redirect(url('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
         flash('ERROR! Wrong username/password! \
               <a href="/restore" class="alert-link">Reset password?</a>')
-    return redirect(url_for('main_bp.root'))
+    return redirect(url('main_bp.root'))
 
 @auth_bp.route('/signup')
 def signup():
@@ -64,7 +65,7 @@ def signup():
 def logout():
     """User log-out logic."""
     logout_user()
-    return redirect(url_for('main_bp.root'))
+    return redirect(url('main_bp.root'))
 
 def new_default_list(usr_id):
     """Create default paper list for a given user."""
@@ -91,11 +92,11 @@ def new_user():
     usr = User.query.filter_by(email=email).first()
     if usr:
         flash("ERROR! Email is already registered")
-        return redirect(url_for('auth_bp.signup'), code=303)
+        return redirect(url('auth_bp.signup'), code=303)
 
     if pasw1 != pasw2:
         flash("ERROR! Passwords don't match!")
-        return redirect(url_for('auth_bp.signup'), code=303)
+        return redirect(url('auth_bp.signup'), code=303)
 
     user = User(email=email,
                 pasw=generate_password_hash(pasw1),
@@ -113,7 +114,7 @@ def new_user():
 
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')
-    return redirect(url_for('main_bp.settings'), code=303)
+    return redirect(url('main_bp.settings'), code=303)
 
 @auth_bp.route('/change_pasw', methods=["POST"])
 @login_required
@@ -124,16 +125,16 @@ def change_pasw():
     new2 = request.form.get('newPass2')
     if new != new2:
         flash("ERROR! New passwords don't match!")
-        return redirect(url_for('main_bp.settings'))
+        return redirect(url('main_bp.settings'))
 
     if not check_password_hash(current_user.pasw, old):
         flash("ERROR! Wrong old password!")
-        return redirect(url_for('main_bp.settings'))
+        return redirect(url('main_bp.settings'))
 
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
     flash('Password successfully changed!')
-    return redirect(url_for('main_bp.settings'), code=303)
+    return redirect(url('main_bp.settings'), code=303)
 
 @auth_bp.route('/delAcc', methods=["POST"])
 @login_required
@@ -144,13 +145,13 @@ def del_acc():
     User.query.filter_by(email=email).delete()
     db.session.commit()
 
-    return redirect(url_for('main_bp.root'), code=303)
+    return redirect(url('main_bp.root'), code=303)
 
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
     flash('ERROR! You must be logged in to view this page.')
-    return redirect(url_for('main_bp.about'))
+    return redirect(url('main_bp.about'))
 
 @auth_bp.route('/restore', methods=['GET'])
 def restore():
@@ -184,4 +185,4 @@ def restore_pass():
 
     flash(f'The email with a new password was sent to your email from \
           {current_app.config["MAIL_DEFAULT_SENDER"]}')
-    return redirect(url_for('main_bp.root'), code=303)
+    return redirect(url('main_bp.root'), code=303)

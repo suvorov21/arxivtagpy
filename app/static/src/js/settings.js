@@ -279,6 +279,8 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
     document.forms["add-tag"]["tag_color"].value = "";
+    // make delete NOT possible
+    $("#btn-del").addClass("disabled");
   } else {
     // TODO consider how to get rif of it
     newTag = false;
