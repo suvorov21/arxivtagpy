@@ -1,6 +1,5 @@
 """API for papr downloading."""
 
-from os import linesep
 from time import sleep
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time

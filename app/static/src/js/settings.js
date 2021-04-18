@@ -5,6 +5,16 @@
 var dragTarget;
 var tagEdited = false;
 
+function cssVar(name, value) {
+  if (name[0] !=="-") {
+    name = "--" + name; //allow passing with or without --
+  }
+  if (value) {
+    document.documentElement.style.setProperty(name, value);
+  }
+  return getComputedStyle(document.documentElement).getPropertyValue(name);
+}
+
 // ************************  RENDERS *******************************************
 function addCat(cat) {
   // Dots replace with 111 to be a legal
@@ -267,7 +277,7 @@ $("#tag-list").click((event) => {
   }
 
   // highlight the editable tag
-  $(event.target).css("border-color", "#000");
+  $(event.target).css("border-color", cssVar("--tag_border_color"));
 
   if ($(event.target).attr("id") === "add-tag") {
     // TODO consider how to get rif of it
