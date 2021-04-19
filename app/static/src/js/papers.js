@@ -15,11 +15,9 @@ function formateDate(date) {
 function toggleVis(start=0) {
   if (start === 0) {
     VISIBLE = 0;
+    passed = 0
   }
-  for(let pId = start; pId < START + PAPERS_TO_RENDER; pId ++) {
-    if (pId >= DATA.papers.length) {
-      break;
-    }
+  for(let pId = start; pId < DATA.papers.length; pId ++) {
     let paper = DATA.papers[parseInt(pId, 10)];
     let display = false;
     if (prefs.data.showNov[0] === true && paper.nov === 1 ||
@@ -41,6 +39,13 @@ function toggleVis(start=0) {
       }
     }
 
+    if (display)
+      passed += 1;
+
+    if (pId >= START + PAPERS_TO_RENDER) {
+      continue;
+    }
+
     if (display) {
       document.getElementById("paper-" + pId).style["display"] = "block";
       let number = document.getElementById("paper-num-" + pId);
@@ -49,6 +54,10 @@ function toggleVis(start=0) {
     } else {
       document.getElementById("paper-" + pId).style["display"] = "none";
     }
+  }
+
+  if (start === 0) {
+    $("#passed").text(passed);
   }
 
   if (!DONE) {
@@ -376,7 +385,7 @@ window.onload = function() {
   // Get paper data from backend
   $.get(url)
   .done(function(data) {
-    document.getElementById("loading-papers").style["display"] = "none";
+    // document.getElementById("loading-papers").style["display"] = "none";
     DATA = data;
     renderCounters();
     renderPapers();
