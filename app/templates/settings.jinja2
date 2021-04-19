@@ -2,7 +2,6 @@
 
 {% block head_scripts %}
   <link href="{{ url_for('static', filename='dist/css/settings.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ url_for('static', filename='dist/css/wheelcolorpicker.css') }}" rel="stylesheet" type="text/css">
   <script type="text/javascript">
     var TAGS = {{ tags }};
     var CATS = {{ cats }};
@@ -128,6 +127,23 @@
                     <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
                     {# TODO consider alert through flash? #}
                     <div style="color: #f00" class="cat-alert"></div>
+                    <div class="form-check">
+                      <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
+                      <label class="form-check-label" for="book-check">Bookmark automatically</label>
+                      <small class="form-text text-muted">
+                        Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later
+                      </small>
+                      <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
+                      <label class="form-check-label" for="email-check">Email notification</label>
+                      <small class="form-text text-muted">
+                        Recieve email notifications when new papers suitable with this tag are submitted
+                      </small>
+                      <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
+                      <label class="form-check-label" for="public-check">Publicly available</label>
+                      <small class="form-text text-muted">
+                        Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible.
+                      </small>
+                    </div>
                   </fieldset>
                 </form>
 

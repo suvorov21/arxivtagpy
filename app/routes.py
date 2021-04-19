@@ -153,7 +153,7 @@ def settings():
     # CATS and TAGS are send back for all the settings pages
     return render_template('settings.jinja2',
                            cats=session['cats'],
-                           tags=session['tags'],
+                           tags=dumps(session['tags']),
                            # TODO read from prefs
                            pref=dumps(session['pref']),
                            math_jax=session['pref'].get('tex'),
@@ -220,6 +220,7 @@ def mod_tag():
     if new_tags == '':
         return dumps({'success': False}), 204
 
+    logging.info(new_tags)
     current_user.tags = str(new_tags)
     db.session.commit()
     # WARNING Do I really need prefs in session

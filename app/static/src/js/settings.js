@@ -289,6 +289,9 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
     document.forms["add-tag"]["tag_color"].value = "";
+    document.forms["add-tag"]["book-check"].checked = false;
+    document.forms["add-tag"]["email-check"].checked = false;
+    document.forms["add-tag"]["public-check"].checked = false;
     // make delete NOT possible
     $("#btn-del").addClass("disabled");
   } else {
@@ -305,6 +308,9 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = tag.name;
     document.forms["add-tag"]["tag_rule"].value = tag.rule;
     document.forms["add-tag"]["tag_color"].value = tag.color;
+    document.forms["add-tag"]["book-check"].checked = tag.book;
+    document.forms["add-tag"]["email-check"].checked = tag.email;
+    document.forms["add-tag"]["public-check"].checked = tag.public;
     $("#tag-color").css("background-color", $("#tag-color").val());
 
     // make delete possible
@@ -389,12 +395,19 @@ function checkTag() {
   // tag rules are checked
   let TagDict = {"name": document.forms["add-tag"]["tag_name"].value,
                  "rule": document.forms["add-tag"]["tag_rule"].value,
-                 "color": document.forms["add-tag"]["tag_color"].value
+                 "color": document.forms["add-tag"]["tag_color"].value,
+                 "book": document.forms["add-tag"]["book-check"].checked,
+                 "email": document.forms["add-tag"]["email-check"].checked,
+                 "public": document.forms["add-tag"]["public-check"].checked,
                };
   if (!newTag) {
+    // TAGS[parseInt(editTagId, 10)] = TagDict;
     TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
     TAGS[parseInt(editTagId, 10)]["rule"] = TagDict["rule"];
     TAGS[parseInt(editTagId, 10)]["color"] = TagDict["color"];
+    TAGS[parseInt(editTagId, 10)]["book"] = TagDict["book"];
+    TAGS[parseInt(editTagId, 10)]["email"] = TagDict["email"];
+    TAGS[parseInt(editTagId, 10)]["public"] = TagDict["public"];
   } else {
     TAGS.push(TagDict);
   }
