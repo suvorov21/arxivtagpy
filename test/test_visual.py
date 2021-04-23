@@ -65,7 +65,7 @@ class TestLiveServer():
 
     def test_settings_view(self, driver):
         """Test settings page load properly."""
-        driver.get(url_for('main_bp.settings', _external=True))
+        driver.get(url_for('settings_bp.settings', _external=True))
         sleep(3)
         cat = driver.find_element_by_id('cat-name-hep-ex')
         assert cat.text == 'High Energy Physics - Experiment'
