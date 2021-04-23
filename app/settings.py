@@ -3,8 +3,7 @@
 from json import loads, dumps
 import logging
 
-from flask import Blueprint, render_template, session, \
-request, current_app
+from flask import Blueprint, render_template, session, request
 from flask_login import current_user, login_required
 
 from .model import db, Tag
@@ -78,7 +77,10 @@ def mod_tag():
     for tag in new_tags:
         # new tag creation
         if tag['id'] == -1:
-            logging.info("Creating new tag %s", tag['name'])
+            logging.debug("Creating new tag %r for user %r",
+                          tag,
+                          current_user
+                          )
             new_tag = Tag(name=tag['name'],
                           rule=tag['rule'],
                           color=tag['color'],
@@ -89,7 +91,6 @@ def mod_tag():
         else:
             # tag already exists
             new_tag = Tag.query.filter_by(id=tag['id']).first()
-            logging.info('Old user %r', new_tag.user_id)
         # if tag was modified
         if tag.get('mod'):
             update_tag(new_tag, tag)

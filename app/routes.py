@@ -10,7 +10,7 @@ from flask_login import current_user, login_required
 # from flask_mail import Message
 
 from .model import db, Paper, PaperList, paper_associate
-from .render import render_papers, render_title
+from .render import render_papers, render_title, render_tags_front
 from .auth import new_default_list, DEFAULT_LIST
 from .papers import update_papers, process_papers, render_paper_json
 from .paper_api import ArxivOaiApi, get_arxiv_last_date
@@ -53,19 +53,16 @@ def papers_list():
     if date_type is None:
         return redirect(url('main_bp.papers_list', date='today'))
 
-
     # load preferences
     load_prefs()
 
     # get rid of tag rule at front-end
-    tags_dict = [{'color': tag['color'],
-                  'name': tag['name']
-                  } for tag in session['tags']]
+    tags_dict = render_tags_front(session['tags'])
 
     return render_template('papers.jinja2',
                            title=render_title(date_type, current_user.login),
                            cats=session['cats'],
-                           tags=tags_dict,
+                           tags=dumps(tags_dict),
                            math_jax=session['pref'].get('tex'),
                            dark=session['pref'].get('dark')
                            )
@@ -133,7 +130,7 @@ def data():
                             do_nov=True,
                             do_tag=True
                             )
-    render_papers(papers, sort=True)
+    render_papers(papers, sort='tag')
 
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
@@ -180,7 +177,6 @@ def bookshelf():
               'papers': []
               }
 
-    # TODO sort by update date, not by added to bookmarks date
     for paper in paper_list.papers:
         papers['papers'].append(render_paper_json(paper))
 
@@ -191,13 +187,14 @@ def bookshelf():
                             do_tag=True
                             )
 
-    render_papers(papers, sort=False)
+    render_papers(papers, sort='date_up')
+    tags_dict = render_tags_front(session['tags'])
 
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
                            displayList=display_list,
-                           tags=session['tags'],
+                           tags=dumps(tags_dict),
                            math_jax=session['pref'].get('tex'),
                            dark=session['pref'].get('dark')
                            )
