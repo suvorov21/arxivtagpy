@@ -37,10 +37,12 @@ class User(UserMixin, db.Model):
                           nullable=True,
                           unique=False
                           )
-    tags = db.Column(db.String(),
-                     nullable=True,
-                     unique=False
-                     )
+    tags = db.relationship('Tag',
+                           backref='user',
+                           cascade='all,delete',
+                           passive_deletes=True,
+                           lazy=True
+                           )
     pref = db.Column(db.String(),
                      nullable=True,
                      unique=False
@@ -52,6 +54,63 @@ class User(UserMixin, db.Model):
                              passive_deletes=True,
                              lazy=True
                              )
+
+    def __repr__(self):
+        """Print user."""
+        return f'<id: {self.id} name: {self.name}>'
+
+
+class Tag(db.Model):
+    """Table for storing user defined tags."""
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer,
+                   primary_key=True,
+                   )
+
+    name = db.Column(db.String(),
+                     unique=False,
+                     nullable=False
+                     )
+
+    rule = db.Column(db.String(),
+                     unique=False,
+                     nullable=False
+                     )
+
+    # TODO consider HEX format?
+    color = db.Column(db.String(),
+                      unique=False,
+                      nullable=False
+                      )
+
+    bookmark = db.Column(db.Boolean,
+                         unique=False,
+                         nullable=True,
+                         default=False
+                         )
+
+    email = db.Column(db.Boolean,
+                      unique=False,
+                      nullable=True,
+                      default=False
+                      )
+
+    public = db.Column(db.Boolean,
+                       unique=False,
+                       nullable=True,
+                       default=False
+                       )
+
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('users.id',
+                                      ondelete='CASCADE'
+                                      ),
+                        # nullable to allow asignment
+                        # current_user.tags = []
+                        # in settings.bp.mod_tag()
+                        nullable=True,
+                        default=-1
+                        )
 
     def __repr__(self):
         """Print user."""

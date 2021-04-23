@@ -1,7 +1,7 @@
 """Main blueprint with all the main pages."""
 
 from datetime import datetime, timedelta
-from json import loads, dumps
+from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
@@ -15,6 +15,7 @@ from .auth import new_default_list, DEFAULT_LIST
 from .papers import update_papers, process_papers, render_paper_json
 from .paper_api import ArxivOaiApi, get_arxiv_last_date
 from .utils import url
+from .settings import load_prefs
 # from . import mail
 
 main_bp = Blueprint(
@@ -141,26 +142,6 @@ def data():
               }
     return jsonify(result)
 
-@main_bp.route('/settings')
-@login_required
-def settings():
-    """Settings page."""
-    load_prefs()
-    page = 'cat'
-    if 'page' in request.args:
-        page = request.args['page']
-    # TODO this is excessive
-    # CATS and TAGS are send back for all the settings pages
-    return render_template('settings.jinja2',
-                           cats=session['cats'],
-                           tags=dumps(session['tags']),
-                           # TODO read from prefs
-                           pref=dumps(session['pref']),
-                           math_jax=session['pref'].get('tex'),
-                           dark=session['pref'].get('dark'),
-                           page=page
-                           )
-
 @main_bp.route('/about')
 def about():
     """About page."""
@@ -169,83 +150,6 @@ def about():
     return render_template('about.jinja2',
                            dark=dark
                            )
-
-
-def load_prefs():
-    """Load preferences from DB to session."""
-    if not current_user.is_authenticated:
-        return
-    # if 'cats' not in session:
-    session['cats'] = current_user.arxiv_cat
-
-    # read tags
-    # if 'tags' not in session:
-    session['tags'] = loads(current_user.tags)
-
-
-    # read preferences
-    # if 'pref' not in session:
-    if "NoneType" not in str(type(current_user.pref)):
-        session['pref'] = loads(current_user.pref)
-
-
-########### Setings change##############################################
-
-
-@main_bp.route('/mod_cat', methods=['POST'])
-@login_required
-def mod_cat():
-    """Apply category changes."""
-    new_cat = []
-    new_cat = request.form.getlist("list[]")
-
-    current_user.arxiv_cat = new_cat
-    db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
-    session['cats'] = current_user.arxiv_cat
-    return dumps({'success':True}), 200
-
-@main_bp.route('/mod_tag', methods=['POST'])
-@login_required
-def mod_tag():
-    """Apply tag changes."""
-    new_tags = []
-    # Fix key break with ampersand
-    for arg in request.form.to_dict().keys():
-        new_tags.append(arg)
-
-    new_tags = '&'.join(new_tags)
-
-    if new_tags == '':
-        return dumps({'success': False}), 204
-
-    logging.info(new_tags)
-    current_user.tags = str(new_tags)
-    db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
-    session['tags'] = loads(current_user.tags)
-    return dumps({'success':True}), 200
-
-@main_bp.route('/mod_pref', methods=['POST'])
-@login_required
-def mod_pref():
-    """Apply preference changes."""
-    new_pref = []
-    for arg in request.form.to_dict().keys():
-        new_pref = arg
-
-    if new_pref == []:
-        return dumps({'success': False}), 204
-
-    current_user.pref = str(new_pref)
-    db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
-    session['pref'] = loads(current_user.pref)
-    return dumps({'success':True}), 200
-
 
 ##### Bookshelf stuff ##################################################
 @main_bp.route('/bookshelf')
@@ -276,6 +180,7 @@ def bookshelf():
               'papers': []
               }
 
+    # TODO sort by update date, not by added to bookmarks date
     for paper in paper_list.papers:
         papers['papers'].append(render_paper_json(paper))
 
@@ -352,6 +257,8 @@ def del_bm():
     db.session.commit()
     return dumps({'success':True}), 201
 
+######### Daemon functions #############################################
+
 @main_bp.route('/load_papers', methods=['GET'])
 def load_papers():
     """Load papers and store in the database."""
@@ -405,3 +312,15 @@ def load_papers():
     update_papers([paper_api], **params)
 
     return dumps({'success':True}), 201
+
+@main_bp.route('/bookmark_papers', methods=['GET'])
+def bookmark_papers():
+    """Auto bookmark new submissions."""
+
+@main_bp.route('/email_papers', methods=['GET'])
+def email_papers():
+    """Email notifications about new submissions."""
+
+@main_bp.route('/public_tags', methods=['GET'])
+def public_tags():
+    """Get puclicly available tags as examples."""

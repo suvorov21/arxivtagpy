@@ -126,6 +126,7 @@ function renderTags() {
     event.preventDefault();
   };
 
+  // tag reordering
   document.getElementById("tag-list").ondrop = function(event) {
     event.preventDefault();
     let moved = event.dataTransfer.getData("Text");
@@ -308,7 +309,7 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = tag.name;
     document.forms["add-tag"]["tag_rule"].value = tag.rule;
     document.forms["add-tag"]["tag_color"].value = tag.color;
-    document.forms["add-tag"]["book-check"].checked = tag.book;
+    document.forms["add-tag"]["book-check"].checked = tag.bookmark;
     document.forms["add-tag"]["email-check"].checked = tag.email;
     document.forms["add-tag"]["public-check"].checked = tag.public;
     $("#tag-color").css("background-color", $("#tag-color").val());
@@ -374,7 +375,7 @@ function checkTag() {
     return false;
   }
 
-  if (findTagIdByName(document.forms["add-tag"]["tag_name"]) !== -1) {
+  if (findTagIdByName(document.forms["add-tag"]["tag_name"].value) !== -1) {
     $(".cat-alert").html("Tag with this name already exists. Consider a unique name!");
     return false;
   }
@@ -396,19 +397,22 @@ function checkTag() {
   let TagDict = {"name": document.forms["add-tag"]["tag_name"].value,
                  "rule": document.forms["add-tag"]["tag_rule"].value,
                  "color": document.forms["add-tag"]["tag_color"].value,
-                 "book": document.forms["add-tag"]["book-check"].checked,
+                 "bookmark": document.forms["add-tag"]["book-check"].checked,
                  "email": document.forms["add-tag"]["email-check"].checked,
                  "public": document.forms["add-tag"]["public-check"].checked,
                };
   if (!newTag) {
-    // TAGS[parseInt(editTagId, 10)] = TagDict;
     TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
     TAGS[parseInt(editTagId, 10)]["rule"] = TagDict["rule"];
     TAGS[parseInt(editTagId, 10)]["color"] = TagDict["color"];
-    TAGS[parseInt(editTagId, 10)]["book"] = TagDict["book"];
+    TAGS[parseInt(editTagId, 10)]["bookmark"] = TagDict["bookmark"];
     TAGS[parseInt(editTagId, 10)]["email"] = TagDict["email"];
     TAGS[parseInt(editTagId, 10)]["public"] = TagDict["public"];
+    // add a flag that tag was modified. Will rewrite db record at back end
+    TAGS[parseInt(editTagId, 10)]["mod"] = true;
   } else {
+    // new tag no id
+    TagDict["id"] = -1;
     TAGS.push(TagDict);
   }
 
