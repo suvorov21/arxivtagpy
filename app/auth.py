@@ -106,12 +106,12 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                pref='{"tex":"True", "easy_and":"True"}'
+                pref='{"tex":"True", "dark":"False"}'
                 )
 
     tag = Tag(name='example',
               rule='abs{physics|math}',
-              color='fff2bd'
+              color='#fff2bd'
               )
 
     user.tags.append(tag)
