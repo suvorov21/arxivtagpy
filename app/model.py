@@ -57,7 +57,7 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         """Print user."""
-        return f'<id: {self.id} name: {self.name}>'
+        return f'<User id: {self.id} name: {self.email}>'
 
 
 class Tag(db.Model):
@@ -107,14 +107,14 @@ class Tag(db.Model):
                                       ),
                         # nullable to allow asignment
                         # current_user.tags = []
-                        # in settings.bp.mod_tag()
+                        # in settings_bp.mod_tag()
                         nullable=True,
                         default=-1
                         )
 
     def __repr__(self):
-        """Print user."""
-        return f'<id: {self.id} name: {self.name}>'
+        """Print Tag."""
+        return f'<Tag id: {self.id} name: {self.name}>'
 
 
 # helper table to deal with many-to-many relations
@@ -199,7 +199,7 @@ class Paper(db.Model):
 
     def __repr__(self):
         """Print paper."""
-        return f'<id: {self.id} title: {self.title}>'
+        return f'<Paper id: {self.id} title: {self.title}>'
 
 class PaperList(db.Model):
     """Paper list table description."""
@@ -227,5 +227,5 @@ class PaperList(db.Model):
                              )
 
     def __repr__(self):
-        """Print paper."""
-        return f'<id: {self.id} title: {self.name}>'
+        """Print paper list."""
+        return f'<PaperList id: {self.id} title: {self.name}>'
