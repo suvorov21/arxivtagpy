@@ -2,6 +2,7 @@
 
 from json import loads, dumps
 import logging
+from typing import Dict
 
 from flask import Blueprint, render_template, session, request
 from flask_login import current_user, login_required
@@ -55,7 +56,7 @@ def mod_cat():
 def mod_tag():
     """Apply tag changes."""
     new_tags = []
-    # Fix key break with ampersand
+    # FIXME Fix key break with ampersand
     for arg in request.form.to_dict().keys():
         new_tags.append(arg)
 
@@ -94,14 +95,7 @@ def mod_tag():
             update_tag(new_tag, tag)
 
         current_user.tags.append(new_tag)
-        session['tags'].append({'id': new_tag.id,
-                                'name': new_tag.name,
-                                'rule': new_tag.rule,
-                                'color': new_tag.color,
-                                'bookmark': new_tag.bookmark,
-                                'email': new_tag.email,
-                                'public': new_tag.public
-                                })
+        session['tags'].append(tag_to_dict(new_tag))
 
     db.session.commit()
     return dumps({'success':True}), 201
@@ -123,7 +117,7 @@ def mod_pref():
     return dumps({'success':True}), 201
 
 
-def update_tag(old_tag, tag):
+def update_tag(old_tag: Tag, tag: Tag):
     """Update Tag record in database."""
     old_tag.name = tag['name']
     old_tag.rule = tag['rule']
@@ -131,6 +125,18 @@ def update_tag(old_tag, tag):
     old_tag.bookmark = tag['bookmark']
     old_tag.email = tag['email']
     old_tag.public = tag['public']
+
+def tag_to_dict(tag: Tag) -> Dict:
+    """Transform Tag class object into dict."""
+    tag_dict = {'id': tag.id,
+                'name': tag.name,
+                'rule': tag.rule,
+                'color': tag.color,
+                'bookmark': tag.bookmark,
+                'email': tag.email,
+                'public': tag.public
+                }
+    return tag_dict
 
 def load_prefs():
     """Load preferences from DB to session."""
@@ -143,16 +149,8 @@ def load_prefs():
     if 'tags' not in session:
         session['tags'] = []
         for tag in current_user.tags:
-            session['tags'].append({'id': tag.id,
-                                    'name': tag.name,
-                                    'rule': tag.rule,
-                                    'color': tag.color,
-                                    'bookmark': tag.bookmark,
-                                    'email': tag.email,
-                                    'public': tag.public
-                                    })
+            session['tags'].append(tag_to_dict(tag))
 
     # read preferences
     if 'pref' not in session:
-        if "NoneType" not in str(type(current_user.pref)):
-            session['pref'] = loads(current_user.pref)
+        session['pref'] = loads(current_user.pref)
