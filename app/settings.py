@@ -47,8 +47,6 @@ def mod_cat():
 
     current_user.arxiv_cat = new_cat
     db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
     session['cats'] = current_user.arxiv_cat
     return dumps({'success':True}), 201
 
@@ -121,8 +119,6 @@ def mod_pref():
 
     current_user.pref = str(new_pref)
     db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
     session['pref'] = loads(current_user.pref)
     return dumps({'success':True}), 201
 
@@ -140,24 +136,23 @@ def load_prefs():
     """Load preferences from DB to session."""
     if not current_user.is_authenticated:
         return
-    # if 'cats' not in session:
-    session['cats'] = current_user.arxiv_cat
+    if 'cats' not in session:
+        session['cats'] = current_user.arxiv_cat
 
     # read tags
-    # if 'tags' not in session:
-    session['tags'] = []
-    for tag in current_user.tags:
-        session['tags'].append({'id': tag.id,
-                                'name': tag.name,
-                                'rule': tag.rule,
-                                'color': tag.color,
-                                'bookmark': tag.bookmark,
-                                'email': tag.email,
-                                'public': tag.public
-                                })
-
+    if 'tags' not in session:
+        session['tags'] = []
+        for tag in current_user.tags:
+            session['tags'].append({'id': tag.id,
+                                    'name': tag.name,
+                                    'rule': tag.rule,
+                                    'color': tag.color,
+                                    'bookmark': tag.bookmark,
+                                    'email': tag.email,
+                                    'public': tag.public
+                                    })
 
     # read preferences
-    # if 'pref' not in session:
-    if "NoneType" not in str(type(current_user.pref)):
-        session['pref'] = loads(current_user.pref)
+    if 'pref' not in session:
+        if "NoneType" not in str(type(current_user.pref)):
+            session['pref'] = loads(current_user.pref)
