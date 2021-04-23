@@ -142,15 +142,13 @@ def load_prefs():
     """Load preferences from DB to session."""
     if not current_user.is_authenticated:
         return
-    if 'cats' not in session:
-        session['cats'] = current_user.arxiv_cat
+
+    session['cats'] = current_user.arxiv_cat
 
     # read tags
-    if 'tags' not in session:
-        session['tags'] = []
-        for tag in current_user.tags:
-            session['tags'].append(tag_to_dict(tag))
+    session['tags'] = []
+    for tag in current_user.tags:
+        session['tags'].append(tag_to_dict(tag))
 
     # read preferences
-    if 'pref' not in session:
-        session['pref'] = loads(current_user.pref)
+    session['pref'] = loads(current_user.pref)
