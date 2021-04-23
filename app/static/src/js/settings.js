@@ -399,8 +399,8 @@ function checkTag() {
                  "color": document.forms["add-tag"]["tag_color"].value,
                  "bookmark": document.forms["add-tag"]["book-check"].checked,
                  "email": document.forms["add-tag"]["email-check"].checked,
-                 "public": document.forms["add-tag"]["public-check"].checked,
-               };
+                 "public": document.forms["add-tag"]["public-check"].checked
+                 };
   if (!newTag) {
     TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
     TAGS[parseInt(editTagId, 10)]["rule"] = TagDict["rule"];
