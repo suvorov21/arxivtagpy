@@ -15,7 +15,7 @@ function formateDate(date) {
 function toggleVis(start=0) {
   if (start === 0) {
     VISIBLE = 0;
-    passed = 0
+    var passed = 0;
   }
   for(let pId = start; pId < DATA.papers.length; pId ++) {
     let paper = DATA.papers[parseInt(pId, 10)];
@@ -39,8 +39,9 @@ function toggleVis(start=0) {
       }
     }
 
-    if (display)
+    if (display) {
       passed += 1;
+    }
 
     if (pId >= START + PAPERS_TO_RENDER) {
       continue;
