@@ -10,7 +10,7 @@ from flask import url_for
 import pytest
 
 from app import app_init, db
-from app.model import User
+from app.model import User, Tag
 
 EMAIL = 'tester@gmail.com'
 PASS = 'tester' # nosec
@@ -19,14 +19,16 @@ TMP_EMAIL = 'tmp_tester@gmail.com'
 
 def make_user(email):
     """Make a default user."""
-    tag_rule = 'ti{math}|abs{physics}&au{John}'
-    default_tag = '[{"name": "test", "rule":"%s", "color":"#ff0000"}]' % tag_rule
     user1 = User(email=email,
                  pasw=generate_password_hash(PASS),
                  arxiv_cat=['hep-ex'],
-                 tags=default_tag,
                  pref='{"tex": "True"}'
                  )
+    tag = Tag(name='test',
+              rule='ti{math}|abs{physics}&au{John}',
+              color='#ff0000'
+              )
+    user1.tags.append(tag)
     return user1
 
 @pytest.fixture(scope='session', autouse=True)

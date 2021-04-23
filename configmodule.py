@@ -21,7 +21,7 @@ class Config():
     LOG_PATH = environ.get('LOG_PATH')
 
     assets = environ.get('BUILD_ASSETS')
-    BUILD_ASSETS = True if assets == 'True' else False
+    BUILD_ASSETS = bool(assets)
 
     # email config
     MAIL_SERVER = environ.get('MAIL_SERVER')

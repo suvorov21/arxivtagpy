@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: arxiv_test
+      POSTGRES_USER: runner
+      POSTGRES_PASSWORD: tester
+  arxiv_dev:
+    build:
+      target: arxiv_dev
+      context: .
+
+    volumes:
+      - .:/arxivtagpy
+    links:
+      - "postgres"
+
+    ports:
+      - "8000:8000"
+      - "5000:5000"

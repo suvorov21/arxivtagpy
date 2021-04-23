@@ -14,8 +14,8 @@ current_user, login_required
 from flask_mail import Message
 
 from .import login_manager
-from . import mail
-from .model import db, User, PaperList
+from .import mail
+from .model import db, User, PaperList, Tag
 from .utils import url
 
 DEFAULT_LIST = 'Favourite'
@@ -106,9 +106,15 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                tags='[{"name":"example", "rule":"abs{physics|math}", "color": "#fff2bd"}]',
-                pref='{"tex":"True", "easy_and":"True"}'
+                pref='{"tex":"True", "dark":"False"}'
                 )
+
+    tag = Tag(name='example',
+              rule='abs{physics|math}',
+              color='#fff2bd'
+              )
+
+    user.tags.append(tag)
     db.session.add(user)
     db.session.commit()
 
@@ -116,7 +122,7 @@ def new_user():
 
     login_user(user)
     flash('Welcome to arXiv tag! Please setup categories you are interested in!')
-    return redirect(url('main_bp.settings'), code=303)
+    return redirect(url('settings_bp.settings'), code=303)
 
 @auth_bp.route('/change_pasw', methods=["POST"])
 @login_required
@@ -127,16 +133,16 @@ def change_pasw():
     new2 = request.form.get('newPass2')
     if new != new2:
         flash("ERROR! New passwords don't match!")
-        return redirect(url('main_bp.settings'))
+        return redirect(url('settings_bp.settings'))
 
     if not check_password_hash(current_user.pasw, old):
         flash("ERROR! Wrong old password!")
-        return redirect(url('main_bp.settings'))
+        return redirect(url('settings_bp.settings'))
 
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
     flash('Password successfully changed!')
-    return redirect(url('main_bp.settings'), code=303)
+    return redirect(url('settings_bp.settings'), code=303)
 
 @auth_bp.route('/delAcc', methods=["POST"])
 @login_required
