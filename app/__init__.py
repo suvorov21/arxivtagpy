@@ -50,8 +50,10 @@ def app_init():
     with app.app_context():
         from . import routes
         from . import auth
+        from . import settings
         app.register_blueprint(routes.main_bp)
         app.register_blueprint(auth.auth_bp)
+        app.register_blueprint(settings.settings_bp)
 
         if app.config['BUILD_ASSETS']:
             from .assets import compile_assets
