@@ -9,7 +9,11 @@ from app.model import Paper
 
 def test_load_papers(client):
     """Test paper loading."""
-    response = client.get('/load_papers?token=test_token&n_papers=10&set=physics:hep-ex')
+    response = client.get(url_for('auto_bp.load_papers',
+                                  token='test_token',
+                                  n_papers=10,
+                                  set='physics:hep-ex'
+                                  ))
     assert response.status_code == 201
 
 def test_paper_api(client, login):
@@ -22,7 +26,7 @@ def test_paper_api(client, login):
 
 def test_paper_page(client, login):
     """Test paper page load."""
-    response = client.get('/papers',
+    response = client.get(url_for('main_bp.papers_list'),
                           follow_redirects=True
                           )
     assert response.status_code == 200
@@ -63,3 +67,32 @@ def test_settings_page(client, login):
                           follow_redirects=True
                           )
     assert response.status_code == 200
+
+def test_wrong_token(client):
+    """Test access of the auto functions with wrong token."""
+    response = client.get(url_for('auto_bp.load_papers',
+                              token='wrong_token',
+                              ))
+    assert response.status_code == 422
+
+def test_paper_bookmark(client):
+    """Test auto bookmark papers."""
+    response = client.get(url_for('auto_bp.bookmark_papers',
+                              token='test_token',
+                              ))
+    assert response.status_code == 201
+
+
+def test_paper_bookmark(client):
+    """Test auto bookmark papers."""
+    response = client.get(url_for('auto_bp.email_papers',
+                              token='test_token',
+                              do_send=False
+                              ))
+    assert response.status_code == 201
+
+def test_public_tags(client, login):
+    """Test public available tags."""
+    response = client.get(url_for('main_bp.public_tags'))
+    assert response.status_code == 200
+    assert response.get_data(as_text=True) == '[{"name":"test","rule":"ti{math}|abs{physics}&au{John}"}]\n'

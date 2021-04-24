@@ -26,7 +26,10 @@ def make_user(email):
                  )
     tag = Tag(name='test',
               rule='ti{math}|abs{physics}&au{John}',
-              color='#ff0000'
+              color='#ff0000',
+              public=True,
+              email=True,
+              bookmark=True
               )
     user1.tags.append(tag)
     return user1
