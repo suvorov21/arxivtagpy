@@ -51,9 +51,11 @@ def app_init():
         from . import routes
         from . import auth
         from . import settings
+        from . import autohooks
         app.register_blueprint(routes.main_bp)
         app.register_blueprint(auth.auth_bp)
         app.register_blueprint(settings.settings_bp)
+        app.register_blueprint(autohooks.auto_bp)
 
         if app.config['BUILD_ASSETS']:
             from .assets import compile_assets
