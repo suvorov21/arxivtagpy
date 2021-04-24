@@ -25,7 +25,9 @@ def render_papers(papers: Dict, **kwargs) -> Dict:
         elif kwargs['sort'] == 'date_up':
             key = lambda t: t['date_up']
         papers['papers'] = sorted(papers['papers'],
-                                  key=key)
+                                  key=key,
+                                  reverse=True
+                                  )
 
     for paper in papers['papers']:
         paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
