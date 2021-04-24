@@ -1,7 +1,8 @@
 """Render utils."""
 
-from typing import Dict
+from typing import Dict, List
 from datetime import datetime
+from .model import Tag
 
 def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
     """Put the date type in the title text."""
@@ -25,7 +26,9 @@ def render_papers(papers: Dict, **kwargs) -> Dict:
         elif kwargs['sort'] == 'date_up':
             key = lambda t: t['date_up']
         papers['papers'] = sorted(papers['papers'],
-                                  key=key)
+                                  key=key,
+                                  reverse=True
+                                  )
 
     for paper in papers['papers']:
         paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
@@ -40,3 +43,12 @@ def render_tags_front(tags: Dict) -> Dict:
                   } for tag in tags]
 
     return tags_dict
+
+def tag_name_and_rule(tags: List[Tag]) -> List:
+    """Return only tag name in rule in JSON."""
+    json = []
+    for tag in tags:
+        json.append({'name': tag.name,
+                     'rule': tag.rule
+                     })
+    return json

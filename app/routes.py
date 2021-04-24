@@ -1,22 +1,21 @@
 """Main blueprint with all the main pages."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-request, jsonify, current_app
+request, jsonify
 from flask_login import current_user, login_required
-# from flask_mail import Message
 
-from .model import db, Paper, PaperList, paper_associate
-from .render import render_papers, render_title, render_tags_front
+from .model import db, Paper, PaperList, paper_associate, Tag
+from .render import render_papers, render_title, \
+render_tags_front, tag_name_and_rule
 from .auth import new_default_list, DEFAULT_LIST
-from .papers import update_papers, process_papers, render_paper_json
-from .paper_api import ArxivOaiApi, get_arxiv_last_date
+from .papers import process_papers, render_paper_json
+from .paper_api import get_arxiv_last_date
 from .utils import url
 from .settings import load_prefs
-# from . import mail
 
 main_bp = Blueprint(
     'main_bp',
@@ -193,7 +192,9 @@ def bookshelf():
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
-                           displayList=display_list,
+                           # escape bashslash for proper transfer
+                           # TEX formulas
+                           displayList=display_list.replace('\\', '\\\\'),
                            tags=dumps(tags_dict),
                            math_jax=session['pref'].get('tex'),
                            dark=session['pref'].get('dark')
@@ -254,70 +255,10 @@ def del_bm():
     db.session.commit()
     return dumps({'success':True}), 201
 
-######### Daemon functions #############################################
-
-@main_bp.route('/load_papers', methods=['GET'])
-def load_papers():
-    """Load papers and store in the database."""
-    # auth stuff
-    logging.info('Start paper table update')
-    if current_app.config['TOKEN'] != request.args.get('token'):
-        logging.error('Wrong token')
-        return dumps({'success':False}), 422
-
-    # last paper in the DB
-    last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-    today_date = datetime.now()
-    if not last_paper:
-        # if no last paper download for this month
-        last_paper_date = today_date - timedelta(days=today_date.day)
-    else:
-        last_paper_date = last_paper.date_up - timedelta(days=1)
-
-    # update_papers() params
-    # by default updates are on
-    params = {'do_update': True}
-    if 'n_papers' in request.args:
-        params['n_papers'] = int(request.args.get('n_papers'))
-    if 'do_update' in request.args:
-        params['do_update'] = request.args.get('do_update')
-    if 'from' in request.args:
-        params['last_paper_date'] = datetime.strptime(request.args['from'],
-                                            '%Y-%m-%d'
-                                             )
-    else:
-        params['last_paper_date'] = last_paper_date
-
-    logging.info('Parameters: %s', params)
-
-    # initiaise paper API
-    paper_api = ArxivOaiApi()
-
-    # API cal params
-    if request.args.get('set'):
-        paper_api.set_set(request.args.get('set'))
-    # from argument is privelaged over last paper in the DB
-    if request.args.get('from'):
-        paper_api.set_from(request.args.get('set'))
-    else:
-        paper_api.set_from(datetime.strftime(last_paper_date,
-                                             '%Y-%m-%d'
-                                             ))
-
-    # further code is paper source independent.
-    # Any API can be defined above
-    update_papers([paper_api], **params)
-
-    return dumps({'success':True}), 201
-
-@main_bp.route('/bookmark_papers', methods=['GET'])
-def bookmark_papers():
-    """Auto bookmark new submissions."""
-
-@main_bp.route('/email_papers', methods=['GET'])
-def email_papers():
-    """Email notifications about new submissions."""
-
 @main_bp.route('/public_tags', methods=['GET'])
+@login_required
 def public_tags():
     """Get puclicly available tags as examples."""
+    tags = Tag.query.filter_by(public=True).order_by(Tag.name)
+
+    return jsonify(tag_name_and_rule(tags))

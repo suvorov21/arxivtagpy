@@ -375,7 +375,8 @@ function checkTag() {
     return false;
   }
 
-  if (findTagIdByName(document.forms["add-tag"]["tag_name"].value) !== -1) {
+  let tagWithSameNameId = findTagIdByName(document.forms["add-tag"]["tag_name"].value);
+  if (tagWithSameNameId !== -1 && tagWithSameNameId !== editTagId) {
     $(".cat-alert").html("Tag with this name already exists. Consider a unique name!");
     return false;
   }
