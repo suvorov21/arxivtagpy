@@ -7,16 +7,15 @@ import logging
 from flask import Blueprint, render_template, session, redirect, \
 request, jsonify, current_app
 from flask_login import current_user, login_required
-# from flask_mail import Message
 
-from .model import db, Paper, PaperList, paper_associate
-from .render import render_papers, render_title, render_tags_front
+from .model import db, Paper, PaperList, paper_associate, Tag
+from .render import render_papers, render_title, \
+render_tags_front, tag_name_and_rule
 from .auth import new_default_list, DEFAULT_LIST
 from .papers import process_papers, render_paper_json
 from .paper_api import get_arxiv_last_date
 from .utils import url
 from .settings import load_prefs
-# from . import mail
 
 main_bp = Blueprint(
     'main_bp',
@@ -257,10 +256,9 @@ def del_bm():
     return dumps({'success':True}), 201
 
 @main_bp.route('/public_tags', methods=['GET'])
+@login_required
 def public_tags():
     """Get puclicly available tags as examples."""
-    if current_app.config['TOKEN'] != request.args.get('token'):
-        logging.error('Wrong token')
-        return dumps({'success':False}), 422
+    tags = Tag.query.filter_by(public=True).order_by(Tag.name)
 
-    return dumps({'success':True}), 201
+    return jsonify(tag_name_and_rule(tags))

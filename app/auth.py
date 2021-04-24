@@ -178,6 +178,7 @@ def restore_pass():
         user.pasw = generate_password_hash(new_pass)
         db.session.commit()
 
+        # create an email
         body = 'Hello,\n\nYour password for the website arxivtag.tk'
         body += ' was reset. The new password is provided below.\n'
         body += 'Please, consider password change immidietly after login'

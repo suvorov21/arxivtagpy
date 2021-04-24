@@ -117,6 +117,23 @@ class Tag(db.Model):
         return f'<Tag id: {self.id} name: {self.name}>'
 
 
+class UpdateDate(db.Model):
+    """
+    Table to store update dates.
+
+    Store dates of the last updates e.g. lst bookmarked
+    or last email paper.
+    """
+    last_bookmark = db.Column(db.DateTime(),
+                              nullable=True,
+                              primary_key=True
+                              )
+
+    last_email = db.Column(db.DateTime(),
+                           nullable=True
+                           )
+
+
 # helper table to deal with many-to-many relations
 # lists --> papers
 # return papers by paperlist Paper.query.with_parent(some_list)
