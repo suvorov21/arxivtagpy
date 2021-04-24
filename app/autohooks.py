@@ -118,16 +118,13 @@ def bookmark_papers():
     tags = Tag.query.filter_by(bookmark=True).order_by(Tag.user_id)
 
     # the date until one the papers will be processed
-    old_date_record = UpdateDate.query.first()
-
-    if not old_date_record:
-        old_date = month_start()
-        old_date_record = UpdateDate(last_bookmark=old_date,
-                                     last_email=old_date)
-        db.session.add(old_date_record)
-        db.session.commit()
-
+    old_date_record = get_old_update_date()
     old_date = old_date_record.last_bookmark
+
+    if 'from' in request.args:
+        old_date = datetime.strptime(request.args['from'],
+                                     '%Y-%m-%d'
+                                     )
 
     prev_user = -1
 
@@ -136,9 +133,6 @@ def bookmark_papers():
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
-            if prev_user != -1:
-                # so far, commit to db user by user
-                db.session.commit()
             logging.debug('Bookmark for user %i', tag.user_id)
             user = User.query.filter_by(id=tag.user_id).first()
             # 2.3 query papers with user's cats
@@ -206,14 +200,7 @@ def email_papers():
     tags = Tag.query.filter_by(email=True).order_by(Tag.user_id)
 
     # the date until one the papers will be processed
-    old_date_record = UpdateDate.query.first()
-    if not old_date_record:
-        old_date = month_start()
-        old_date_record = UpdateDate(last_bookmark=old_date,
-                                     last_email=old_date)
-        db.session.add(old_date_record)
-        db.session.commit()
-
+    old_date_record = get_old_update_date()
     old_date = old_date_record.last_email
 
     prev_user = -1
@@ -284,3 +271,15 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
 
     if do_send:
         mail.send(msg)
+
+def get_old_update_date() -> UpdateDate:
+    """Chech if the database record with latest update exists. If not create."""
+    old_date_record = UpdateDate.query.first()
+    if not old_date_record:
+        old_date = month_start()
+        old_date_record = UpdateDate(last_bookmark=old_date,
+                                     last_email=old_date)
+        db.session.add(old_date_record)
+        db.session.commit()
+
+    return old_date_record

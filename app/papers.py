@@ -130,19 +130,18 @@ def process_papers(papers: Dict,
     papers['n_tags'] = [0] * len(tags)
     for paper in papers['papers']:
         if do_nov:
-            # 1.a count cross-refs
+            # count paper per category
             for cat in paper['cats']:
-                # increase cat counter
                 if cat in cats:
                     papers['n_cats'][cats.index(cat)] += 1
-                # check if cross-ref
-                if cat not in cats and paper['cats'][0] not in cats:
-                    papers['n_nov'][1] += 1 if paper['nov'] != 2 else 0
-                    paper['nov'] = 2
+            # 1.a check if cross-ref
+            if paper['cats'][0] not in cats:
+                papers['n_nov'][1] += 1
+                paper['nov'] += 2
 
             # 1.b count updated papers
             if paper['date_sub'] < papers['last_date']:
-                paper['nov'] = 4
+                paper['nov'] += 4
                 papers['n_nov'][2] += 1
 
             if paper['nov'] == 0:
