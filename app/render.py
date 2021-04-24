@@ -19,15 +19,17 @@ def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
 def render_papers(papers: Dict, **kwargs) -> Dict:
     """Convert papers dict to minimize info."""
     if kwargs.get('sort'):
+        reverse=False
         if  kwargs['sort'] == 'tag':
             # WARNING cross-fingered nobody will use 1000 tags
             # otherwise I'm in trouble
             key = lambda t: t['tags'] if len(t['tags']) > 0 else [1000]
         elif kwargs['sort'] == 'date_up':
             key = lambda t: t['date_up']
+            reverse=True
         papers['papers'] = sorted(papers['papers'],
                                   key=key,
-                                  reverse=True
+                                  reverse=reverse
                                   )
 
     for paper in papers['papers']:
