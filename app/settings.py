@@ -7,7 +7,7 @@ from typing import Dict
 from flask import Blueprint, render_template, session, request
 from flask_login import current_user, login_required
 
-from .model import db, Tag
+from .model import db, Tag, PaperList
 
 settings_bp = Blueprint(
     'settings_bp',
@@ -80,22 +80,29 @@ def mod_tag():
                           tag,
                           current_user
                           )
-            new_tag = Tag(name=tag['name'],
-                          rule=tag['rule'],
-                          color=tag['color'],
-                          bookmark=tag['bookmark'],
-                          email=tag['email'],
-                          public=tag['public']
-                          )
+            db_tag = Tag(name=tag['name'],
+                         rule=tag['rule'],
+                         color=tag['color'],
+                         bookmark=tag['bookmark'],
+                         email=tag['email'],
+                         public=tag['public']
+                         )
         else:
             # tag already exists
-            new_tag = Tag.query.filter_by(id=tag['id']).first()
+            db_tag = Tag.query.filter_by(id=tag['id']).first()
         # if tag was modified
         if tag.get('mod'):
-            update_tag(new_tag, tag)
+            # if name was changed and auto-bookmark was setup
+            # update the coresponding paper-list name
+            if db_tag.name != tag['name'] and db_tag.bookmark:
+                paper_list = PaperList.query.filter_by(user_id=current_user.id,
+                                                       name=db_tag.name
+                                                       ).first()
+                paper_list.name = tag['name']
+            update_tag(db_tag, tag)
 
-        current_user.tags.append(new_tag)
-        session['tags'].append(tag_to_dict(new_tag))
+        current_user.tags.append(db_tag)
+        session['tags'].append(tag_to_dict(db_tag))
 
     db.session.commit()
     return dumps({'success':True}), 201
