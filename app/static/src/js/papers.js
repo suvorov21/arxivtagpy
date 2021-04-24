@@ -1,4 +1,5 @@
 /*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase*/
+/*exported novChange */
 /*eslint no-undef: "error"*/
 
 let TO_RENDER = 20;
@@ -71,7 +72,7 @@ function toggleVis(start=0) {
 function checkCat(event) {
   let number = event.target.getAttribute("id").split("-")[2];
   let cat = document.getElementById("cat-label-" + number).textContent;
-  prefs.data.catsArr[cat] = document.getElementById("check-cat-" + number).checked;
+  prefs.data.catsArr[`${cat}`] = document.getElementById("check-cat-" + number).checked;
   prefs.save();
   toggleVis();
 }
@@ -81,7 +82,7 @@ function renderCats() {
   CATS.forEach((cat, num) => {
     // if category not in cookies visibility dictionary --> add it
     if (!(cat in prefs.data.catsArr)) {
-      prefs.data.catsArr[cat] = true;
+      prefs.data.catsArr[`${cat}`] = true;
     }
 
     let parent = document.createElement("div");
@@ -95,7 +96,7 @@ function renderCats() {
     check.id = "check-cat-"+num;
     check.className = "form-check-input check-cat";
     // read visibility from cookies
-    check.checked = prefs.data.catsArr[cat];
+    check.checked = prefs.data.catsArr[`${cat}`];
     check.addEventListener("click", checkCat);
 
     // category name
