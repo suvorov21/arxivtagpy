@@ -130,6 +130,9 @@ def bookmark_papers():
     old_date = old_date_record.last_bookmark
 
     prev_user = -1
+
+    n_user = 0
+    n_papers = 0
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
@@ -143,6 +146,7 @@ def bookmark_papers():
                                         Paper.date_up > old_date
                                         ).order_by(Paper.date_up).all()
             prev_user = tag.user_id
+            n_user += 1
         # 3.1
         paper_list = PaperList.query.filter_by(user_id=prev_user,
                                                name=tag.name
@@ -165,12 +169,16 @@ def bookmark_papers():
                                                       ).first()
                 if not result:
                     paper_list.papers.append(paper)
+                    n_papers += 1
 
     # store the last checked paper
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     old_date_record.last_bookmark = last_paper.date_up
     db.session.commit()
-    logging.info('Done with bookmarks.')
+    logging.info('Done with bookmarks. Users %r, papers, %s',
+                 n_user,
+                 n_papers
+                 )
 
     return dumps({'success':True}), 201
 
@@ -210,6 +218,8 @@ def email_papers():
 
     prev_user = -1
     papers_to_send = []
+    n_user = 0
+    n_papers = 0
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
@@ -224,6 +234,7 @@ def email_papers():
                 email_paper_update(papers_to_send, user.email, do_send)
 
             prev_user = tag.user_id
+            n_user += 1
             papers_to_send = [{'tag': tag.name,
                                'papers': []
                                }]
@@ -232,6 +243,7 @@ def email_papers():
         for paper in papers:
             if tag_suitable(render_paper_json(paper), tag.rule):
                 papers_to_send[-1]['papers'].append(paper)
+                n_papers += 1
 
 
     # for the last user
@@ -244,8 +256,10 @@ def email_papers():
     old_date_record.last_email = last_paper.date_up
     db.session.commit()
 
-    logging.info('Done with emails.')
-
+    logging.info('Done with emails. Users %r, papers, %s',
+                 n_user,
+                 n_papers
+                 )
     return dumps({'success':True}), 201
 
 def month_start():
@@ -268,6 +282,5 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
                   subject="arXiv tag paper feed"
                   )
 
-    logging.info('Send %s \n to %s', body, email)
     if do_send:
         mail.send(msg)
