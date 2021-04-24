@@ -5,7 +5,7 @@ from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-request, jsonify, current_app
+request, jsonify
 from flask_login import current_user, login_required
 
 from .model import db, Paper, PaperList, paper_associate, Tag

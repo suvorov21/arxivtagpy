@@ -10,7 +10,7 @@ from app.model import Paper
 def test_load_papers(client):
     """Test paper loading."""
     response = client.get(url_for('auto_bp.load_papers',
-                                  token='test_token',
+                                  token='test_token', # nosec
                                   n_papers=10,
                                   set='physics:hep-ex'
                                   ))
@@ -78,15 +78,15 @@ def test_wrong_token(client):
 def test_paper_bookmark(client):
     """Test auto bookmark papers."""
     response = client.get(url_for('auto_bp.bookmark_papers',
-                              token='test_token',
+                              token='test_token' # nosec
                               ))
     assert response.status_code == 201
 
 
-def test_paper_bookmark(client):
-    """Test auto bookmark papers."""
+def test_paper_email(client):
+    """Test auto email papers."""
     response = client.get(url_for('auto_bp.email_papers',
-                              token='test_token',
+                              token='test_token', # nosec
                               do_send=False
                               ))
     assert response.status_code == 201
@@ -94,5 +94,6 @@ def test_paper_bookmark(client):
 def test_public_tags(client, login):
     """Test public available tags."""
     response = client.get(url_for('main_bp.public_tags'))
+    exp_token = '[{"name":"test","rule":"ti{math}|abs{physics}&au{John}"}]\n'
     assert response.status_code == 200
-    assert response.get_data(as_text=True) == '[{"name":"test","rule":"ti{math}|abs{physics}&au{John}"}]\n'
+    assert response.get_data(as_text=True) == exp_token

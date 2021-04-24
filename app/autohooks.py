@@ -29,18 +29,18 @@ auto_bp = Blueprint(
     static_folder='static'
 )
 
-def check_token(fn):
+def check_token(funct):
     """
     Decorator that checks the token.
 
     Used in the autometic functions for verifications.
     """
-    @wraps(fn)
+    @wraps(funct)
     def my_wrapper(*args, **kwargs):
         if current_app.config['TOKEN'] != request.args.get('token'):
             logging.error('Wrong token')
             return dumps({'success':False}), 422
-        return fn(*args, **kwargs)
+        return funct(*args, **kwargs)
 
     return my_wrapper
 
@@ -228,11 +228,6 @@ def email_papers():
                                'papers': []
                                }]
 
-        # 3.1
-        paper_list = PaperList.query.filter_by(user_id=prev_user,
-                                               name=tag.name
-                                               ).first()
-
         # 3.2
         for paper in papers:
             if tag_suitable(render_paper_json(paper), tag.rule):
@@ -263,8 +258,8 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
     body = 'Hello,\n\nWe created a daily paper feed based on your preferences.'
     for paper_tag in papers:
         body += '\n\nFor tag ' + paper_tag['tag'] + ':\n'
-        for n, paper in enumerate(paper_tag['papers']):
-            body += f'{str(n+1)}. {paper.title}\n'
+        for number, paper in enumerate(paper_tag['papers']):
+            body += f'{str(number+1)}. {paper.title}\n'
 
     body += '\n\n\nRegards, \narXiv tag team.'
     msg = Message(body=body,

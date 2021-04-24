@@ -9,7 +9,6 @@ function renderLists() {
     let link = document.createElement("a");
     link.href = hrefBase + "=" + listName;
     link.className = "nav-link";
-    console.log(listName + "  " + displayList)
     if (listName === displayList) {
       link.className += " active";
     }

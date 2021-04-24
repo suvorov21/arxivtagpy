@@ -95,5 +95,3 @@ class TestLiveServer():
         sleep(1)
         element = driver.find_element_by_class_name('alert-dismissible')
         assert 'success' in element.get_attribute('class')
-
-
