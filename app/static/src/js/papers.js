@@ -40,7 +40,7 @@ function toggleVis(start=0) {
   // create a list of categories that are visible based on checkbox selection
   let catsShow = [];
   for (let key in prefs.data.catsArr) {
-    if (prefs.data.catsArr[key]) {
+    if (prefs.data.catsArr[`${key}`]) {
       catsShow.push(key);
     }
   }
@@ -51,7 +51,7 @@ function toggleVis(start=0) {
         (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
         (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
         // filter on categories check boxes
-        catsShow.filter(value => paper.cats.includes(value)).length > 0
+        catsShow.filter((value) => paper.cats.includes(value)).length > 0
         ) {
       passed += 1;
       paperVisibility(true, pId);
