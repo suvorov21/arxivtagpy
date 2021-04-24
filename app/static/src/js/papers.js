@@ -1,7 +1,7 @@
 /*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase*/
 /*eslint no-undef: "error"*/
 
-let PAPERS_TO_RENDER = 20;
+let TO_RENDER = 20;
 let START = 0;
 let DONE = false;
 var VISIBLE = 0;
@@ -11,49 +11,51 @@ function formateDate(date) {
   return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
 }
 
+function paperVisibility(vis, pId) {
+  // do not show too much papers
+  if (pId >= START + TO_RENDER) {
+    return;
+  }
+
+  if (vis) {
+    // show paper with aproproate number
+    document.getElementById("paper-" + pId).style["display"] = "block";
+    let number = document.getElementById("paper-num-" + pId);
+    VISIBLE += 1;
+    number.textContent = String(VISIBLE);
+  } else {
+    // hide paper
+    document.getElementById("paper-" + pId).style["display"] = "none";
+  }
+}
+
 // toggle the visibility of rendered papers
 function toggleVis(start=0) {
   let passed = 0;
   if (start === 0) {
     VISIBLE = 0;
   }
-  for(let pId = start; pId < DATA.papers.length; pId ++) {
+
+  // create a list of categories that are visible based on checkbox selection
+  let catsShow = [];
+  for (let key in prefs.data.catsArr) {
+    if (prefs.data.catsArr[key]) {
+      catsShow.push(key);
+    }
+  }
+  for(let pId = start; pId < DATA.papers.length; pId++) {
     let paper = DATA.papers[parseInt(pId, 10)];
-    let display = false;
-    if (prefs.data.showNov[0] === true && paper.nov === 1 ||
-        prefs.data.showNov[1] === true && paper.nov === 2 ||
-        prefs.data.showNov[2] === true && paper.nov === 4) {
-      display = true;
-    } else {
-      display = false;
-    }
-    if (display) {
-      for (let catId = 0; catId < prefs.data.catsArr.length; catId++) {
-        let cat = prefs.data.catsArr[parseInt(catId, 10)];
-        if (prefs.data.catsShowArr[parseInt(catId, 10)] && paper.cats.includes(cat)) {
-          display = true;
-          break;
-        } else {
-          display = false;
-        }
-      }
-    }
-
-    if (display) {
+    // Logic: if check-box is off --> cut all the affected papers
+    if ((prefs.data.showNov[0] === true || !(paper.nov & 1)) &&
+        (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
+        (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
+        // filter on categories check boxes
+        catsShow.filter(value => paper.cats.includes(value)).length > 0
+        ) {
       passed += 1;
-    }
-
-    if (pId >= START + PAPERS_TO_RENDER) {
-      continue;
-    }
-
-    if (display) {
-      document.getElementById("paper-" + pId).style["display"] = "block";
-      let number = document.getElementById("paper-num-" + pId);
-      VISIBLE += 1;
-      number.textContent = String(VISIBLE);
+      paperVisibility(true, pId);
     } else {
-      document.getElementById("paper-" + pId).style["display"] = "none";
+      paperVisibility(false, pId);
     }
   }
 
@@ -66,39 +68,20 @@ function toggleVis(start=0) {
   }
 }
 
-function renderTitle() {
-  let title = document.getElementById("paper-list-title");
-  let date = new Date();
-  let dateNew = new Date();
-  if (title.textContent.includes("today")) {
-    title.textContent += ": " + formateDate(date);
-  } else if (title.textContent.includes("week")) {
-    let start = new Date(date.setDate(date.getDate() - date.getDay() + 1));
-    let end = new Date(dateNew.setDate(dateNew.getDate() + 7 - dateNew.getDay()));
-    // Sunday (Burn in hell JS!!!)
-    if ((new Date()).getDay() === 0) {
-      start = new Date(start.setDate(start.getDate() - 7));
-      end = new Date(dateNew.setDate(end.getDate() - 7));
-    }
-    title.textContent += ": " + formateDate(start) + " - " + formateDate(end);
-  } else if (title.textContent.includes("month")) {
-    let end = new Date;
-    let start = new Date(date.setDate(date.getDate() - date.getDate() + 1));
-
-    // TODO it's a dirty fix. Need proper treatment
-    if (dateNew.getDate() === 1) {
-      start = new Date(dateNew.setDate(dateNew.getDate() - 1));
-    }
-    title.textContent += ": " +formateDate(start) + " - " + formateDate(end);
-  }
+function checkCat(event) {
+  let number = event.target.getAttribute("id").split("-")[2];
+  let cat = document.getElementById("cat-label-" + number).textContent;
+  prefs.data.catsArr[cat] = document.getElementById("check-cat-" + number).checked;
+  prefs.save();
+  toggleVis();
 }
 
 function renderCats() {
   // TODO check if there are old cats in cookies
   CATS.forEach((cat, num) => {
-    if (!prefs.data.catsArr.includes(cat)) {
-      prefs.data.catsArr.push(cat);
-      prefs.data.catsShowArr.push(true);
+    // if category not in cookies visibility dictionary --> add it
+    if (!(cat in prefs.data.catsArr)) {
+      prefs.data.catsArr[cat] = true;
     }
 
     let parent = document.createElement("div");
@@ -111,24 +94,18 @@ function renderCats() {
     check.setAttribute("type", "checkbox");
     check.id = "check-cat-"+num;
     check.className = "form-check-input check-cat";
-    if (prefs.data.catsShowArr[prefs.data.catsArr.indexOf(cat)]) {
-      check.checked = true;
-    }
-    check.onchange = function() {
-      let number = event.target.getAttribute("id").split("-")[2];
-      let cat = document.getElementById("cat-label-"+num).textContent;
-      let index = prefs.data.catsArr.indexOf(cat);
-      prefs.data.catsShowArr[parseInt(index, 10)] = document.getElementById("check-cat-"+number).checked;
-      prefs.save();
-      toggleVis();
-    };
+    // read visibility from cookies
+    check.checked = prefs.data.catsArr[cat];
+    check.addEventListener("click", checkCat);
 
+    // category name
     let catElement = document.createElement("label");
     catElement.className = "form-check-label";
     catElement.id = "cat-label-"+num;
     catElement.setAttribute("for", "check-cat-"+num);
     catElement.textContent = cat;
 
+    // number of papers of given category
     let counter = document.createElement("div");
     counter.className = "ml-auto counter";
     counter.id = "cat-count-"+num;
@@ -193,7 +170,7 @@ function renderCounters() {
 function addBookmark(event) {
   // WARNING
   // UB addBookmark listener is added to all the buttons, not the bookmark only one
-  // prevent the bookmark addinf for other buttons
+  // prevent the bookmark adding for other buttons
   if (!event.target.id.includes("btn-book") &&
       !event.target.id.includes("a-icon")) {
     return;
@@ -217,15 +194,13 @@ function addBookmark(event) {
 }
 
 function renderPapers() {
-  for(let pId = START; pId < START + PAPERS_TO_RENDER; pId++) {
-    if (DATA.papers.length <= pId) {
-      break;
-    }
-    let content = DATA.papers[parseInt(pId, 10)];
+  for (let pId = START; pId < Math.min(START + TO_RENDER, DATA.papers.length); pId++) {
 
+    let content = DATA.papers[parseInt(pId, 10)];
     let paperBase = renderPapersBase(content, pId);
     let btnPanel = paperBase[1];
 
+    // add bookmark button
     let btnBook = document.createElement("button");
     btnBook.className = "btn btn-primary";
     btnBook.id = "btn-book-"+pId;
@@ -239,6 +214,7 @@ function renderPapers() {
     btnGroup4.appendChild(btnBook);
   }
 
+  // check papers compatibility with visibility settings with checkboxes
   toggleVis(START);
 
   if (parseTex) {
@@ -257,7 +233,7 @@ function sortPapers() {
   $("#paper-list-content").empty();
   START = 0;
   let sortMethod = $("#sort-sel").val();
-  // tag increase
+  // tags
   if (sortMethod.includes("tag")) {
 
     DATA.papers.sort((a, b) => {
@@ -269,12 +245,21 @@ function sortPapers() {
     });
   }
   // dates
-  if (sortMethod.includes("date")) {
+  if (sortMethod.includes("date-up")) {
     DATA.papers.sort((a, b) => {
       let aDate = new Date(a.date_up);
       let bDate = new Date(b.date_up);
       return sortFunction(aDate, bDate,
-                          sortMethod === "date-des"? true : false);
+                          sortMethod === "date-up_des"? true : false);
+    });
+  }
+
+  if (sortMethod.includes("date-sub")) {
+    DATA.papers.sort((a, b) => {
+      let aDate = new Date(a.date_sub);
+      let bDate = new Date(b.date_sub);
+      return sortFunction(aDate, bDate,
+                          sortMethod === "date-sub_des"? true : false);
     });
   }
 
@@ -299,30 +284,20 @@ function sortPapers() {
                           sortMethod === "cat-as"? true : false);
     });
   }
-
-  // Novelty new-crossref-update
-  if (sortMethod.includes("nov")) {
-    DATA.papers.sort((a, b) => {
-      let novA = a.nov;
-      let novB = b.nov;
-      return sortFunction(novA, novB,
-                          sortMethod === "nov-des"? true : false);
-    });
-  }
 }
 
 // change sort selector
 $("#sort-sel").change(() => {
   $("#sorting-proc").css("display", "block");
   sortPapers();
-  // dirty fix to throw displayPapers() in the separate thread
+  // dirty fix to throw renderPapers() in the separate thread
   // and not freeze the selector
   setTimeout(function () {
     renderPapers();
     $("#sorting-proc").css("display", "none");
-    if (parseTex) {
-      MathJax.typesetPromise();
-    }
+    // if (parseTex) {
+    //   MathJax.typesetPromise();
+    // }
   }, 0);
 });
 
@@ -340,7 +315,7 @@ function scrollIfNeeded() {
   var scrollPercentage = (scrollTop / bodyHeight);
 
   if(scrollPercentage > 0.9 || bodyHeight < 0) {
-    START += PAPERS_TO_RENDER;
+    START += TO_RENDER;
     document.getElementById("loading-papers").style["display"] = "block";
     renderPapers();
   }
@@ -356,27 +331,10 @@ document.getElementById("filter-button").onclick = function() {
   }
 };
 
-function addAnchors() {
-  // add anchors for click on novelty checkbox
-  var anchors = document.getElementsByClassName("check-nov");
-  for(let i = 0; i < anchors.length; i++) {
-    let anchor = anchors[i];
-    anchor.onchange = function(event) {
-      let number = event.target.getAttribute("id").split("-")[2];
-      prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
-      prefs.save();
-      toggleVis();
-    };
-  }
-  // add ahchors for click on novelty labels
-  anchors = document.getElementsByClassName("item-nov");
-  for(let i = 0; i < anchors.length; i++) {
-    let anchor = anchors[parseInt(i, 10)];
-    anchor.onclick = function(event) {
-      let number = event.target.getAttribute("id").split("-")[1];
-      document.getElementById("check-nov-"+number).click();
-    }
-  }
+function novChange(number) {
+  prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
+  prefs.save();
+  toggleVis();
 }
 
 window.onload = function() {
@@ -386,26 +344,16 @@ window.onload = function() {
   // Get paper data from backend
   $.get(url)
   .done(function(data) {
-    // document.getElementById("loading-papers").style["display"] = "none";
     DATA = data;
     renderCounters();
     renderPapers();
     $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
-    if (jqXHR.status === 404) {
-      $("#loading-papers").text("Paper source website is not responding. Is it down?");
-    } else if (jqXHR.status === 400) {
-      $("#loading-papers").text("Paper source website response with no papers for your request");
-    } else {
-      $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please try later.");
-    }
+    $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please, try later.");
   });
-  renderTitle();
   renderNov();
   renderCats();
   renderTags();
-
-  addAnchors();
 };
 
 window.onscroll = function() {
