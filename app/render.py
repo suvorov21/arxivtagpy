@@ -4,6 +4,36 @@ from typing import Dict, List
 from datetime import datetime
 from .model import Tag
 
+# dictionary for acccents
+accents = {"\\'a": '&agrave;',
+           "\\'A": '&Agrave;',
+           "\\'e": '&eacute;',
+           "\\'E": '&Eacute;',
+           '\\"u': '&uuml;',
+           '\\"U': '&Uuml;',
+           "\\'i": '&iacute;',
+           "\\'I": '&Iacute;',
+           "\\`a": '&agrave;',
+           "\\`A": '&Agrave;',
+           "\\`e": '&egrave;',
+           "\\`E": '&Egrave;',
+           "\\'u": '&uacute;',
+           "\\'U": '&Uacute;',
+           "\\'c": '&cacute;',
+           "\\'C": '&Cacute;',
+           "\\`u": '&ugrave;',
+           "\\`U": '&Ugrave;',
+           '\\~n': '&ntilde;',
+           '\\~N': '&Ntilde;',
+           '\\c{c}': '&ccedil;',
+           '\\"o': '&ouml;',
+           '\\"O': '&Ouml;',
+           "\\'o": '&oacute;',
+           "\\'O": '&Oacute;',
+           "\\`o": '&ograve;',
+           "\\`O": '&Ograve;'
+           }
+
 def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
     """Put the date type in the title text."""
     if date_type == 0:
@@ -33,6 +63,17 @@ def render_papers(papers: Dict, **kwargs) -> Dict:
                                   )
 
     for paper in papers['papers']:
+        # cut author list and join to string
+        if paper.get('author') and len(paper['author']) > 4:
+            paper['author'] = paper['author'][:1]
+            paper['author'].append('et al')
+        paper['author'] = ', '.join(paper['author'])
+
+        # fix accents in author list
+        for key, value in accents.items():
+            paper['author'] = paper['author'].replace(key, value)
+
+        # render dates
         paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
 
         if paper.get('date_up'):
@@ -47,7 +88,7 @@ def render_tags_front(tags: Dict) -> Dict:
     return tags_dict
 
 def tag_name_and_rule(tags: List[Tag]) -> List:
-    """Return only tag name in rule in JSON."""
+    """Return only tag name and rule in JSON."""
     json = []
     for tag in tags:
         json.append({'name': tag.name,
