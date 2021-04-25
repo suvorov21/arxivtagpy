@@ -47,7 +47,6 @@ function deleteBookmark(event) {
 }
 
 function renderPapers() {
-  document.getElementById("paper-list-title").textContent = DATA.list;
   DATA.papers.forEach((paper, num) => {
     let paperBase = renderPapersBase(paper, num);
 

@@ -192,6 +192,7 @@ def bookshelf():
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
+                           title=paper_list.name,
                            # escape bashslash for proper transfer
                            # TEX formulas
                            displayList=display_list.replace('\\', '\\\\'),
