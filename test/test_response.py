@@ -9,7 +9,7 @@ from app.model import Paper
 
 def test_load_papers(client):
     """Test paper loading."""
-    response = client.get(url_for('auto_bp.load_papers',
+    response = client.get(url_for('auto_bp.load_papers', # nosec
                                   token='test_token', # nosec
                                   n_papers=10,
                                   set='physics:hep-ex'
@@ -70,14 +70,14 @@ def test_settings_page(client, login):
 
 def test_wrong_token(client):
     """Test access of the auto functions with wrong token."""
-    response = client.get(url_for('auto_bp.load_papers',
-                              token='wrong_token',
+    response = client.get(url_for('auto_bp.load_papers', # nosec
+                              token='wrong_token', # nosec
                               ))
     assert response.status_code == 422
 
 def test_paper_bookmark(client):
     """Test auto bookmark papers."""
-    response = client.get(url_for('auto_bp.bookmark_papers',
+    response = client.get(url_for('auto_bp.bookmark_papers', # nosec
                               token='test_token' # nosec
                               ))
     assert response.status_code == 201
@@ -85,7 +85,7 @@ def test_paper_bookmark(client):
 
 def test_paper_email(client):
     """Test auto email papers."""
-    response = client.get(url_for('auto_bp.email_papers',
+    response = client.get(url_for('auto_bp.email_papers', # nosec
                               token='test_token', # nosec
                               do_send=False
                               ))
@@ -94,6 +94,6 @@ def test_paper_email(client):
 def test_public_tags(client, login):
     """Test public available tags."""
     response = client.get(url_for('main_bp.public_tags'))
-    exp_token = '[{"name":"test","rule":"ti{math}|abs{physics}&au{John}"}]\n'
+    exp_tag = '[{"name":"test","rule":"ti{math}|abs{physics}&au{John}"}]\n'
     assert response.status_code == 200
-    assert response.get_data(as_text=True) == exp_token
+    assert response.get_data(as_text=True) == exp_tag
