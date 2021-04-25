@@ -15,6 +15,17 @@ function cssVar(name, value) {
   return getComputedStyle(document.documentElement).getPropertyValue(name);
 }
 
+function addCatClick(event) {
+  let name = event.target.getAttribute("id").split("_")[1];
+  $("#par-cat-" + name).removeClass("d-flex");
+  $("#par-cat-" + name).fadeOut();
+  $(".btn").removeClass("disabled");
+  const catId = CATS.indexOf(name.replace("111", "."));
+  if (catId > -1) {
+    CATS.splice(catId, 1);
+  }
+}
+
 // ************************  RENDERS *******************************************
 function addCat(cat) {
   // Dots replace with 111 to be a legal
@@ -41,25 +52,28 @@ function addCat(cat) {
   close.setAttribute("class", "close close-btn");
   close.innerHTML = "&times";
 
-  close.onclick = function(event) {
-    let name = event.target.getAttribute("id").split("_")[1];
-    $("#par-cat-" + name).removeClass("d-flex");
-    $("#par-cat-" + name).fadeOut();
-    $(".btn").removeClass("disabled");
-    const catId = CATS.indexOf(name.replace("111", "."));
-    if (catId > -1) {
-      CATS.splice(catId, 1);
-    }
-  };
+  close.addEventListener("click", addCatClick);
 
   let catElement = document.createElement("div");
   catElement.setAttribute("class", "pl-2");
   catElement.setAttribute("id", "cat-name-" + cat.replaceAll(".", "111"));
-  catElement.textContent = allCatsArray[cat];
+  catElement.textContent = allCatsArray[`${cat}`];
 
   document.getElementById("cats-list").appendChild(parent);
   parent.appendChild(close);
   parent.appendChild(catElement);
+}
+
+function catDrop(event) {
+  event.preventDefault();
+  let moved = event.dataTransfer.getData("Text");
+  let movedId = CATS.indexOf(moved);
+  let targetId = CATS.indexOf(dragTarget);
+  CATS[parseInt(movedId, 10)] = dragTarget;
+  CATS[parseInt(targetId, 10)] = moved;
+
+  $(".btn").removeClass("disabled");
+  reloadSettings();
 }
 
 function renderCats() {
@@ -71,27 +85,30 @@ function renderCats() {
   document.getElementById("cats-list").ondragover = function(event) {
     event.preventDefault();
   };
-  document.getElementById("cats-list").ondrop = function(event) {
-    event.preventDefault();
-    let moved = event.dataTransfer.getData("Text");
-    let movedId = CATS.indexOf(moved);
-    let targetId = CATS.indexOf(dragTarget);
-    CATS[parseInt(movedId, 10)] = dragTarget;
-    CATS[parseInt(targetId, 10)] = moved;
-
-    $(".btn").removeClass("disabled");
-    reloadSettings();
-  };
+  document.getElementById("cats-list").addEventListener("drop", catDrop);
 }
 
 const findTagIdByName = (name) => {
   for (let tagId = 0; tagId < TAGS.length; tagId++) {
-    if (TAGS[tagId]["name"] === name) {
+    if (TAGS[parseInt(tagId, 10)]["name"] === name) {
       return tagId;
     }
   }
   return -1;
 };
+
+function tagDrop(event) {
+  event.preventDefault();
+  let moved = event.dataTransfer.getData("Text");
+  let movedId = parseInt(moved, 10);
+  let targetId = parseInt(dragTarget, 10);
+  let buffer = TAGS[parseInt(movedId, 10)];
+  TAGS[parseInt(movedId, 10)] = TAGS[parseInt(targetId, 10)];
+  TAGS[parseInt(targetId, 10)] = buffer;
+
+  $(".btn").removeClass("disabled");
+  reloadSettings();
+}
 
 function renderTags() {
   $("#tag-list").empty();
@@ -126,18 +143,8 @@ function renderTags() {
     event.preventDefault();
   };
 
-  document.getElementById("tag-list").ondrop = function(event) {
-    event.preventDefault();
-    let moved = event.dataTransfer.getData("Text");
-    let movedId = parseInt(moved, 10);
-    let targetId = parseInt(dragTarget, 10);
-    let buffer = TAGS[parseInt(movedId, 10)];
-    TAGS[parseInt(movedId, 10)] = TAGS[parseInt(targetId, 10)];
-    TAGS[parseInt(targetId, 10)] = buffer;
-
-    $(".btn").removeClass("disabled");
-    reloadSettings();
-  }
+  // tag reordering
+  document.getElementById("tag-list").addEventListener("drop", tagDrop);
 
   if (parseTex) {
     MathJax.typesetPromise();
@@ -246,9 +253,7 @@ $("#show-rules").click(() => {
   }
 });
 
-// TODO consider how to get rid of it
-var newTag = true;
-var editTagId = -1;
+var editTagId = -2;
 
 $("#tag-list").click((event) => {
   // consider only tag labels click
@@ -280,8 +285,8 @@ $("#tag-list").click((event) => {
   $(event.target).css("border-color", cssVar("--tag_border_color"));
 
   if ($(event.target).attr("id") === "add-tag") {
-    // TODO consider how to get rif of it
-    newTag = true;
+    // -1 corresponds to new tag
+    editTagId = -1;
 
     $("#btn-reset").click();
     $("#add-tag").css("border-style", "solid");
@@ -289,12 +294,12 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
     document.forms["add-tag"]["tag_color"].value = "";
+    document.forms["add-tag"]["book-check"].checked = false;
+    document.forms["add-tag"]["email-check"].checked = false;
+    document.forms["add-tag"]["public-check"].checked = false;
     // make delete NOT possible
     $("#btn-del").addClass("disabled");
   } else {
-    // TODO consider how to get rif of it
-    newTag = false;
-
     let editTagName = $(event.target).attr("id").split("-").slice(2);
     editTagName = editTagName.join("-");
     editTagId = findTagIdByName(editTagName);
@@ -305,6 +310,9 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_name"].value = tag.name;
     document.forms["add-tag"]["tag_rule"].value = tag.rule;
     document.forms["add-tag"]["tag_color"].value = tag.color;
+    document.forms["add-tag"]["book-check"].checked = tag.bookmark;
+    document.forms["add-tag"]["email-check"].checked = tag.email;
+    document.forms["add-tag"]["public-check"].checked = tag.public;
     $("#tag-color").css("background-color", $("#tag-color").val());
 
     // make delete possible
@@ -368,7 +376,8 @@ function checkTag() {
     return false;
   }
 
-  if (findTagIdByName(document.forms["add-tag"]["tag_name"]) !== -1) {
+  let tagWithSameNameId = findTagIdByName(document.forms["add-tag"]["tag_name"].value);
+  if (tagWithSameNameId !== -1 && tagWithSameNameId !== editTagId) {
     $(".cat-alert").html("Tag with this name already exists. Consider a unique name!");
     return false;
   }
@@ -389,13 +398,23 @@ function checkTag() {
   // tag rules are checked
   let TagDict = {"name": document.forms["add-tag"]["tag_name"].value,
                  "rule": document.forms["add-tag"]["tag_rule"].value,
-                 "color": document.forms["add-tag"]["tag_color"].value
-               };
-  if (!newTag) {
+                 "color": document.forms["add-tag"]["tag_color"].value,
+                 "bookmark": document.forms["add-tag"]["book-check"].checked,
+                 "email": document.forms["add-tag"]["email-check"].checked,
+                 "public": document.forms["add-tag"]["public-check"].checked
+                 };
+  if (editTagId > -1) {
     TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
     TAGS[parseInt(editTagId, 10)]["rule"] = TagDict["rule"];
     TAGS[parseInt(editTagId, 10)]["color"] = TagDict["color"];
+    TAGS[parseInt(editTagId, 10)]["bookmark"] = TagDict["bookmark"];
+    TAGS[parseInt(editTagId, 10)]["email"] = TagDict["email"];
+    TAGS[parseInt(editTagId, 10)]["public"] = TagDict["public"];
+    // add a flag that tag was modified. Will rewrite db record at back end
+    TAGS[parseInt(editTagId, 10)]["mod"] = true;
   } else {
+    // new tag no id
+    TagDict["id"] = -1;
     TAGS.push(TagDict);
   }
 
@@ -411,7 +430,7 @@ function fillTagForm() {
 }
 
 $("#btn-del").click((event) => {
-  if (newTag || $("#btn-del").hasClass("disabled")) {
+  if (editTagId < 0 || $("#btn-del").hasClass("disabled")) {
     event.preventDefault();
     return;
   }
@@ -483,16 +502,3 @@ $(".nav-link").click((event) => {
     }
   }
 });
-
-// ask fo settings save on leave
-// BUG seems to be useless
-// window.onbeforeunload = function(event) {
-//   if (!$(".btn-cancel").hasClass("disabled")) {
-//     if (confirm("Settings will not be saved. Continue?")) {
-//       return true;
-//     } else {
-//       event.preventDefault();
-//       return true;
-//     }
-//   }
-// };

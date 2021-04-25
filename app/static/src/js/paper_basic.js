@@ -22,20 +22,9 @@ function renderOcoins(paper) {
   ocoins = ocoins.replace(/:/g, "=");
   ocoins = ocoins.slice(1, ocoins.length - 1);
 
-  ocoins += paper.author.map((au) => {return "&rft.au=" + encodeURIComponent(au);}).join();
+  ocoins += paper.author;
 
   return ocoins;
-}
-
-function renderAuthors(authors) {
-  let au = document.createElement("div");
-  au.className = "paper-au";
-  if (authors.length > 4){
-    authors = authors.slice(0, 5);
-    authors.push("et al");
-  }
-  au.textContent = authors.join(", ");
-  return au;
 }
 
 function rebderButtonsBase(content, pId) {
@@ -128,7 +117,10 @@ function renderPapersBase(content, pId) {
     tagPanel.style = "display: none";
   }
 
-  let au = renderAuthors(content.author);
+  let au = document.createElement("div");
+  au.className = "paper-au";
+  // unsafe but required to aprse unicode accents
+  au.innerHTML = content.author;
   paper.appendChild(au);
 
   let date = document.createElement("div");

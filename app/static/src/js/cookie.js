@@ -30,11 +30,7 @@ var prefs = {
 prefs.load();
 
 if (!prefs.data.hasOwnProperty("catsArr")) {
-  prefs.data.catsArr = [];
-}
-
-if (!prefs.data.hasOwnProperty("catsShowArr")) {
-  prefs.data.catsShowArr = [];
+  prefs.data.catsArr = {};
 }
 
 if (!prefs.data.hasOwnProperty("showNov")) {

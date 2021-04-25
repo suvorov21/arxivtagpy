@@ -7,7 +7,7 @@ function renderLists() {
     let listItem = document.createElement("li");
     listItem.className = "nav-item";
     let link = document.createElement("a");
-    link.href = hrefBase + listName;
+    link.href = hrefBase + "=" + listName;
     link.className = "nav-link";
     if (listName === displayList) {
       link.className += " active";
@@ -47,7 +47,6 @@ function deleteBookmark(event) {
 }
 
 function renderPapers() {
-  document.getElementById("paper-list-title").textContent = DATA.list;
   DATA.papers.forEach((paper, num) => {
     let paperBase = renderPapersBase(paper, num);
 

@@ -1,21 +1,21 @@
 """Main blueprint with all the main pages."""
 
-from datetime import datetime, timedelta
-from json import loads, dumps
+from datetime import datetime
+from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-request, jsonify, current_app
+request, jsonify
 from flask_login import current_user, login_required
-# from flask_mail import Message
 
-from .model import db, Paper, PaperList, paper_associate
-from .render import render_papers, render_title
+from .model import db, Paper, PaperList, paper_associate, Tag
+from .render import render_papers, render_title, \
+render_tags_front, tag_name_and_rule
 from .auth import new_default_list, DEFAULT_LIST
-from .papers import update_papers, process_papers, render_paper_json
-from .paper_api import ArxivOaiApi, get_arxiv_last_date
+from .papers import process_papers, render_paper_json
+from .paper_api import get_arxiv_last_date
 from .utils import url
-# from . import mail
+from .settings import load_prefs
 
 main_bp = Blueprint(
     'main_bp',
@@ -52,19 +52,16 @@ def papers_list():
     if date_type is None:
         return redirect(url('main_bp.papers_list', date='today'))
 
-
     # load preferences
     load_prefs()
 
     # get rid of tag rule at front-end
-    tags_dict = [{'color': tag['color'],
-                  'name': tag['name']
-                  } for tag in session['tags']]
+    tags_dict = render_tags_front(session['tags'])
 
     return render_template('papers.jinja2',
                            title=render_title(date_type, current_user.login),
                            cats=session['cats'],
-                           tags=tags_dict,
+                           tags=dumps(tags_dict),
                            math_jax=session['pref'].get('tex'),
                            dark=session['pref'].get('dark')
                            )
@@ -132,7 +129,7 @@ def data():
                             do_nov=True,
                             do_tag=True
                             )
-    render_papers(papers, sort=True)
+    render_papers(papers, sort='tag')
 
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
@@ -140,26 +137,6 @@ def data():
               'nnov': papers['n_nov']
               }
     return jsonify(result)
-
-@main_bp.route('/settings')
-@login_required
-def settings():
-    """Settings page."""
-    load_prefs()
-    page = 'cat'
-    if 'page' in request.args:
-        page = request.args['page']
-    # TODO this is excessive
-    # CATS and TAGS are send back for all the settings pages
-    return render_template('settings.jinja2',
-                           cats=session['cats'],
-                           tags=session['tags'],
-                           # TODO read from prefs
-                           pref=dumps(session['pref']),
-                           math_jax=session['pref'].get('tex'),
-                           dark=session['pref'].get('dark'),
-                           page=page
-                           )
 
 @main_bp.route('/about')
 def about():
@@ -169,82 +146,6 @@ def about():
     return render_template('about.jinja2',
                            dark=dark
                            )
-
-
-def load_prefs():
-    """Load preferences from DB to session."""
-    if not current_user.is_authenticated:
-        return
-    # if 'cats' not in session:
-    session['cats'] = current_user.arxiv_cat
-
-    # read tags
-    # if 'tags' not in session:
-    session['tags'] = loads(current_user.tags)
-
-
-    # read preferences
-    # if 'pref' not in session:
-    if "NoneType" not in str(type(current_user.pref)):
-        session['pref'] = loads(current_user.pref)
-
-
-########### Setings change##############################################
-
-
-@main_bp.route('/mod_cat', methods=['POST'])
-@login_required
-def mod_cat():
-    """Apply category changes."""
-    new_cat = []
-    new_cat = request.form.getlist("list[]")
-
-    current_user.arxiv_cat = new_cat
-    db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
-    session['cats'] = current_user.arxiv_cat
-    return dumps({'success':True}), 200
-
-@main_bp.route('/mod_tag', methods=['POST'])
-@login_required
-def mod_tag():
-    """Apply tag changes."""
-    new_tags = []
-    # Fix key break with ampersand
-    for arg in request.form.to_dict().keys():
-        new_tags.append(arg)
-
-    new_tags = '&'.join(new_tags)
-
-    if new_tags == '':
-        return dumps({'success': False}), 204
-
-    current_user.tags = str(new_tags)
-    db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
-    session['tags'] = loads(current_user.tags)
-    return dumps({'success':True}), 200
-
-@main_bp.route('/mod_pref', methods=['POST'])
-@login_required
-def mod_pref():
-    """Apply preference changes."""
-    new_pref = []
-    for arg in request.form.to_dict().keys():
-        new_pref = arg
-
-    if new_pref == []:
-        return dumps({'success': False}), 204
-
-    current_user.pref = str(new_pref)
-    db.session.commit()
-    # WARNING Do I really need prefs in session
-    # How much it affect db load?
-    session['pref'] = loads(current_user.pref)
-    return dumps({'success':True}), 200
-
 
 ##### Bookshelf stuff ##################################################
 @main_bp.route('/bookshelf')
@@ -285,13 +186,17 @@ def bookshelf():
                             do_tag=True
                             )
 
-    render_papers(papers, sort=False)
+    render_papers(papers, sort='date_up')
+    tags_dict = render_tags_front(session['tags'])
 
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
-                           displayList=display_list,
-                           tags=session['tags'],
+                           title=paper_list.name,
+                           # escape bashslash for proper transfer
+                           # TEX formulas
+                           displayList=display_list.replace('\\', '\\\\'),
+                           tags=dumps(tags_dict),
                            math_jax=session['pref'].get('tex'),
                            dark=session['pref'].get('dark')
                            )
@@ -351,56 +256,10 @@ def del_bm():
     db.session.commit()
     return dumps({'success':True}), 201
 
-@main_bp.route('/load_papers', methods=['GET'])
-def load_papers():
-    """Load papers and store in the database."""
-    # auth stuff
-    logging.info('Start paper table update')
-    if current_app.config['TOKEN'] != request.args.get('token'):
-        logging.error('Wrong token')
-        return dumps({'success':False}), 422
+@main_bp.route('/public_tags', methods=['GET'])
+@login_required
+def public_tags():
+    """Get puclicly available tags as examples."""
+    tags = Tag.query.filter_by(public=True).order_by(Tag.name)
 
-    # last paper in the DB
-    last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-    today_date = datetime.now()
-    if not last_paper:
-        # if no last paper download for this month
-        last_paper_date = today_date - timedelta(days=today_date.day)
-    else:
-        last_paper_date = last_paper.date_up - timedelta(days=1)
-
-    # update_papers() params
-    # by default updates are on
-    params = {'do_update': True}
-    if 'n_papers' in request.args:
-        params['n_papers'] = int(request.args.get('n_papers'))
-    if 'do_update' in request.args:
-        params['do_update'] = request.args.get('do_update')
-    if 'from' in request.args:
-        params['last_paper_date'] = datetime.strptime(request.args['from'],
-                                            '%Y-%m-%d'
-                                             )
-    else:
-        params['last_paper_date'] = last_paper_date
-
-    logging.info('Parameters: %s', params)
-
-    # initiaise paper API
-    paper_api = ArxivOaiApi()
-
-    # API cal params
-    if request.args.get('set'):
-        paper_api.set_set(request.args.get('set'))
-    # from argument is privelaged over last paper in the DB
-    if request.args.get('from'):
-        paper_api.set_from(request.args.get('set'))
-    else:
-        paper_api.set_from(datetime.strftime(last_paper_date,
-                                             '%Y-%m-%d'
-                                             ))
-
-    # further code is paper source independent.
-    # Any API can be defined above
-    update_papers([paper_api], **params)
-
-    return dumps({'success':True}), 201
+    return jsonify(tag_name_and_rule(tags))

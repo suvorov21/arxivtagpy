@@ -37,10 +37,12 @@ class User(UserMixin, db.Model):
                           nullable=True,
                           unique=False
                           )
-    tags = db.Column(db.String(),
-                     nullable=True,
-                     unique=False
-                     )
+    tags = db.relationship('Tag',
+                           backref='user',
+                           cascade='all,delete',
+                           passive_deletes=True,
+                           lazy=True
+                           )
     pref = db.Column(db.String(),
                      nullable=True,
                      unique=False
@@ -55,7 +57,81 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         """Print user."""
-        return f'<id: {self.id} name: {self.name}>'
+        return f'<User id: {self.id} name: {self.email}>'
+
+
+class Tag(db.Model):
+    """Table for storing user defined tags."""
+    __tablename__ = 'tags'
+    id = db.Column(db.Integer,
+                   primary_key=True,
+                   )
+
+    name = db.Column(db.String(),
+                     unique=False,
+                     nullable=False
+                     )
+
+    rule = db.Column(db.String(),
+                     unique=False,
+                     nullable=False
+                     )
+
+    # TODO consider HEX format?
+    color = db.Column(db.String(),
+                      unique=False,
+                      nullable=False
+                      )
+
+    bookmark = db.Column(db.Boolean,
+                         unique=False,
+                         nullable=True,
+                         default=False
+                         )
+
+    email = db.Column(db.Boolean,
+                      unique=False,
+                      nullable=True,
+                      default=False
+                      )
+
+    public = db.Column(db.Boolean,
+                       unique=False,
+                       nullable=True,
+                       default=False
+                       )
+
+    user_id = db.Column(db.Integer,
+                        db.ForeignKey('users.id',
+                                      ondelete='CASCADE'
+                                      ),
+                        # nullable to allow asignment
+                        # current_user.tags = []
+                        # in settings_bp.mod_tag()
+                        nullable=True,
+                        default=-1
+                        )
+
+    def __repr__(self):
+        """Print Tag."""
+        return f'<Tag id: {self.id} name: {self.name}>'
+
+
+class UpdateDate(db.Model):
+    """
+    Table to store update dates.
+
+    Store dates of the last updates e.g. lst bookmarked
+    or last email paper.
+    """
+    last_bookmark = db.Column(db.DateTime(),
+                              nullable=True,
+                              primary_key=True
+                              )
+
+    last_email = db.Column(db.DateTime(),
+                           nullable=True
+                           )
 
 
 # helper table to deal with many-to-many relations
@@ -140,7 +216,7 @@ class Paper(db.Model):
 
     def __repr__(self):
         """Print paper."""
-        return f'<id: {self.id} title: {self.title}>'
+        return f'<Paper id: {self.id} title: {self.title}>'
 
 class PaperList(db.Model):
     """Paper list table description."""
@@ -168,5 +244,5 @@ class PaperList(db.Model):
                              )
 
     def __repr__(self):
-        """Print paper."""
-        return f'<id: {self.id} title: {self.name}>'
+        """Print paper list."""
+        return f'<PaperList id: {self.id} title: {self.name}>'
