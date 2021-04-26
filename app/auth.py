@@ -1,7 +1,7 @@
 """Authority utilities: login, pass check, account managment."""
 
 from datetime import datetime
-import random
+import secrets
 import string
 
 from werkzeug.security import check_password_hash, \
@@ -17,6 +17,7 @@ from .import login_manager
 from .import mail
 from .model import db, User, PaperList, Tag
 from .utils import url
+from .settings import default_data
 
 DEFAULT_LIST = 'Favourite'
 
@@ -47,14 +48,14 @@ def login():
     usr = User.query.filter_by(email=email).first()
     if not usr:
         flash('ERROR! Wrong username/password! \
-              <a href="/restore?do_send=True" class="alert-link">Reset password?</a>')
+              <a href="/restore" class="alert-link">Reset password?</a>')
         return redirect(url('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
         flash('ERROR! Wrong username/password! \
-              <a href="/restore?do_send=True" class="alert-link">Reset password?</a>')
+              <a href="/restore" class="alert-link">Reset password?</a>')
     return redirect(url('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -168,7 +169,9 @@ def unauthorized():
 @auth_bp.route('/restore', methods=['GET'])
 def restore():
     """Page for password reset."""
-    return render_template('restore.jinja2')
+    return render_template('restore.jinja2',
+                           data=default_data()
+                           )
 
 @auth_bp.route('/restore_pass', methods=['POST'])
 def restore_pass():
@@ -178,8 +181,8 @@ def restore_pass():
     user = User.query.filter_by(email=email_in).first()
     if user:
         # generate new pass
-        letters = string.ascii_letters
-        new_pass = ''.join(random.choice(letters) for i in range(15)) # nosec
+        letters = string.ascii_letters + string.digits
+        new_pass = ''.join(secrets.choice(letters) for i in range(15)) # nosec
         user.pasw = generate_password_hash(new_pass)
         db.session.commit()
 
