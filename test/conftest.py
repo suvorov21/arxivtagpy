@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name
 
 import multiprocessing
+from datetime import datetime
 
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
@@ -21,12 +22,15 @@ def make_user(email):
     """Make a default user."""
     user1 = User(email=email,
                  pasw=generate_password_hash(PASS),
+                 created=datetime.now(),
+                 login=datetime.now(),
                  arxiv_cat=['hep-ex'],
                  pref='{"tex": "True"}'
                  )
     tag = Tag(name='test',
               rule='ti{math}|abs{physics}&au{John}',
               color='#ff0000',
+              order=0,
               public=True,
               email=True,
               bookmark=True

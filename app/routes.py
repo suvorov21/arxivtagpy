@@ -15,7 +15,7 @@ from .auth import new_default_list, DEFAULT_LIST
 from .papers import process_papers, render_paper_json
 from .paper_api import get_arxiv_last_date
 from .utils import url
-from .settings import load_prefs
+from .settings import load_prefs, default_data
 
 main_bp = Blueprint(
     'main_bp',
@@ -30,9 +30,8 @@ main_bp = Blueprint(
 def root():
     """Landing page."""
     load_prefs()
-    dark = session.get('pref') and session['pref'].get('dark')
     return render_template('about.jinja2',
-                           dark=dark
+                           data=default_data()
                            )
 
 @main_bp.route('/papers')
@@ -62,9 +61,9 @@ def papers_list():
                            title=render_title(date_type, current_user.login),
                            cats=session['cats'],
                            tags=dumps(tags_dict),
-                           math_jax=session['pref'].get('tex'),
-                           dark=session['pref'].get('dark')
+                           data=default_data()
                            )
+
 
 @main_bp.route('/data')
 @login_required
@@ -142,9 +141,8 @@ def data():
 def about():
     """About page."""
     load_prefs()
-    dark = session.get('pref') and session['pref'].get('dark')
     return render_template('about.jinja2',
-                           dark=dark
+                           data=default_data()
                            )
 
 ##### Bookshelf stuff ##################################################
@@ -157,17 +155,17 @@ def bookshelf():
         return redirect(url('main_bp.bookshelf', list=DEFAULT_LIST))
     display_list = request.args['list']
 
-    lists = []
-    # get all lists for the menu
-    paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
+    # get all lists for the menu (ordered)
+    paper_lists = PaperList.query.filter_by(user_id=current_user.id \
+                                            ).order_by(PaperList.order).all()
+    # if no, create the default list
     if len(paper_lists) == 0:
         new_default_list(current_user.id)
         paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
 
-    for paper_list in paper_lists:
-        lists.append(paper_list.name)
+    lists = [paper_list.name for paper_list in paper_lists]
 
-    # get papers in the list
+    # get the particular paper list to access papers from one
     paper_list = PaperList.query.filter_by(user_id=current_user.id,
                                            name=display_list
                                            ).first()
@@ -176,9 +174,11 @@ def bookshelf():
               'papers': []
               }
 
+    # read the papers
     for paper in paper_list.papers:
         papers['papers'].append(render_paper_json(paper))
 
+    # tag papers
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
@@ -193,12 +193,11 @@ def bookshelf():
                            papers=papers,
                            lists=lists,
                            title=paper_list.name,
-                           # escape bashslash for proper transfer
+                           # escape backslash for proper transfer
                            # TEX formulas
                            displayList=display_list.replace('\\', '\\\\'),
                            tags=dumps(tags_dict),
-                           math_jax=session['pref'].get('tex'),
-                           dark=session['pref'].get('dark')
+                           data=default_data()
                            )
 
 @main_bp.route('/add_bm', methods=['POST'])
@@ -223,7 +222,9 @@ def add_bm():
     # in case no list is there
     # create a new one
     # WARNING work with one list for the time beeing
-    paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
+    paper_list = PaperList.query.filter_by(user_id=current_user.id,
+                                           name=DEFAULT_LIST
+                                           ).first()
     if not paper_list:
         # create a default list
         new_default_list(current_user.id)
