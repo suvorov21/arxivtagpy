@@ -65,14 +65,18 @@ class TestLiveServer():
 
     def test_settings_view(self, driver):
         """Test settings page load properly."""
-        driver.get(url_for('settings_bp.settings', _external=True))
+        driver.get(url_for('settings_bp.settings_page',
+                           page='cat',
+                           _external=True))
         sleep(3)
         cat = driver.find_element_by_id('cat-name-hep-ex')
         assert cat.text == 'High Energy Physics - Experiment'
 
     def test_delete_cat(self, driver):
         """Test category delete."""
-        driver.get(url_for('settings_bp.settings', _external=True))
+        driver.get(url_for('settings_bp.settings_page',
+                           page='cat',
+                           _external=True))
         sleep(3)
         driver.find_element_by_id('close_hep-ex').click()
         sleep(1)
@@ -83,14 +87,30 @@ class TestLiveServer():
 
     def test_mod_tag(self, driver):
         """Test tag modifications."""
-        driver.get(url_for('settings_bp.settings',
+        driver.get(url_for('settings_bp.settings_page',
                            page='tag',
                            _external=True
                            ))
         sleep(3)
-        driver.find_element_by_id('tag-label-test').click()
+        driver.find_element_by_id('tag-label-1').click()
         sleep(1)
         driver.find_element_by_id('tag-name').send_keys('test_test')
+        driver.find_element_by_class_name('btn-success').click()
+        sleep(1)
+        element = driver.find_element_by_class_name('alert-dismissible')
+        assert 'success' in element.get_attribute('class')
+
+    def test_del_tag(self, driver):
+        """Test tag modifications."""
+        driver.get(url_for('settings_bp.settings_page',
+                           page='tag',
+                           _external=True
+                           ))
+        sleep(3)
+        driver.find_element_by_id('tag-label-1').click()
+        sleep(1)
+        driver.find_element_by_id('btn-del').click()
+        sleep(1)
         driver.find_element_by_class_name('btn-success').click()
         sleep(1)
         element = driver.find_element_by_class_name('alert-dismissible')

@@ -1,10 +1,11 @@
-/*global allCatsArray, CATS, TAGS, PREF, parseTex, MathJax, raiseAlert*/
-/*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc*/
+/*global allCatsArray, CATS, TAGS, PREF, LISTS, parseTex, MathJax, raiseAlert*/
+/*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc, fillListForm, */
 /*eslint no-undef: "error"*/
 
 var dragTarget;
 var tagEdited = false;
 
+// untility function to access css var
 function cssVar(name, value) {
   if (name[0] !=="-") {
     name = "--" + name; //allow passing with or without --
@@ -15,7 +16,47 @@ function cssVar(name, value) {
   return getComputedStyle(document.documentElement).getPropertyValue(name);
 }
 
-function addCatClick(event) {
+// API call for settings modifications
+const submitSetting = (url, set) => {
+  if (set.length === 0) {
+    set = ["null"];
+  }
+  $.post(url, JSON.stringify(set))
+  .done(function() {
+    reloadSettings();
+    $(".btn-save").addClass("disabled");
+    if ($("#btn-del").length > 0) {
+      $("#btn-del").addClass("disabled");
+    }
+    tagEdited = false;
+    raiseAlert("Settings are saved", "success");
+    return false;
+  }).fail(function() {
+    raiseAlert("Settings are not saved. Please try later", "danger");
+    return false;
+  });
+  return false;
+};
+
+// *****************************************************************************
+// ************************  RENDERS *******************************************
+// *****************************************************************************
+// *****************************************************************************
+
+// ************************ Categories *****************************************
+
+const dropElement = (event, arrayToSwap) => {
+  event.preventDefault();
+  let moved = event.dataTransfer.getData("Text");
+  let buffer = arrayToSwap[parseInt(moved, 10)];
+  arrayToSwap[parseInt(moved, 10)] = arrayToSwap[parseInt(dragTarget, 10)];
+  arrayToSwap[parseInt(dragTarget, 10)] = buffer;
+
+  $(".btn").removeClass("disabled");
+  reloadSettings();
+};
+
+const delCatClick = (event) => {
   let name = event.target.getAttribute("id").split("_")[1];
   $("#par-cat-" + name).removeClass("d-flex");
   $("#par-cat-" + name).fadeOut();
@@ -24,39 +65,40 @@ function addCatClick(event) {
   if (catId > -1) {
     CATS.splice(catId, 1);
   }
-}
+};
 
-// ************************  RENDERS *******************************************
 function addCat(cat) {
   // Dots replace with 111 to be a legal
   // name for JS elements
   // TODO proper escape dot with \\.
   let parent = document.createElement("div");
-  parent.setAttribute("class", "d-flex cat-parent");
-  parent.setAttribute("id", "par-cat-"+cat.replaceAll(".", "111"));
+  parent.className = "d-flex cat-parent";
+  parent.id = "par-cat-"+cat.replaceAll(".", "111");
   parent.draggable = true;
 
   parent.ondragstart = function(event) {
     let moved = event.target.getAttribute("id").split("-").slice(2);
     moved = moved.join("-").replaceAll("111", ".");
+    moved = CATS.indexOf(moved);
     event.dataTransfer.setData("Text", moved);
   };
 
   parent.ondragover = function(event) {
     let target = event.target.getAttribute("id").split("-").slice(2);
-    dragTarget = target.join("-").replaceAll("111", ".");
+    target = target.join("-").replaceAll("111", ".");
+    dragTarget = CATS.indexOf(target);
   };
 
   let close = document.createElement("button");
-  close.setAttribute("id", "close_"+cat.replaceAll(".", "111"));
-  close.setAttribute("class", "close close-btn");
+  close.id = "close_" + cat.replaceAll(".", "111");
+  close.className = "close close-btn";
   close.innerHTML = "&times";
 
-  close.addEventListener("click", addCatClick);
+  close.addEventListener("click", delCatClick);
 
   let catElement = document.createElement("div");
-  catElement.setAttribute("class", "pl-2");
-  catElement.setAttribute("id", "cat-name-" + cat.replaceAll(".", "111"));
+  catElement.className = "pl-2";
+  catElement.id = "cat-name-" + cat.replaceAll(".", "111");
   catElement.textContent = allCatsArray[`${cat}`];
 
   document.getElementById("cats-list").appendChild(parent);
@@ -64,17 +106,9 @@ function addCat(cat) {
   parent.appendChild(catElement);
 }
 
-function catDrop(event) {
-  event.preventDefault();
-  let moved = event.dataTransfer.getData("Text");
-  let movedId = CATS.indexOf(moved);
-  let targetId = CATS.indexOf(dragTarget);
-  CATS[parseInt(movedId, 10)] = dragTarget;
-  CATS[parseInt(targetId, 10)] = moved;
-
-  $(".btn").removeClass("disabled");
-  reloadSettings();
-}
+const dropCat = (event) => {
+  dropElement(event, CATS);
+};
 
 function renderCats() {
   $("#cats-list").empty();
@@ -85,37 +119,31 @@ function renderCats() {
   document.getElementById("cats-list").ondragover = function(event) {
     event.preventDefault();
   };
-  document.getElementById("cats-list").addEventListener("drop", catDrop);
+  document.getElementById("cats-list").removeEventListener("drop", dropCat);
+  document.getElementById("cats-list").addEventListener("drop", dropCat);
 }
 
-const findTagIdByName = (name) => {
+// ************************ Tags ***********************************************
+
+const findTagId = (param, paramName) => {
   for (let tagId = 0; tagId < TAGS.length; tagId++) {
-    if (TAGS[parseInt(tagId, 10)]["name"] === name) {
+    if (String(TAGS[parseInt(tagId, 10)][paramName]) === String(param)) {
       return tagId;
     }
   }
   return -1;
 };
 
-function tagDrop(event) {
-  event.preventDefault();
-  let moved = event.dataTransfer.getData("Text");
-  let movedId = parseInt(moved, 10);
-  let targetId = parseInt(dragTarget, 10);
-  let buffer = TAGS[parseInt(movedId, 10)];
-  TAGS[parseInt(movedId, 10)] = TAGS[parseInt(targetId, 10)];
-  TAGS[parseInt(targetId, 10)] = buffer;
-
-  $(".btn").removeClass("disabled");
-  reloadSettings();
-}
+const dropTag = (event) => {
+  dropElement(event, TAGS);
+};
 
 function renderTags() {
   $("#tag-list").empty();
   TAGS.forEach((tag) => {
     let tagElement = document.createElement("div");
-    tagElement.setAttribute("class", "tag-label");
-    tagElement.setAttribute("id", "tag-label-"+tag.name);
+    tagElement.className = "tag-label";
+    tagElement.id = "tag-label-" + tag.id;
     tagElement.setAttribute("style", "background-color: " + tag.color);
     tagElement.draggable = true;
     tagElement.textContent = tag.name;
@@ -126,16 +154,14 @@ function renderTags() {
         event.preventDefault();
         return;
       }
-      let moved = event.target.getAttribute("id").split("-").slice(2);
-      moved = moved.join("-").replaceAll("111", "-");
-      moved = findTagIdByName(moved);
+      let moved = event.target.getAttribute("id").split("-")[2];
+      moved = findTagId(moved, "id");
       event.dataTransfer.setData("Text", moved);
     };
 
     tagElement.ondragover = function(event) {
-      let target = event.target.getAttribute("id").split("-").slice(2);
-      dragTarget = target.join("-").replaceAll("111", "-");
-      dragTarget = findTagIdByName(dragTarget);
+      let target = event.target.getAttribute("id").split("-")[2];
+      dragTarget = findTagId(target, "id");
     };
   });
 
@@ -144,7 +170,8 @@ function renderTags() {
   };
 
   // tag reordering
-  document.getElementById("tag-list").addEventListener("drop", tagDrop);
+  document.getElementById("tag-list").removeEventListener("drop", dropTag);
+  document.getElementById("tag-list").addEventListener("drop", dropTag);
 
   if (parseTex) {
     MathJax.typesetPromise();
@@ -157,6 +184,89 @@ function renderTags() {
 
   document.getElementById("tag-list").appendChild(tagElement);
 }
+
+// ************************  BOOKMARKS *****************************************
+
+function fillListForm() {
+  if ($(".btn-cancel").hasClass("disabled")) {
+    return false;
+  }
+  let url = "mod_lists";
+  submitSetting(url, LISTS);
+  return false;
+}
+
+function delListClick(event) {
+  let name = event.target.getAttribute("id").split("_")[1];
+  $("#par-list-" + name).removeClass("d-flex");
+  $("#par-list-" + name).fadeOut();
+  $(".btn").removeClass("disabled");
+  const listId = LISTS.indexOf(name);
+  if (listId > -1) {
+    LISTS.splice(listId, 1);
+  }
+}
+
+const findListNumById = (id) => {
+  for (let listId = 0; listId < LISTS.length; listId++) {
+    if (LISTS[parseInt(listId, 10)]["id"] === parseInt(id, 10)) {
+      return listId;
+    }
+  }
+  return -1;
+};
+
+const dropList = (event) => {
+  dropElement(event, LISTS);
+};
+
+function renderBookshelf() {
+  $("#book-list").empty();
+  LISTS.forEach((list) => {
+    let listName = list.name;
+    let parent = document.createElement("div");
+    parent.className = "d-flex cat-parent";
+    parent.id = "par-list-" + list.id;
+    parent.draggable = true;
+
+    parent.ondragstart = function(event) {
+      let moved = event.target.getAttribute("id").split("-")[2];
+      moved = findListNumById(moved);
+      event.dataTransfer.setData("Text", moved);
+    };
+
+    parent.ondragover = function(event) {
+      let target = event.target.getAttribute("id").split("-")[2];
+      dragTarget = findListNumById(target);
+    };
+
+    let close = document.createElement("button");
+    close.id = "close_" + listName.replaceAll(".", "111");
+    close.className = "close close-btn";
+    close.innerHTML = "&times";
+
+    close.addEventListener("click", delListClick);
+
+    let listElement = document.createElement("div");
+    listElement.className = "pl-2";
+    listElement.id = "list-name-" + list.id;
+    listElement.textContent = listName;
+
+    document.getElementById("book-list").appendChild(parent);
+    parent.appendChild(close);
+    parent.appendChild(listElement);
+  });
+  document.getElementById("book-list").ondragover = function(event) {
+    event.preventDefault();
+  };
+  document.getElementById("book-list").removeEventListener("drop", dropList);
+  document.getElementById("book-list").addEventListener("drop", dropList);
+  if (parseTex) {
+    MathJax.typesetPromise();
+  }
+}
+
+// *******************  Preferences ********************************************
 
 function renderPref() {
   if (PREF["tex"]) {
@@ -171,51 +281,18 @@ function renderPref() {
   return;
 }
 
-function reloadSettings() {
-  if ($("#cats-link").hasClass("active")) {
-    renderCats();
-  }
-  else if ($("#tags-link").hasClass("active")) {
-    renderTags();
-    document.forms["add-tag"]["tag_name"].value = "";
-    document.forms["add-tag"]["tag_rule"].value = "";
-    document.forms["add-tag"]["tag_color"].value = "";
-  }
-  else if ($("#pref-link").hasClass("active")) {
-    renderPref();
-  }
-}
-
-window.onload = function() {
-  $.each(allCatsArray, function(val, text) {
-    $("#catsDataList").append($("<option>").attr("value", val).text(text));
-  });
-
-  reloadSettings();
-};
+// *****************************************************************************
+// ************************  INTERACTIONS **************************************
+// *****************************************************************************
+// *****************************************************************************
 
 // ******************** CATEGORIES *********************************************
-function submitCat() {
-  let url = "mod_cat";
-  $.post(url, {"list": CATS})
-  .done(function() {
-    CATS = Array.from(CATS);
-    reloadSettings();
-    $(".btn-save").addClass("disabled");
-    raiseAlert("Settings are saved", "success");
-    return false;
-  }).fail(function(){
-    raiseAlert("Settings are not saved. Please try later", "danger");
-    return false;
-  });
-  return false;
-}
 
 function fillCatForm() {
   if ($(".btn-cancel").hasClass("disabled")) {
     return false;
   }
-  submitCat();
+  submitSetting("mod_cat", CATS);
   return false;
 }
 
@@ -245,6 +322,17 @@ $(".btn-cancel").click(() => {
 });
 
 // ****************** TAGS *****************************************************
+
+const clearTagField = () => {
+  document.forms["add-tag"]["tag_name"].value = "";
+  document.forms["add-tag"]["tag_rule"].value = "";
+  document.forms["add-tag"]["tag_color"].value = "";
+  document.forms["add-tag"]["book-check"].checked = false;
+  document.forms["add-tag"]["email-check"].checked = false;
+  document.forms["add-tag"]["public-check"].checked = false;
+  $("#tag-color").css("background-color", $("#tag-color").val());
+};
+
 $("#show-rules").click(() => {
   if ($("#tag-help").css("display") === "block") {
     $("#tag-help").css("display", "none");
@@ -255,6 +343,7 @@ $("#show-rules").click(() => {
 
 var editTagId = -2;
 
+// click on tag label
 $("#tag-list").click((event) => {
   // consider only tag labels click
   if (typeof($(event.target).attr("class")) === "undefined" ||
@@ -291,18 +380,13 @@ $("#tag-list").click((event) => {
     $("#btn-reset").click();
     $("#add-tag").css("border-style", "solid");
     $("#add-tag").css("border-width", "4px");
-    document.forms["add-tag"]["tag_name"].value = "";
-    document.forms["add-tag"]["tag_rule"].value = "";
-    document.forms["add-tag"]["tag_color"].value = "";
-    document.forms["add-tag"]["book-check"].checked = false;
-    document.forms["add-tag"]["email-check"].checked = false;
-    document.forms["add-tag"]["public-check"].checked = false;
+    clearTagField();
     // make delete NOT possible
     $("#btn-del").addClass("disabled");
   } else {
-    let editTagName = $(event.target).attr("id").split("-").slice(2);
-    editTagName = editTagName.join("-");
-    editTagId = findTagIdByName(editTagName);
+    let editTagName = $(event.target).attr("id").split("-")[2];
+    editTagName = parseInt(editTagName, 10);
+    editTagId = findTagId(editTagName, "id");
     let tag = TAGS[parseInt(editTagId, 10)];
 
 
@@ -321,20 +405,20 @@ $("#tag-list").click((event) => {
   $("#tag-fields").prop("disabled", false);
 });
 
-function makeTagEdited() {
+const makeTagEdited = () => {
   $(".btn-save").removeClass("disabled");
   tagEdited = true;
   var doms = document.getElementsByClassName("tag-label");
   for(let i = 0; i < doms.length; i++) {
     doms[parseInt(i, 10)].style.cursor = "not-allowed";
   }
-}
+};
 
 $(".tag-field").on("input", function() {
   makeTagEdited();
 });
 
-// TODO should I delete onimput listener?!
+// TODO should I delete oninput listener?!
 $(".tag-field").on("change", function() {
   makeTagEdited();
 });
@@ -344,27 +428,13 @@ $("#tag-color").on("change", function() {
   $(".btn-save").removeClass("disabled");
 });
 
-function submitTag() {
-  let url = "mod_tag";
-  $.post(url, JSON.stringify(TAGS))
-  .done(function() {
-    reloadSettings();
-    $(".btn-save").addClass("disabled");
-    $("#btn-del").addClass("disabled");
-    tagEdited = false;
-    raiseAlert("Settings are saved", "success");
-    return true;
-  }).fail(function(){
-    raiseAlert("Settings are not saved. Please try later", "danger");
-    return false;
-  });
-}
-
+// check if tag info is filled properly
+// if yes, do API call
 function checkTag() {
   $(".cat-alert").empty();
   // in case of simple replacement no check required
   if (!tagEdited) {
-    submitTag();
+    submitSetting("mod_tag", TAGS);
     return true;
   }
 
@@ -376,7 +446,9 @@ function checkTag() {
     return false;
   }
 
-  let tagWithSameNameId = findTagIdByName(document.forms["add-tag"]["tag_name"].value);
+  let tagWithSameNameId = findTagId(document.forms["add-tag"]["tag_name"].value,
+                                    "name"
+                                    );
   if (tagWithSameNameId !== -1 && tagWithSameNameId !== editTagId) {
     $(".cat-alert").html("Tag with this name already exists. Consider a unique name!");
     return false;
@@ -410,15 +482,13 @@ function checkTag() {
     TAGS[parseInt(editTagId, 10)]["bookmark"] = TagDict["bookmark"];
     TAGS[parseInt(editTagId, 10)]["email"] = TagDict["email"];
     TAGS[parseInt(editTagId, 10)]["public"] = TagDict["public"];
-    // add a flag that tag was modified. Will rewrite db record at back end
-    TAGS[parseInt(editTagId, 10)]["mod"] = true;
   } else {
     // new tag no id
     TagDict["id"] = -1;
     TAGS.push(TagDict);
   }
 
-  submitTag();
+  submitSetting("mod_tag", TAGS);
 }
 
 function fillTagForm() {
@@ -429,22 +499,20 @@ function fillTagForm() {
   return false;
 }
 
+// delete tag
 $("#btn-del").click((event) => {
   if (editTagId < 0 || $("#btn-del").hasClass("disabled")) {
     event.preventDefault();
     return;
   }
-  if (confirm("Are you sure you want to delete " + TAGS[parseInt(editTagId, 10)].name + "?")) {
-    TAGS.splice(editTagId, 1);
-    submitTag();
-    event.preventDefault();
-  } else {
-    event.preventDefault();
-    return;
-  }
+  $("#tag-label-" + TAGS[parseInt(editTagId, 10)]["id"]).fadeOut();
+  TAGS.splice(editTagId, 1);
+  $(".btn-save").removeClass("disabled");
+  event.preventDefault();
 });
 
 // ***************** PREFERENCES ***********************************************
+
 $(".form-check-input").change(() => {
   $(".btn-save").removeClass("disabled");
 });
@@ -479,10 +547,6 @@ function fillSetForm() {
   return false;
 }
 
-function changePasw() {
-  return true;
-}
-
 function delAcc() {
   if (confirm("Do you want to delete account completely? This action could not be undone!")) {
     return true;
@@ -493,7 +557,7 @@ function delAcc() {
 
 // ************** NAVIGATION ***************************************************
 $(".nav-link").click((event) => {
-  if (!$(".btn-cancel").hasClass("disabled")) {
+  if ($(".btn-cancel").length && !$(".btn-cancel").hasClass("disabled")) {
     if (confirm("Settings will not be saved. Continue?")) {
       return;
     } else {
@@ -502,3 +566,28 @@ $(".nav-link").click((event) => {
     }
   }
 });
+
+// reload settings information
+const reloadSettings = () => {
+  if ($("#cats-link").hasClass("active")) {
+    renderCats();
+  }
+  else if ($("#tags-link").hasClass("active")) {
+    renderTags();
+    $("#tag-fields").prop("disabled", true);
+    clearTagField();
+  } else if ($("#bookshelf-link").hasClass("active")) {
+    renderBookshelf();
+  } else if ($("#pref-link").hasClass("active")) {
+    renderPref();
+  }
+};
+
+// on page load
+window.onload = function() {
+  $.each(allCatsArray, function(val, text) {
+    $("#catsDataList").append($("<option>").attr("value", val).text(text));
+  });
+
+  reloadSettings();
+};
