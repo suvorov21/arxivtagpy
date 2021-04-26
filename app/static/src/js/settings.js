@@ -106,6 +106,10 @@ function addCat(cat) {
   parent.appendChild(catElement);
 }
 
+const dropCat = (event) => {
+  dropElement(event, CATS);
+};
+
 function renderCats() {
   $("#cats-list").empty();
   CATS.forEach((cat) => {
@@ -115,9 +119,8 @@ function renderCats() {
   document.getElementById("cats-list").ondragover = function(event) {
     event.preventDefault();
   };
-  document.getElementById("cats-list").addEventListener("drop", (event) => {
-    dropElement(event, CATS);
-  });
+  document.getElementById("cats-list").removeEventListener("drop", dropCat);
+  document.getElementById("cats-list").addEventListener("drop", dropCat);
 }
 
 // ************************ Tags ***********************************************
@@ -129,6 +132,10 @@ const findTagId = (param, paramName) => {
     }
   }
   return -1;
+};
+
+const dropTag = (event) => {
+  dropElement(event, TAGS);
 };
 
 function renderTags() {
@@ -163,9 +170,8 @@ function renderTags() {
   };
 
   // tag reordering
-  document.getElementById("tag-list").addEventListener("drop", (event) => {
-    dropElement(event, TAGS);
-  });
+  document.getElementById("tag-list").removeEventListener("drop", dropTag);
+  document.getElementById("tag-list").addEventListener("drop", dropTag);
 
   if (parseTex) {
     MathJax.typesetPromise();
@@ -210,6 +216,10 @@ const findListNumById = (id) => {
   return -1;
 };
 
+const dropList = (event) => {
+  dropElement(event, LISTS);
+};
+
 function renderBookshelf() {
   $("#book-list").empty();
   LISTS.forEach((list) => {
@@ -249,9 +259,8 @@ function renderBookshelf() {
   document.getElementById("book-list").ondragover = function(event) {
     event.preventDefault();
   };
-  document.getElementById("book-list").addEventListener("drop", (event) => {
-    dropElement(event, LISTS);
-  });
+  document.getElementById("book-list").removeEventListener("drop", dropList);
+  document.getElementById("book-list").addEventListener("drop", dropList);
   if (parseTex) {
     MathJax.typesetPromise();
   }
