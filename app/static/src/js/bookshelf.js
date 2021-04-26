@@ -1,4 +1,4 @@
-/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase, displayList*/
+/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase, displayList, page, paperPage */
 /*eslint no-undef: "error"*/
 
 function renderLists() {
@@ -31,7 +31,7 @@ function deleteBookmark(event) {
   }
   let url = "del_bm";
   let num = event.target.getAttribute("id").split("-")[2];
-  let paper = DATA.papers[parseInt(num, 10)];
+  let paper = DATA.papers[parseInt(num, 10) - (page - 1) * paperPage];
   $.post(url, {
                "paper_id": paper.id.split("v")[0],
                })
@@ -48,6 +48,7 @@ function deleteBookmark(event) {
 
 function renderPapers() {
   DATA.papers.forEach((paper, num) => {
+    num += paperPage * (page - 1);
     let paperBase = renderPapersBase(paper, num);
 
     // removal button

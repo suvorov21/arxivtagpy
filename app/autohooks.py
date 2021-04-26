@@ -235,7 +235,7 @@ def email_papers():
 
     # for the last user
     if any([len(tags['papers']) > 0 for tags in papers_to_send]):
-        email_paper_update(papers_to_send, user.email, do_send)
+        email_paper_update(papers_to_send, user.email, bool(do_send))
 
 
     # store the last checked paper
