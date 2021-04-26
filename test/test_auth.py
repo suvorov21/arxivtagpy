@@ -21,6 +21,28 @@ def test_login(client):
     assert response.status_code == 200
     assert 'ERROR' not in response.get_data(as_text=True)
 
+def test_wrong_login(client):
+    """Test wrong login."""
+    response = client.post(url_for('auth_bp.login'),
+                           data={'i_login': EMAIL + '1',
+                                 'i_pass': PASS
+                                 },
+                           follow_redirects=True
+                           )
+    assert response.status_code == 200
+    assert 'ERROR! Wrong username/password!' in response.get_data(as_text=True)
+
+def test_wrong_pass(client):
+    """Test wrong login."""
+    response = client.post(url_for('auth_bp.login'),
+                           data={'i_login': EMAIL,
+                                 'i_pass': PASS + '1'
+                                 },
+                           follow_redirects=True
+                           )
+    assert response.status_code == 200
+    assert 'ERROR! Wrong username/password!' in response.get_data(as_text=True)
+
 def test_logout(client, login):
     """Test logout."""
     response = client.get('/logout',
@@ -97,3 +119,13 @@ def test_change_wrong_new_pass(client, login):
                            )
     assert response.status_code == 200
     assert "don\'t match!" in response.get_data(as_text=True)
+
+def test_pass_restore(client):
+    """Test passord restore."""
+    response = client.post(url_for('auth_bp.restore_pass',
+                                   email='tester2@gmail.com',
+                                   do_send=False
+                                   ),
+                            follow_redirects=True
+                            )
+    assert 'was sent' in response.get_data(as_text=True)

@@ -47,14 +47,14 @@ def login():
     usr = User.query.filter_by(email=email).first()
     if not usr:
         flash('ERROR! Wrong username/password! \
-              <a href="/restore" class="alert-link">Reset password?</a>')
+              <a href="/restore?do_send=True" class="alert-link">Reset password?</a>')
         return redirect(url('main_bp.root'))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
         flash('ERROR! Wrong username/password! \
-              <a href="/restore" class="alert-link">Reset password?</a>')
+              <a href="/restore?do_send=True" class="alert-link">Reset password?</a>')
     return redirect(url('main_bp.root'))
 
 @auth_bp.route('/signup')
@@ -173,6 +173,7 @@ def restore():
 @auth_bp.route('/restore_pass', methods=['POST'])
 def restore_pass():
     """Endpoint for password reset."""
+    do_send = request.args.get('do_send')
     email_in = request.form.get('email')
     user = User.query.filter_by(email=email_in).first()
     if user:
@@ -194,7 +195,8 @@ def restore_pass():
                       recipients=[user.email],
                       subject="arXiv tag password reset"
                       )
-        mail.send(msg)
+        if do_send:
+            mail.send(msg)
 
     flash(f'The email with a new password was sent to your email from \
           {current_app.config["MAIL_DEFAULT_SENDER"]}')

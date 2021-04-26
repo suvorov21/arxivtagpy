@@ -11,7 +11,7 @@ def test_load_papers(client):
     """Test paper loading."""
     response = client.get(url_for('auto_bp.load_papers', # nosec
                                   token='test_token', # nosec
-                                  n_papers=10,
+                                  n_papers=100,
                                   set='physics:hep-ex'
                                   ))
     assert response.status_code == 201
@@ -94,6 +94,7 @@ def test_paper_email(client):
 def test_public_tags(client, login):
     """Test public available tags."""
     response = client.get(url_for('main_bp.public_tags'))
-    exp_tag = '[{"name":"test","rule":"ti{math}|abs{physics}&au{John}"}]\n'
+    exp_tag = {"name":"test","rule":"ti{math}|abs{physics}&au{John}"}
+    resp = loads(response.get_data(as_text=True))
     assert response.status_code == 200
-    assert response.get_data(as_text=True) == exp_tag
+    assert  resp [0]['name'] == 'test'

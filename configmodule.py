@@ -45,4 +45,5 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing (staging) config."""
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_TEST')
+    DEBUG = True
     TESTING = True
