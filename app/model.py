@@ -15,27 +15,23 @@ class User(UserMixin, db.Model):
                    )
     pasw = db.Column(db.String(),
                      nullable=False,
-                     unique=False
                     )
     email = db.Column(db.String(),
                       nullable=False,
                       unique=True)
     created = db.Column(db.DateTime(),
-                        nullable=True,
-                        unique=False)
+                        nullable=False
+                        )
 
     login = db.Column(db.DateTime(),
-                      nullable=True,
-                      unique=False,
+                      nullable=False,
                       )
     last_paper = db.Column(db.DateTime(),
                            nullable=True,
-                           unique=False,
                            )
 
     arxiv_cat = db.Column(pg.ARRAY(db.Text, dimensions=1),
                           nullable=True,
-                          unique=False
                           )
     tags = db.relationship('Tag',
                            backref='user',
@@ -44,8 +40,7 @@ class User(UserMixin, db.Model):
                            lazy=True
                            )
     pref = db.Column(db.String(),
-                     nullable=True,
-                     unique=False
+                     nullable=False,
                      )
 
     lists = db.relationship('PaperList',
@@ -67,36 +62,35 @@ class Tag(db.Model):
                    primary_key=True,
                    )
 
+    order = db.Column(db.Integer,
+                      nullable=False,
+                      default=0
+                      )
+
     name = db.Column(db.String(),
-                     unique=False,
                      nullable=False
                      )
 
     rule = db.Column(db.String(),
-                     unique=False,
                      nullable=False
                      )
 
     # TODO consider HEX format?
     color = db.Column(db.String(),
-                      unique=False,
                       nullable=False
                       )
 
     bookmark = db.Column(db.Boolean,
-                         unique=False,
                          nullable=True,
                          default=False
                          )
 
     email = db.Column(db.Boolean,
-                      unique=False,
                       nullable=True,
                       default=False
                       )
 
     public = db.Column(db.Boolean,
-                       unique=False,
                        nullable=True,
                        default=False
                        )
@@ -105,11 +99,7 @@ class Tag(db.Model):
                         db.ForeignKey('users.id',
                                       ondelete='CASCADE'
                                       ),
-                        # nullable to allow asignment
-                        # current_user.tags = []
-                        # in settings_bp.mod_tag()
-                        nullable=True,
-                        default=-1
+                        nullable=False,
                         )
 
     def __repr__(self):
@@ -166,42 +156,34 @@ class Paper(db.Model):
                          )
 
     title = db.Column(db.String(),
-                     unique=False,
                      nullable=False
                      )
 
     author = db.Column(pg.ARRAY(db.Text, dimensions=1),
-                       unique=False,
                        nullable=False
                        )
 
     date_up = db.Column(db.DateTime(),
-                        unique=False,
                         nullable=False
                         )
 
     date_sub = db.Column(db.DateTime(),
-                         unique=False,
                          nullable=False
                          )
 
     version = db.Column(db.String(),
-                        unique=False,
                         nullable=False
                         )
 
     doi = db.Column(db.String(),
                     nullable=True,
-                    unique=False
                     )
 
     abstract = db.Column(db.String(),
-                         unique=False,
                          nullable=True
                          )
 
     cats = db.Column(pg.ARRAY(db.Text, dimensions=1),
-                     unique=False,
                      nullable=True
                      )
 
@@ -210,7 +192,6 @@ class Paper(db.Model):
     # by convention:
     # 1 := arXiv
     source = db.Column(db.Integer,
-                       unique=False,
                        nullable=False
                        )
 
@@ -225,9 +206,13 @@ class PaperList(db.Model):
                    primary_key=True
                    )
 
+    order = db.Column(db.Integer,
+                      nullable=False,
+                      default=0
+                      )
+
     name = db.Column(db.String(),
                      nullable=False,
-                     unique=False
                      )
 
     user_id = db.Column(db.Integer,

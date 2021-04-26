@@ -3,28 +3,19 @@
 {% block head_scripts %}
   <link href="{{ url_for('static', filename='dist/css/settings.css') }}" rel="stylesheet" type="text/css">
   <script type="text/javascript">
-    var TAGS = {{ tags }};
-    var CATS = {{ cats }};
-    var PREF = {{ pref }};
-    var parseTex = false;
+    {% if 'tags' in data %}
+      var TAGS = {{ data['tags'] }};
+    {% endif %}
+    {% if 'cats' in data %}
+      var CATS = {{ data['cats'] }};
+    {% endif %}
+    {% if 'lists' in data %}
+      var LISTS = {{ data['lists'] }};
+    {% endif %}
+    {% if 'pref' in data %}
+      var PREF = {{ data['pref'] }};
+    {% endif %}
   </script>
-
-  {% if math_jax %}
-    <script>
-      MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']],
-          displayMath: [['$$', '$$'], ['\\[', '\\]']],
-        },
-        svg: {
-          fontCache: 'global'
-        }
-      };
-      parseTex = true;
-    </script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  {% endif %}
 
 {% endblock %}
 
@@ -37,13 +28,16 @@
         <div class="menu-content ml-auto" id="menu-main">
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
+              <a class="nav-link {{ 'active' if data['page'] == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
+              <a class="nav-link {{ 'active' if data['page'] == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
+              <a class="nav-link {{ 'active' if data['page'] == 'bookshelf' else 'none' }}" id="bookshelf-link" href="settings?page=bookshelf">Bookshelf</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link {{ 'active' if data['page'] == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
             </li>
           </ul>
         </div>
@@ -53,13 +47,16 @@
     <div class="container pb-3 d-md-none">
       <ul class="nav nav-pills">
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if page == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
+            <a class="nav-link {{ 'active' if data['page'] == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if page == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
+            <a class="nav-link {{ 'active' if data['page'] == 'tag' else 'none' }}" id="tags-link" href="settings?page=tag">Tags</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if page == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
+            <a class="nav-link {{ 'active' if data['page'] == 'bookshelf' else 'none' }}" id="bookshelf-link" href="settings?page=bookshelf">Bookshelf</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if data['page'] == 'pref' else 'none' }}" id="pref-link" href="settings?page=pref">Preferences</a>
           </li>
         </ul>
       </div>
@@ -68,12 +65,15 @@
       <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
         <div class="paper-wrapper">
           <div class="container pt-3">
-            {% if page == 'cat' %}
+            {% if data['page'] == 'cat' %}
+              <p class="text-secondary">Manage your categories: add, reorder, delete.</p>
+
               <div id="cats-set">
                 <form class="mb-4" id="mod-cat" method="POST" onsubmit="return fillCatForm()">
                   <button class="btn btn-success btn-save disabled">Save</button>
                   <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
                 </form>
+                <h4>Selected categories:</h4>
                 <datalist id="catsDataList"></datalist>
                 <div id="cats-list">
                 </div>
@@ -84,7 +84,8 @@
                 </form>
               </div>
             {% endif %}
-            {% if page == 'tag' %}
+            {% if data['page'] == 'tag' %}
+              <p class="text-secondary">Manage your tags: edit, reorder, setup automatic bookmark and email subscription.</p>
               <div id="tags-set">
                 <form class="mb-4" id="mod-tag" onsubmit="return fillTagForm()">
                   <button class="btn btn-success btn-save disabled">Save</button>
@@ -141,7 +142,7 @@
                       <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
                       <label class="form-check-label" for="public-check">Publicly available</label>
                       <small class="form-text text-muted">
-                        Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible.
+                        Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible and could be used by others.
                       </small>
                     </div>
                   </fieldset>
@@ -149,7 +150,16 @@
 
               </div>
             {% endif %}
-            {% if page == 'pref' %}
+            {% if data['page'] == 'bookshelf' %}
+              <p class="text-secondary">Manage paper lists: reorder and delete.</p>
+              <form class="mb-4" id="mod-list" method="POST" onsubmit="return fillListForm()">
+                <button class="btn btn-success btn-save disabled">Save</button>
+                <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
+              </form>
+              <h3>Your bookshelf</h3>
+              <div id="book-list"></div>
+            {% endif %}
+            {% if data['page'] == 'pref' %}
               <div id="pref-set">
                 <form class="mb-4" id="mod-set" method="POST" onsubmit="return fillSetForm()">
                   <button class="btn btn-success btn-save disabled">Save</button>

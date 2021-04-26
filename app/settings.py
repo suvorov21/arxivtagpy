@@ -18,35 +18,49 @@ settings_bp = Blueprint(
 
 @settings_bp.route('/settings')
 @login_required
-def settings():
+def settings_page():
     """Settings page."""
     load_prefs()
     page = 'cat'
     if 'page' in request.args:
         page = request.args['page']
-    # TODO this is excessive
-    # CATS and TAGS are send back for all the settings pages
+
+    data = default_data()
+    data['page'] = page
+
+    if page == 'cat':
+        data['cats'] = session['cats']
+    elif page == 'bookshelf':
+        paper_lists = PaperList.query.filter_by(user_id=current_user.id \
+                                            ).order_by(PaperList.order).all()
+        data['lists'] = [{'id': paper_list.id,
+                          'name': paper_list.name
+                          } for paper_list in paper_lists]
+
+    elif page == 'tag':
+        data['tags'] = dumps(session['tags'])
+    elif page == 'pref':
+        data['pref'] = dumps(session['pref'])
+
+    logging.info('%r', data)
+
     return render_template('settings.jinja2',
-                           cats=session['cats'],
-                           tags=dumps(session['tags']),
-                           # TODO read from prefs
-                           pref=dumps(session['pref']),
-                           math_jax=session['pref'].get('tex'),
-                           dark=session['pref'].get('dark'),
-                           page=page
+                           data=data
                            )
 
 ########### Setings change #############################################
-
 
 @settings_bp.route('/mod_cat', methods=['POST'])
 @login_required
 def mod_cat():
     """Apply category changes."""
-    new_cat = []
-    new_cat = request.form.getlist("list[]")
+    new_cats = cast_args_to_dict(request.form.to_dict().keys())
 
-    current_user.arxiv_cat = new_cat
+    if len(new_cats) == 0:
+        return dumps({'success': False}), 422
+    if new_cats == ["null"]:
+        new_cats = []
+    current_user.arxiv_cat = new_cats
     db.session.commit()
     session['cats'] = current_user.arxiv_cat
     return dumps({'success':True}), 201
@@ -55,57 +69,26 @@ def mod_cat():
 @login_required
 def mod_tag():
     """Apply tag changes."""
-    new_tags = []
-    # FIXME Fix key break with ampersand
-    for arg in request.form.to_dict().keys():
-        new_tags.append(arg)
+    args = request.form.to_dict().keys()
+    return modify_settings(args,
+                           Tag,
+                           new_tag,
+                           update_tag,
+                           current_user.tags
+                           )
 
-    new_tags = '&'.join(new_tags)
+@settings_bp.route('/mod_lists', methods=['POST'])
+@login_required
+def mod_list():
+    """Modify paper lists."""
+    args = request.form.to_dict().keys()
+    return modify_settings(args,
+                           PaperList,
+                           new_list,
+                           update_list,
+                           current_user.lists
+                           )
 
-    if new_tags == '':
-        return dumps({'success': False}), 204
-
-    # convert to array of dict
-    new_tags = loads(new_tags)
-
-    # Rewrite user tags
-    # since both reordering and tag modifications could be done
-    # perform a full rewrite
-    current_user.tags = []
-    session['tags'] = []
-    for tag in new_tags:
-        # new tag creation
-        if tag['id'] == -1:
-            logging.debug("Creating new tag %r for user %r",
-                          tag,
-                          current_user
-                          )
-            db_tag = Tag(name=tag['name'],
-                         rule=tag['rule'],
-                         color=tag['color'],
-                         bookmark=tag['bookmark'],
-                         email=tag['email'],
-                         public=tag['public']
-                         )
-        else:
-            # tag already exists
-            db_tag = Tag.query.filter_by(id=tag['id']).first()
-        # if tag was modified
-        if tag.get('mod'):
-            # if name was changed and auto-bookmark was setup
-            # update the coresponding paper-list name
-            if db_tag.name != tag['name'] and db_tag.bookmark:
-                paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                                       name=db_tag.name
-                                                       ).first()
-                paper_list.name = tag['name']
-            update_tag(db_tag, tag)
-
-        current_user.tags.append(db_tag)
-        session['tags'].append(tag_to_dict(db_tag))
-
-    db.session.commit()
-    return dumps({'success':True}), 201
 
 @settings_bp.route('/mod_pref', methods=['POST'])
 @login_required
@@ -123,8 +106,87 @@ def mod_pref():
     session['pref'] = loads(current_user.pref)
     return dumps({'success':True}), 201
 
+def cast_args_to_dict(args) -> Dict:
+    """Cast requests args to dictionary."""
+    prefs = []
+    # FIXME Fix key break with ampersand
+    for arg in args:
+        prefs.append(arg)
 
-def update_tag(old_tag: Tag, tag: Tag):
+    prefs = '&'.join(prefs)
+
+    if prefs == '':
+        return dict()
+
+    # convert to array of dict
+    prefs = loads(prefs)
+
+    return prefs
+
+def new_tag(tag, order):
+    """Create new Tag object."""
+    db_tag = Tag(name=tag['name'],
+                 rule=tag['rule'],
+                 color=tag['color'],
+                 order=order,
+                 bookmark=tag['bookmark'],
+                 email=tag['email'],
+                 public=tag['public']
+                 )
+    return db_tag
+
+def new_list(n_list, order):
+    """Create new PaperList object."""
+    db_list = PaperList(name=n_list['name'],
+                        order=order
+                        )
+    return db_list
+
+def modify_settings(args, db_class, new_db_object, update, set_place):
+    """
+    Single function for settings modifications.
+
+    args:           request.form.to_dict().keys()
+    db_class:       database class for the given setting: tag, PaperList, etc.
+    new_db_object:  function to create a new DB object
+    update:         function to update the DB record
+    set_place:      settings relation. E.g. current_user.tags
+    """
+    new_settings = cast_args_to_dict(args)
+
+    if len(new_settings) == 0:
+        return dumps({'success': False}), 422
+
+    if new_settings == ["null"]:
+        new_settings = []
+
+    settings = db_class.query.filter_by(user_id=current_user.id \
+                                        ).order_by(db_class.order).all()
+    # save the old version wo delete unused options later
+    old_set_id = {setting.id for setting in settings}
+    new_set_id = set()
+    for order, new_set in enumerate(new_settings):
+        new_set_id.add(new_set['id'])
+        # create a new object
+        if new_set['id'] == -1:
+            db_set = new_db_object(new_set, order)
+            set_place.append(db_set)
+        else:
+            # find this list for user
+            db_set = db_class.query.filter_by(id=new_set['id']).first()
+
+        update(db_set, new_set, order)
+
+    # delete "unused" lists
+    to_delete = old_set_id - new_set_id
+    for del_list in to_delete:
+        db_class.query.filter_by(id=del_list).delete()
+
+    db.session.commit()
+    return dumps({'success':True}), 201
+
+
+def update_tag(old_tag: Tag, tag: Tag, order: int):
     """Update Tag record in database."""
     old_tag.name = tag['name']
     old_tag.rule = tag['rule']
@@ -132,6 +194,12 @@ def update_tag(old_tag: Tag, tag: Tag):
     old_tag.bookmark = tag['bookmark']
     old_tag.email = tag['email']
     old_tag.public = tag['public']
+    old_tag.order = order
+
+def update_list(old_list: PaperList, up_list: PaperList, order: int):
+    """Update PaperList db record."""
+    old_list.name = up_list['name']
+    old_list.order = order
 
 def tag_to_dict(tag: Tag) -> Dict:
     """Transform Tag class object into dict."""
@@ -150,12 +218,23 @@ def load_prefs():
     if not current_user.is_authenticated:
         return
 
+    user_id = current_user.id
+
     session['cats'] = current_user.arxiv_cat
 
     # read tags
     session['tags'] = []
-    for tag in current_user.tags:
+    tags = Tag.query.filter_by(user_id=user_id).order_by(Tag.order).all()
+    for tag in tags:
         session['tags'].append(tag_to_dict(tag))
 
     # read preferences
     session['pref'] = loads(current_user.pref)
+
+def default_data():
+    """Get default template render params."""
+    data = dict()
+    if 'pref' in session:
+        data['dark'] = session['pref'].get('dark')
+        data['math_jax'] = session['pref'].get('tex')
+    return data

@@ -63,7 +63,7 @@ def test_bookshelf_page(client, login):
 
 def test_settings_page(client, login):
     """Test settings page render."""
-    response = client.get(url_for('settings_bp.settings'),
+    response = client.get(url_for('settings_bp.settings_page'),
                           follow_redirects=True
                           )
     assert response.status_code == 200
