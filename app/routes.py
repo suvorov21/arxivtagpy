@@ -17,7 +17,7 @@ from .paper_api import get_arxiv_last_date
 from .utils import url
 from .settings import load_prefs, default_data
 
-PAPERS_PAGE = 3
+PAPERS_PAGE = 25
 
 main_bp = Blueprint(
     'main_bp',
