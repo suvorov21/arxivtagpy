@@ -159,7 +159,7 @@ def bookshelf():
 
     if 'page' not in request.args:
         return redirect(url('main_bp.bookshelf',
-                            list=DEFAULT_LIST,
+                            list=display_list,
                             page=1))
 
     page = int(request.args['page'])
