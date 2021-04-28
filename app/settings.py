@@ -42,8 +42,6 @@ def settings_page():
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
 
-    logging.info('%r', data)
-
     return render_template('settings.jinja2',
                            data=data
                            )
@@ -235,6 +233,6 @@ def default_data():
     """Get default template render params."""
     data = dict()
     if 'pref' in session:
-        data['dark'] = session['pref'].get('dark')
+        data['theme'] = session['pref'].get('theme')
         data['math_jax'] = session['pref'].get('tex')
     return data

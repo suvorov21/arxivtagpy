@@ -17,6 +17,8 @@ from .paper_api import get_arxiv_last_date
 from .utils import url
 from .settings import load_prefs, default_data
 
+PAPERS_PAGE = 25
+
 main_bp = Blueprint(
     'main_bp',
     __name__,
@@ -155,6 +157,13 @@ def bookshelf():
         return redirect(url('main_bp.bookshelf', list=DEFAULT_LIST))
     display_list = request.args['list']
 
+    if 'page' not in request.args:
+        return redirect(url('main_bp.bookshelf',
+                            list=display_list,
+                            page=1))
+
+    page = int(request.args['page'])
+
     # get all lists for the menu (ordered)
     paper_lists = PaperList.query.filter_by(user_id=current_user.id \
                                             ).order_by(PaperList.order).all()
@@ -175,8 +184,11 @@ def bookshelf():
               }
 
     # read the papers
-    for paper in paper_list.papers:
+    for paper in paper_list.papers[PAPERS_PAGE * (page-1):][:PAPERS_PAGE]:
         papers['papers'].append(render_paper_json(paper))
+
+    total_pages = len(paper_list.papers) // PAPERS_PAGE
+    total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
 
     # tag papers
     papers = process_papers(papers,
@@ -189,10 +201,19 @@ def bookshelf():
     render_papers(papers, sort='date_up')
     tags_dict = render_tags_front(session['tags'])
 
+    url_base = url('main_bp.bookshelf',
+                   list=display_list
+                   )
+    url_base += '&page='
+
     return render_template('bookshelf.jinja2',
                            papers=papers,
                            lists=lists,
                            title=paper_list.name,
+                           url_base=url_base,
+                           page=page,
+                           paper_page=PAPERS_PAGE,
+                           total_pages=total_pages,
                            # escape backslash for proper transfer
                            # TEX formulas
                            displayList=display_list.replace('\\', '\\\\'),

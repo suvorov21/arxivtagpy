@@ -115,3 +115,31 @@ class TestLiveServer():
         sleep(1)
         element = driver.find_element_by_class_name('alert-dismissible')
         assert 'success' in element.get_attribute('class')
+
+    def test_mod_pref(self, driver):
+        """Test preference modifications."""
+        driver.get(url_for('settings_bp.settings_page',
+                           page='pref',
+                           _external=True
+                           ))
+        sleep(3)
+        driver.find_element_by_id('tex-check').click()
+        sleep(1)
+        driver.find_element_by_class_name('btn-success').click()
+        sleep(2)
+        element = driver.find_element_by_id('tex-check')
+        assert not element.is_selected()
+
+    def test_mod_book(self, driver):
+        """Test bookmarks modifications."""
+        driver.get(url_for('settings_bp.settings_page',
+                           page='bookshelf',
+                           _external=True
+                           ))
+        sleep(3)
+        driver.find_element_by_id('close_Favourite').click()
+        sleep(1)
+        driver.find_element_by_class_name('btn-success').click()
+        sleep(1)
+        element = driver.find_element_by_class_name('alert-dismissible')
+        assert 'success' in element.get_attribute('class')

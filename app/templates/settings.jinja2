@@ -102,11 +102,10 @@
                     <input type="text" class="form-control tag-field" id="tag-name" name="tag_name" placeholder="LHC"><br/>
                     <label for="tag-rule">Tag rule</label><br/>
                     <input type="text" class="form-control tag-field" id="tag-rule" name='tag_rule' placeholder="abs{LHC}&au{ATLAS|LHCb|ALICE|CMS}" size=50>
-                    <small id="ruleHelp" class="form-text text-muted"><span id="show-rules">Show rules hints</span></small>
-                    <br/>
+                    <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></small>
                     <div id="tag-help">
                       <p>
-                        The following rules or their combinations can be used:<br/>
+                        Syntaxis:<br/>
                         <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
                         <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
                         <code>au{John Doe}</code> - for papers with "John Doe" in author list
@@ -126,6 +125,25 @@
                         <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
                       </p>
                     </div>
+                    <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></small>
+                    {# Table with tags of other users #}
+
+                    <div id="loading-tags"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading tags...</div>
+                    <div class="table-responsive" style="height: 400;" id="table-wrapper">
+                      <small class="form-text text-muted">Click on the row to fill the fields above</small>
+                      <table class="table table-hover {% if data['theme'] == 'dark' %}table-dark{% endif %}" cellspacing="0" width="100%" id="tag-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">name</th>
+                            <th scope="col">rule</th>
+                          </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        </tbody>
+                      </table>
+                    </div>
+                    <br/>
                     <label for="tag-color" >Tag color</label><br/>
                     <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
                     <div class="form-check">

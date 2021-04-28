@@ -1,7 +1,7 @@
 """Authority utilities: login, pass check, account managment."""
 
 from datetime import datetime
-import random
+import secrets
 import string
 
 from werkzeug.security import check_password_hash, \
@@ -17,6 +17,7 @@ from .import login_manager
 from .import mail
 from .model import db, User, PaperList, Tag
 from .utils import url
+from .settings import default_data
 
 DEFAULT_LIST = 'Favourite'
 
@@ -106,7 +107,7 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                pref='{"tex":"True", "dark":"False"}'
+                pref='{"tex":"True", "theme":"light"}'
                 )
 
     tag = Tag(name='example',
@@ -168,17 +169,20 @@ def unauthorized():
 @auth_bp.route('/restore', methods=['GET'])
 def restore():
     """Page for password reset."""
-    return render_template('restore.jinja2')
+    return render_template('restore.jinja2',
+                           data=default_data()
+                           )
 
 @auth_bp.route('/restore_pass', methods=['POST'])
 def restore_pass():
     """Endpoint for password reset."""
+    do_send = request.args.get('do_send')
     email_in = request.form.get('email')
     user = User.query.filter_by(email=email_in).first()
     if user:
         # generate new pass
-        letters = string.ascii_letters
-        new_pass = ''.join(random.choice(letters) for i in range(15)) # nosec
+        letters = string.ascii_letters + string.digits
+        new_pass = ''.join(secrets.choice(letters) for i in range(15)) # nosec
         user.pasw = generate_password_hash(new_pass)
         db.session.commit()
 
@@ -194,7 +198,8 @@ def restore_pass():
                       recipients=[user.email],
                       subject="arXiv tag password reset"
                       )
-        mail.send(msg)
+        if do_send:
+            mail.send(msg)
 
     flash(f'The email with a new password was sent to your email from \
           {current_app.config["MAIL_DEFAULT_SENDER"]}')

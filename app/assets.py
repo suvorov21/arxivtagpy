@@ -36,10 +36,9 @@ def compile_assets(app):
     assets.register('layout', less_bundle)
 
     # Build assets in development mode
-    if app.config['DEBUG']:
-        vars_bundle.build(force=True)
-        vars_dark_bundle.build(force=True)
-        less_bundle.build(force=True)
+    vars_bundle.build(force=app.config['DEBUG'])
+    vars_dark_bundle.build(force=app.config['DEBUG'])
+    less_bundle.build(force=app.config['DEBUG'])
 
     paper_less_bundle = Bundle(
         'src/less/layout.less',
@@ -61,9 +60,8 @@ def compile_assets(app):
     assets.register('paper_less', paper_less_bundle)
     assets.register('paper_js', paper_js_bundle)
     # Build assets in development mode
-    if app.config['DEBUG']:
-        paper_less_bundle.build(force=True)
-        paper_js_bundle.build()
+    paper_less_bundle.build(force=app.config['DEBUG'])
+    paper_js_bundle.build()
 
     set_less_bundle = Bundle(
         'src/less/layout.less',
@@ -87,9 +85,8 @@ def compile_assets(app):
     assets.register('settings_less', set_less_bundle)
     assets.register('settings_js', set_js_bundle)
     # Build assets in development mode
-    if app.config['DEBUG']:
-        set_less_bundle.build(force=True)
-        set_js_bundle.build()
+    set_less_bundle.build(force=app.config['DEBUG'])
+    set_js_bundle.build()
 
     # JavaScript Bundle
     bookshelf_js_bundle = Bundle(
@@ -102,5 +99,4 @@ def compile_assets(app):
 
     assets.register('bookshelf_js', bookshelf_js_bundle)
     # Build assets in development mode
-    if app.config['DEBUG']:
-        bookshelf_js_bundle.build()
+    bookshelf_js_bundle.build()
