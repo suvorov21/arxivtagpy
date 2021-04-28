@@ -114,9 +114,11 @@ class UpdateDate(db.Model):
     Store dates of the last updates e.g. lst bookmarked
     or last email paper.
     """
+    id = db.Column(db.Integer,
+                   primary_key=True
+                   )
     last_bookmark = db.Column(db.DateTime(),
-                              nullable=True,
-                              primary_key=True
+                              nullable=True
                               )
 
     last_email = db.Column(db.DateTime(),
@@ -137,7 +139,9 @@ paper_associate = db.Table('paper_associate',
                                       ),
                             db.Column('paper_ref_id',
                                       db.Integer,
-                                      db.ForeignKey('papers.id'),
+                                      db.ForeignKey('papers.id',
+                                                    ondelete='CASCADE'
+                                                    ),
                                       primary_key=True
                                       )
                             )

@@ -97,3 +97,17 @@ def test_public_tags(client, login):
     resp = loads(response.get_data(as_text=True))
     assert response.status_code == 200
     assert  resp[0]['name'] == 'test'
+
+def test_paper_delete(client, login):
+    """Test paper delete endpoint."""
+    response = client.get(url_for('auto_bp.delete_papers', # nosec
+                                  token='test_token', # nosec
+                                  week=1
+                                  ))
+    # download papers again for future tests
+    client.get(url_for('auto_bp.load_papers', # nosec
+                       token='test_token', # nosec
+                       n_papers=100,
+                       set='physics:hep-ex'
+                       ))
+    assert response.status_code == 201

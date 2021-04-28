@@ -45,6 +45,10 @@ class ArxivOaiApi:
         """Set starting date."""
         self.params['from'] = from_var
 
+    def set_until(self, until_var):
+        """Set Until date."""
+        self.params['until'] = until_var
+
     def get_ref_pdf(self, pid, version):
         """Format href for pdf doc."""
         return self.BASE_URL + '/pdf/' + pid + version + '.pdf'

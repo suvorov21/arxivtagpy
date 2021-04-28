@@ -86,11 +86,38 @@ def load_papers():
                                          '%Y-%m-%d'
                                          ))
 
+    if request.args.get('until'):
+        paper_api.set_until(request.args['until'])
+
     # further code is paper source independent.
     # Any API can be defined above
     update_papers([paper_api], **params)
 
+    return dumps({'success': True}), 201
+
+@auto_bp.route('/delete_papers', methods=['GET'])
+@check_token
+def delete_papers():
+    """Clean up paper table."""
+    logging.info('Start paper delete')
+    if 'until' in request.args:
+        until_date = datetime.strptime(request.args['until'],
+                                       '%Y-%m-%d'
+                                       )
+    elif 'week' in request.args:
+        n_weeks = int(request.args['week'])
+        until_date = datetime.now() - timedelta(days=7*n_weeks)
+    else:
+        logging.error('Options are not provided. Exit to prevent DB damage.')
+        dumps({'success': False}), 422
+
+    Paper.query.filter(Paper.date_up < until_date).delete()
+    db.session.commit()
+
+    logging.info('All papers until %r are deleted.', until_date)
+
     return dumps({'success':True}), 201
+
 
 @auto_bp.route('/bookmark_papers', methods=['GET'])
 @check_token
