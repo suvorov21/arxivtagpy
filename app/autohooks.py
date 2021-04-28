@@ -68,11 +68,10 @@ def load_papers():
     if 'do_update' in request.args:
         params['do_update'] = request.args.get('do_update')
     if 'from' in request.args:
-        params['last_paper_date'] = datetime.strptime(request.args['from'],
+        last_paper_date = datetime.strptime(request.args['from'],
                                             '%Y-%m-%d'
-                                             )
-    else:
-        params['last_paper_date'] = last_paper_date
+                                            )
+    params['last_paper_date'] = last_paper_date
 
     logging.info('Parameters: %s', params)
 
@@ -83,12 +82,9 @@ def load_papers():
     if request.args.get('set'):
         paper_api.set_set(request.args.get('set'))
     # from argument is privelaged over last paper in the DB
-    if request.args.get('from'):
-        paper_api.set_from(request.args.get('set'))
-    else:
-        paper_api.set_from(datetime.strftime(last_paper_date,
-                                             '%Y-%m-%d'
-                                             ))
+    paper_api.set_from(datetime.strftime(last_paper_date,
+                                         '%Y-%m-%d'
+                                         ))
 
     # further code is paper source independent.
     # Any API can be defined above

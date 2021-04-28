@@ -61,7 +61,7 @@ class ArxivOaiApi:
             logging.debug('Start harvesting')
 
             response = get(self.URL, self.params)
-            logging.debug(response.url)
+            logging.info('Ask arxiv with %r', response.url)
 
             if response.status_code != 200:
                 fail_attempts += 1
@@ -92,6 +92,7 @@ class ArxivOaiApi:
                                 self.BATCH_SIZE
                                 )
 
+            updated = 'null'
             for record in records:
                 info = record.find(self.OAI + 'metadata').find(self.ARXIV + 'arXivRaw')
 
@@ -135,7 +136,7 @@ class ArxivOaiApi:
             if token is None or token.text is None:
                 return
 
-            logging.info('Going through resumption')
+            logging.info('Going through resumption. Last date %r', updated)
             self.params = {'resumptionToken': token.text}
 
             sleep(self.DELAY)
