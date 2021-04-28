@@ -154,6 +154,9 @@ function renderNov() {
 
 function renderCounters() {
   let nCats = CATS.length;
+  if (typeof(DATA.ncat) === "undefined") {
+    return;
+  }
   for(let catId = 0; catId < nCats; catId++) {
     document.getElementById("cat-count-"+catId).textContent = DATA.ncat[parseInt(catId, 10)];
   }
@@ -166,6 +169,7 @@ function renderCounters() {
  for(let tagId = 0; tagId < nTags; tagId++) {
     document.getElementById("tag-count-"+tagId).textContent = DATA.ntag[parseInt(tagId, 10)];
   }
+  return;
 }
 
 function addBookmark(event) {
