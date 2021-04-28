@@ -4,6 +4,7 @@
 
 var dragTarget;
 var tagEdited = false;
+var tableFilled = false;
 
 // untility function to access css var
 function cssVar(name, value) {
@@ -273,7 +274,7 @@ function renderPref() {
     document.getElementById("tex-check").checked = true;
   }
 
-  if (PREF["dark"]) {
+  if (PREF["theme"] === "dark") {
     document.getElementById("radio-dark").checked = true;
   } else {
     document.getElementById("radio-light").checked = true;
@@ -336,12 +337,97 @@ const clearTagField = () => {
 $("#show-rules").click(() => {
   if ($("#tag-help").css("display") === "block") {
     $("#tag-help").css("display", "none");
+    $("#show-rules").text("Show rules hints");
   } else {
     $("#tag-help").css("display", "block");
+    $("#show-rules").text("Hide rules hints");
   }
 });
 
 var editTagId = -2;
+
+const makeTagEdited = () => {
+  $(".btn-save").removeClass("disabled");
+  tagEdited = true;
+  var doms = document.getElementsByClassName("tag-label");
+  for(let i = 0; i < doms.length; i++) {
+    doms[parseInt(i, 10)].style.cursor = "not-allowed";
+  }
+};
+
+const tableRowClick = (event) => {
+  // do nothing if tag is not eddited
+  let message = "Use this name and rule?";
+  let newTag = false;
+  if ($(".btn-save").hasClass("disabled") && editTagId < -1) {
+    message = "Use this rule for a new tag?";
+    newTag = true;
+  }
+  if (confirm(message)) {
+    // assume click is done on a cell, thus the row is a parent element
+    let row = event.target.parentElement;
+    for (let childId = 0; childId < row.childNodes.length; childId++) {
+      if (newTag) {
+        $("#add-tag").click();
+      }
+      if (!row.childNodes[parseInt(childId, 10)].className) {
+        continue;
+      }
+      if (row.childNodes[parseInt(childId, 10)].className.includes("name")) {
+        document.forms["add-tag"]["tag_name"].value = row.childNodes[parseInt(childId, 10)].textContent;
+      }
+      if (row.childNodes[parseInt(childId, 10)].className.includes("rule")) {
+        document.forms["add-tag"]["tag_rule"].value = row.childNodes[parseInt(childId, 10)].textContent;
+      }
+    }
+  }
+  makeTagEdited();
+};
+
+$("#show-pubtags").click(() => {
+  if ($("#table-wrapper").css("display") === "block") {
+    $("#table-wrapper").css("display", "none");
+    $("#show-pubtags").text("Show users rules examples");
+  } else {
+    $("#table-wrapper").css("display", "block");
+    $("#show-pubtags").text("Hide users rules examples");
+  }
+  if (tableFilled) {
+    event.preventDefault();
+    return;
+  }
+
+  $("#loading-tags").css("display", "block");
+   $.ajax({
+    url: "/public_tags",
+    type: "get",
+    success(data) {
+      data.forEach((tag, num) => {
+        let row = document.createElement("tr");
+        let inner = document.createElement("th");
+        inner.scope = "row";
+        inner.textContent = num + 1;
+        row.addEventListener("click", tableRowClick);
+
+        let name = document.createElement("td");
+        name.className = "name";
+        name.textContent = tag.name;
+
+        let rule = document.createElement("td");
+        rule.className = "rule";
+        rule.style.letterSpacing = "2px";
+        rule.textContent = tag.rule;
+
+        document.getElementById("table-body").appendChild(row);
+        row.appendChild(inner);
+        row.appendChild(name);
+        row.appendChild(rule);
+      });
+      tableFilled = true;
+      $("#loading-tags").css("display", "none");
+    }
+  });
+});
 
 // click on tag label
 $("#tag-list").click((event) => {
@@ -404,15 +490,6 @@ $("#tag-list").click((event) => {
   }
   $("#tag-fields").prop("disabled", false);
 });
-
-const makeTagEdited = () => {
-  $(".btn-save").removeClass("disabled");
-  tagEdited = true;
-  var doms = document.getElementsByClassName("tag-label");
-  for(let i = 0; i < doms.length; i++) {
-    doms[parseInt(i, 10)].style.cursor = "not-allowed";
-  }
-};
 
 $(".tag-field").on("input", function() {
   makeTagEdited();
@@ -522,9 +599,13 @@ function fillSetForm() {
     return false;
   }
   let url = "mod_pref";
+  let themeName = "light";
+  if (document.getElementById("radio-dark").checked) {
+    themeName = "dark";
+  }
   let dataSet = {"tex": document.getElementById("tex-check").checked,
-                  "dark": document.getElementById("radio-dark").checked
-                };
+                 "theme": themeName
+                 };
   $.post(url, JSON.stringify(dataSet))
   .done(function() {
     reloadSettings();
@@ -574,6 +655,7 @@ const reloadSettings = () => {
   }
   else if ($("#tags-link").hasClass("active")) {
     renderTags();
+    editTagId = -2;
     $("#tag-fields").prop("disabled", true);
     clearTagField();
   } else if ($("#bookshelf-link").hasClass("active")) {
