@@ -94,7 +94,6 @@ def test_paper_bookmark(client):
 def test_public_tags(client, login):
     """Test public available tags."""
     response = client.get(url_for('main_bp.public_tags'))
-    exp_tag = {"name":"test","rule":"ti{math}|abs{physics}&au{John}"}
     resp = loads(response.get_data(as_text=True))
     assert response.status_code == 200
-    assert  resp [0]['name'] == 'test'
+    assert  resp[0]['name'] == 'test'
