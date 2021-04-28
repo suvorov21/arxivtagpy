@@ -112,6 +112,6 @@ production:
       - apt-get install -y ruby-dev
       - gem install dpl
     script:
-        - dpl --provider=heroku --skip-cleanup --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
+        - dpl --provider=heroku --skip_cleanup --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
     only:
         - master
