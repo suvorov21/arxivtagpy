@@ -107,7 +107,7 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                pref='{"tex":"True", "dark":"False"}'
+                pref='{"tex":"True", "theme":"light"}'
                 )
 
     tag = Tag(name='example',
