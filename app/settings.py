@@ -42,8 +42,6 @@ def settings_page():
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
 
-    logging.info('%r', data)
-
     return render_template('settings.jinja2',
                            data=data
                            )

@@ -2,6 +2,7 @@
 # pylint: disable=import-outside-toplevel
 
 from  os import environ
+import sys
 
 import logging
 
@@ -42,10 +43,18 @@ def app_init():
     level = logging.DEBUG if app.config['DEBUG'] else logging.INFO
     log_file = app.config.get('LOG_PATH') if app.config.get('LOG_PATH') else ''
     log_file += 'flask.log'
-    logging.basicConfig(filename=log_file,
-                        format='%(asctime)s\t%(levelname)s\t%(filename)s\t%(message)s',
-                        level=level
-                        )
+    # log into STDOUT stream
+    if app.config.get('LOG_PATH') == 'STDOUT':
+        logging.basicConfig(stream=sys.stdout,
+                            format='%(asctime)s\t%(levelname)s\t%(filename)s\t%(message)s',
+                            level=level
+                            )
+    # log into file
+    else:
+        logging.basicConfig(filename=log_file,
+                            format='%(asctime)s\t%(levelname)s\t%(filename)s\t%(message)s',
+                            level=level
+                            )
 
     with app.app_context():
         from . import routes

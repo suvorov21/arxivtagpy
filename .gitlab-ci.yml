@@ -103,15 +103,15 @@ production:
   only:
     - master
 
-# OLD HEROKU PRODUCTION
-# production:
-#     type: deploy
-#     stage: production
-#     before_script:
-#       - apt-get update -qy
-#       - apt-get install -y ruby-dev
-#       - gem install dpl
-#     script:
-#         - dpl --provider=heroku --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
-#     only:
-#         - master
+# HEROKU PRODUCTION
+production:
+    type: deploy
+    stage: production
+    before_script:
+      - apt-get update -qy
+      - apt-get install -y ruby-dev
+      - gem install dpl
+    script:
+        - dpl --provider=heroku --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
+    only:
+        - master
