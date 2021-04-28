@@ -35,6 +35,12 @@ def app_init():
 
     app.config.from_object(cfg)
 
+    # fix a syntax for database
+    if 'postgres://' in app.config['DATABASE_URL']:
+        app.config['DATABASE_URL'] = app.config['DATABASE_URL'].replace('postgres://',
+                                                                        'postgresql://'
+                                                                        )
+
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
