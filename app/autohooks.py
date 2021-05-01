@@ -275,6 +275,9 @@ def email_papers():
 def month_start():
     """Return the first day of the month."""
     today_date = datetime.now()
+    # if month just stated --> take the previous one
+    if today_date.day < 3:
+        today_date -= timedelta(days=4)
     return today_date - timedelta(days=today_date.day)
 
 def email_paper_update(papers: List[Dict], email: str, do_send: bool):
