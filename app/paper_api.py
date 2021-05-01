@@ -41,19 +41,19 @@ class ArxivOaiApi:
         """Set for papers."""
         self.params['set'] = set_var
 
-    def set_from(self, from_var):
+    def set_from(self, from_var: str):
         """Set starting date."""
         self.params['from'] = from_var
 
-    def set_until(self, until_var):
+    def set_until(self, until_var: str):
         """Set Until date."""
         self.params['until'] = until_var
 
-    def get_ref_pdf(self, pid, version):
+    def get_ref_pdf(self, pid: str, version: str):
         """Format href for pdf doc."""
         return self.BASE_URL + '/pdf/' + pid + version + '.pdf'
 
-    def get_ref_web(self, pid, version):
+    def get_ref_web(self, pid: str, version: str):
         """Forrmat ref for webpage with summary."""
         return self.BASE_URL + '/abs/' + pid + version
 
