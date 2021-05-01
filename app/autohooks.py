@@ -109,7 +109,7 @@ def delete_papers():
         until_date = datetime.now() - timedelta(days=7*n_weeks)
     else:
         logging.error('Options are not provided. Exit to prevent DB damage.')
-        dumps({'success': False}), 422
+        return dumps({'success': False}), 422
 
     Paper.query.filter(Paper.date_up < until_date).delete()
     db.session.commit()
