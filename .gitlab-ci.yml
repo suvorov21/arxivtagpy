@@ -91,7 +91,7 @@ stage_to_beta:
   only:
     - develop
 
-production:
+production_ftp:
   type: deploy
   stage: production
   image:
@@ -104,7 +104,7 @@ production:
     - master
 
 # HEROKU PRODUCTION
-production:
+production_heroku:
     type: deploy
     stage: production
     before_script:
