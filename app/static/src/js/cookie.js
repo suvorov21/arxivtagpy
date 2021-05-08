@@ -65,3 +65,23 @@ function raiseAlert(text="Text", type="alert") {
     $(".alert").alert("close");
   } , 3000);
 }
+
+$(function() {
+  $("#feedback-tab").click(function() {
+    $("#feedback-form").toggle("slide");
+  });
+
+  $("#feedback-form form").on("submit", function(event) {
+    var $form = $(this);
+    $.ajax({
+      type: $form.attr("method"),
+      url: $form.attr("action"),
+      data: $form.serialize(),
+      success: function() {
+        $("#feedback-form").toggle("slide").find("textarea").val("");
+        raiseAlert("Thank you for your feedback!", "success");
+      }
+    });
+    event.preventDefault();
+  });
+});
