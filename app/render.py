@@ -31,7 +31,11 @@ accents = {"\\'a": '&agrave;',
            "\\'o": '&oacute;',
            "\\'O": '&Oacute;',
            "\\`o": '&ograve;',
-           "\\`O": '&Ograve;'
+           "\\`O": '&Ograve;',
+           "\\v{z}": '&zcaron;',
+           "\\v{Z}": '&Zcaron;',
+           "\\v{s}": '&scaron;',
+           "\\v{S}": '&Scaron;'
            }
 
 def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
