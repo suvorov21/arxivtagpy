@@ -119,6 +119,25 @@
 
   {% block content %}{% endblock %}
 
+  {% if current_user.is_authenticated %}
+    <div id="feedback">
+      <div id="feedback-form" style='display:none;' class="panel panel-default">
+        <form method="POST" action="/feedback" class="form panel-body" role="form">
+          <div class="form-group">
+            <textarea class="form-control" name="body" required placeholder="Please write your feedback here..." rows="6"></textarea>
+          </div>
+          <button class="btn btn-primary pull-right" type="submit">Send</button>
+        </form>
+      </div>
+      <div id="feedback-tab">Feedback</div>
+    </div>
+  {% endif %}
+
+    <div class="footer">
+      arXiv Tag source code is available at <a href="https://gitlab.com/suvorov21/arxivtagpy">GitLab</a>. <br />
+      Please leave your feedback through the feedback panel,<br/> or with submitting issues at the GitLab.
+    </div>
+
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
