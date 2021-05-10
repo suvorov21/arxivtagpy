@@ -136,7 +136,8 @@ def new_tag(tag, order):
 def new_list(n_list, order):
     """Create new PaperList object."""
     db_list = PaperList(name=n_list['name'],
-                        order=order
+                        order=order,
+                        not_seen=0
                         )
     return db_list
 

@@ -171,7 +171,8 @@ def bookmark_papers():
         # if not --> create one
         if not paper_list:
             paper_list = PaperList(name=tag.name,
-                                   user_id=prev_user
+                                   user_id=prev_user,
+                                   not_seen=0
                                    )
             db.session.add(paper_list)
             db.session.commit()
@@ -187,6 +188,7 @@ def bookmark_papers():
                 if not result:
                     paper_list.papers.append(paper)
                     n_papers += 1
+                    paper_list.not_seen += 1
 
     # store the last checked paper
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()

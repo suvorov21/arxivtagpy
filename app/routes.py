@@ -174,12 +174,18 @@ def bookshelf():
         new_default_list(current_user.id)
         paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
 
-    lists = [paper_list.name for paper_list in paper_lists]
+    lists = [{'name': paper_list.name,
+              'not_seen': paper_list.not_seen
+              } for paper_list in paper_lists]
 
     # get the particular paper list to access papers from one
     paper_list = PaperList.query.filter_by(user_id=current_user.id,
                                            name=display_list
                                            ).first()
+
+    # reset number of unseen papers
+    paper_list.not_seen = 0
+    db.session.commit()
 
     papers = {'list': lists[0],
               'papers': []

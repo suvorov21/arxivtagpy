@@ -79,7 +79,8 @@ def new_default_list(usr_id):
         return
 
     paper_list = PaperList(name=DEFAULT_LIST,
-                           user_id=usr_id
+                           user_id=usr_id,
+                           not_seen=0
                            )
     db.session.add(paper_list)
 

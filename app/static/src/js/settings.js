@@ -1,21 +1,10 @@
-/*global allCatsArray, CATS, TAGS, PREF, LISTS, parseTex, MathJax, raiseAlert*/
+/*global allCatsArray, CATS, TAGS, PREF, LISTS, parseTex, MathJax, raiseAlert, cssVar*/
 /*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc, fillListForm, */
 /*eslint no-undef: "error"*/
 
 var dragTarget;
 var tagEdited = false;
 var tableFilled = false;
-
-// untility function to access css var
-function cssVar(name, value) {
-  if (name[0] !=="-") {
-    name = "--" + name; //allow passing with or without --
-  }
-  if (value) {
-    document.documentElement.style.setProperty(name, value);
-  }
-  return getComputedStyle(document.documentElement).getPropertyValue(name);
-}
 
 // API call for settings modifications
 const submitSetting = (url, set) => {

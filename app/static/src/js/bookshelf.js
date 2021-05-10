@@ -1,5 +1,7 @@
-/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase, displayList, page, paperPage */
+/*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase, displayList, page, paperPage, cssVar */
 /*eslint no-undef: "error"*/
+
+var unseenCurrentList = 0;
 
 function renderLists() {
   let hrefBase = document.location.href.split("=")[0];
@@ -7,12 +9,20 @@ function renderLists() {
     let listItem = document.createElement("li");
     listItem.className = "nav-item";
     let link = document.createElement("a");
-    link.href = hrefBase + "=" + listName;
+    link.href = hrefBase + "=" + listName.name;
     link.className = "nav-link";
-    if (listName === displayList) {
+    if (listName.name === displayList) {
       link.className += " active";
+      unseenCurrentList = listName.not_seen;
     }
-    link.textContent = listName;
+    link.textContent = listName.name;
+    if (listName.not_seen !== 0) {
+      link.textContent += " ";
+      let badge = document.createElement("span");
+      badge.className = "badge badge-light";
+      badge.textContent = listName.not_seen;
+      link.appendChild(badge);
+    }
     listItem.appendChild(link);
 
     document.getElementById("menu-list").append(listItem);
@@ -50,6 +60,12 @@ function renderPapers() {
   DATA.papers.forEach((paper, num) => {
     num += paperPage * (page - 1);
     let paperBase = renderPapersBase(paper, num);
+
+    // highlight new papers
+    let paperElement = paperBase[0];
+    if (num < unseenCurrentList) {
+      paperElement.style.backgroundColor = cssVar("--unseen-paper-bg");
+    }
 
     // removal button
     let btnPanel = paperBase[1];
