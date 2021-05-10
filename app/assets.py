@@ -49,7 +49,7 @@ def compile_assets(app):
     )
     # JavaScript Bundle
     paper_js_bundle = Bundle(
-        'src/js/cookie.js',
+        'src/js/layout.js',
         'src/js/paper_basic.js',
         'src/js/papers.js',
         filters='jsmin',
@@ -74,7 +74,7 @@ def compile_assets(app):
     # JavaScript Bundle
     set_js_bundle = Bundle(
         'src/js/allCatsArray.js',
-        'src/js/cookie.js',
+        'src/js/layout.js',
         'src/js/settings.js',
         'src/js/jquery.wheelcolorpicker.js',
         filters='jsmin',
@@ -90,7 +90,7 @@ def compile_assets(app):
 
     # JavaScript Bundle
     bookshelf_js_bundle = Bundle(
-        'src/js/cookie.js',
+        'src/js/layout.js',
         'src/js/paper_basic.js',
         'src/js/bookshelf.js',
         filters='jsmin',
