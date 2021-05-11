@@ -137,7 +137,7 @@ class TestLiveServer():
                            _external=True
                            ))
         sleep(3)
-        driver.find_element_by_id('close_Favourite').click()
+        driver.find_element_by_class_name('close-btn').click()
         sleep(1)
         driver.find_element_by_class_name('btn-success').click()
         sleep(1)
