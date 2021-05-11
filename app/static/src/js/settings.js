@@ -621,6 +621,7 @@ function fillSetForm() {
       if (link.rel === "stylesheet") {
         link.href += "?";
       }}
+    localStorage.clear();
     window.location.reload(true);
     return false;
   }).fail(function(){
