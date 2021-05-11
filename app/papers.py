@@ -6,7 +6,7 @@ Tag processor checks if a given paper is suitable with the tag
 """
 
 from typing import Dict, Tuple
-from re import search, IGNORECASE
+from re import search, compile, sub, IGNORECASE
 import logging
 
 from .model import db, Paper
@@ -257,16 +257,27 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
         condition += ')|('
         condition += '.*'.join(cond_list[::-1]) + ')'
 
+    # escape backslash for proper treatment of TeX expressions
+    # in the DB TeX formulas are stored with one slash
+    # wile re requires escape \ before the TeX one
+    condition = condition.replace('\\', '\\\\')
+
+    # do search among separate words only. 
+    # But ignore this for TeX
+    condition = sub(r'(^\b|\|\b|\(\b)', r'\1\\b', condition)
+
     # inversion of the rule
     inversion = False
     if '!' in condition:
         condition = condition.replace('!', '')
         inversion = True
 
-    found = search(condition,
-                   search_target,
-                   flags=IGNORECASE
-                   ) is not None
+    
+    re_cond = compile(condition,
+                      flags=IGNORECASE
+                      )
+
+    found = re_cond.search(search_target) is not None
 
     if  found != inversion:
         return True

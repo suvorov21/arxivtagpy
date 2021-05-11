@@ -1,3 +1,5 @@
+/*exported  raiseAlert, cssVar */
+
 var prefs = {
 
   data: {},
@@ -64,4 +66,35 @@ function raiseAlert(text="Text", type="alert") {
   setTimeout(function() {
     $(".alert").alert("close");
   } , 3000);
+}
+
+$(function() {
+  $("#feedback-tab").click(function() {
+    $("#feedback-form").toggle("slide");
+  });
+
+  $("#feedback-form form").on("submit", function(event) {
+    var $form = $(this);
+    $.ajax({
+      type: $form.attr("method"),
+      url: $form.attr("action"),
+      data: $form.serialize(),
+      success: function() {
+        $("#feedback-form").toggle("slide").find("textarea").val("");
+        raiseAlert("Thank you for your feedback!", "success");
+      }
+    });
+    event.preventDefault();
+  });
+});
+
+// untility function to access css var
+function cssVar(name, value) {
+  if (name[0] !=="-") {
+    name = "--" + name; //allow passing with or without --
+  }
+  if (value) {
+    document.documentElement.style.setProperty(name, value);
+  }
+  return getComputedStyle(document.documentElement).getPropertyValue(name);
 }

@@ -7,11 +7,13 @@ RUN apk add gcc musl-dev libffi-dev make g++ nodejs nodejs-npm
 RUN npm install -g less
 
 ENV POSTGRES_DB arxiv_test
+ENV POSTGRES_DB_DEBUG arxiv_debug
 ENV POSTGRES_USER runner
 ENV POSTGRES_PASSWORD tester
 ENV POSTGRES_HOST_AUTH_METHOD trust
 
 ENV DATABASE_URL_TEST postgresql://runner:tester@postgres:5432/arxiv_test
+ENV DATABASE_URL_DEBUG postgresql://runner:tester@postgres:5432/arxiv_debug
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV TOKEN test_token
 

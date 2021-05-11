@@ -1,21 +1,10 @@
-/*global allCatsArray, CATS, TAGS, PREF, LISTS, parseTex, MathJax, raiseAlert*/
+/*global allCatsArray, CATS, TAGS, PREF, LISTS, parseTex, MathJax, raiseAlert, cssVar*/
 /*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc, fillListForm, */
 /*eslint no-undef: "error"*/
 
 var dragTarget;
 var tagEdited = false;
 var tableFilled = false;
-
-// untility function to access css var
-function cssVar(name, value) {
-  if (name[0] !=="-") {
-    name = "--" + name; //allow passing with or without --
-  }
-  if (value) {
-    document.documentElement.style.setProperty(name, value);
-  }
-  return getComputedStyle(document.documentElement).getPropertyValue(name);
-}
 
 // API call for settings modifications
 const submitSetting = (url, set) => {
@@ -48,10 +37,16 @@ const submitSetting = (url, set) => {
 
 const dropElement = (event, arrayToSwap) => {
   event.preventDefault();
-  let moved = event.dataTransfer.getData("Text");
-  let buffer = arrayToSwap[parseInt(moved, 10)];
-  arrayToSwap[parseInt(moved, 10)] = arrayToSwap[parseInt(dragTarget, 10)];
-  arrayToSwap[parseInt(dragTarget, 10)] = buffer;
+  let moved = parseInt(event.dataTransfer.getData("Text"), 10);
+  // insert transfered element at new place
+  arrayToSwap.splice(dragTarget, 0, arrayToSwap[parseInt(moved, 10)]);
+
+  if (moved > dragTarget) {
+    moved += 1;
+  }
+
+  // delete transfered element at old place
+  arrayToSwap.splice(moved, 1);
 
   $(".btn").removeClass("disabled");
   reloadSettings();

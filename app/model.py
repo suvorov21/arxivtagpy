@@ -226,6 +226,11 @@ class PaperList(db.Model):
                         nullable=False
                         )
 
+    not_seen = db.Column(db.Integer,
+                         nullable=True,
+                         default=0
+                         )
+
     papers = db.relationship('Paper',
                              secondary=paper_associate,
                              lazy='subquery',

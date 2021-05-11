@@ -7,7 +7,9 @@ import logging
 from flask import Blueprint, render_template, session, redirect, \
 request, jsonify
 from flask_login import current_user, login_required
+from flask_mail import Message
 
+from .import mail
 from .model import db, Paper, PaperList, paper_associate, Tag
 from .render import render_papers, render_title, \
 render_tags_front, tag_name_and_rule
@@ -172,12 +174,18 @@ def bookshelf():
         new_default_list(current_user.id)
         paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
 
-    lists = [paper_list.name for paper_list in paper_lists]
+    lists = [{'name': paper_list.name,
+              'not_seen': paper_list.not_seen
+              } for paper_list in paper_lists]
 
     # get the particular paper list to access papers from one
     paper_list = PaperList.query.filter_by(user_id=current_user.id,
                                            name=display_list
                                            ).first()
+
+    # reset number of unseen papers
+    paper_list.not_seen = 0
+    db.session.commit()
 
     papers = {'list': lists[0],
               'papers': []
@@ -285,3 +293,24 @@ def public_tags():
     tags = Tag.query.filter_by(public=True).order_by(Tag.name)
 
     return jsonify(tag_name_and_rule(tags))
+
+@main_bp.route('/feedback', methods=['POST'])
+@login_required
+def collect_feedback():
+    """Send feedback by email to the admin."""
+    sender = current_user.email
+    text = request.form.get('body')
+    print(text)
+
+    body = f'Feedback from {sender}\n\n'
+    body += text
+
+    msg = Message(body=body,
+                  sender="noreply@arxivtag.tk",
+                  recipients=['arxivtag@arxivtag.tk'],
+                  subject="arXiv tag feedback"
+                  )
+
+    mail.send(msg)
+
+    return dumps({'success':True}), 200
