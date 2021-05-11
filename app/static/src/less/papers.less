@@ -150,3 +150,35 @@
 #loading-papers {
   display: block;
 }
+
+.pagination > li > a {
+  background-color: var(--pagination-bg);
+  color: var(--pagination-color);
+  border-color: var(--pagination-border);
+}
+
+.pagination > .disabled > a {
+  color: var(--pagination-na-color) !important;
+  background-color: var(--pagination-na-bg) !important;
+  border-color: var(--pagination-border) !important;
+}
+
+.pagination > li > a:focus,
+.pagination > li > a:hover,
+.pagination > li > span:focus,
+.pagination > li > span:hover {
+  color: var(--pagination-color-hover);
+  background-color: var(--pagination-bg-hover) !important;
+  border-color: var(--pagination-border-hover) !important;
+}
+
+.pagination > .active > a {
+  color: var(--pagination-color-active) !important;
+  background-color: var(--pagination-bg-active) !important;
+  border: solid 1px var(--pagination-border-active) !important;
+}
+
+.pagination > .active > a:hover {
+  background-color: var(--btn-primary-bg-color-hover) !important;
+  border: solid 1px var(--pagination-border-active) !important;
+}
