@@ -107,6 +107,9 @@ def delete_papers():
     elif 'week' in request.args:
         n_weeks = int(request.args['week'])
         until_date = datetime.now() - timedelta(days=7*n_weeks)
+    elif 'days' in request.args:
+        n_days = int(request.args['days'])
+        until_date = datetime.now() - timedelta(n_days)
     else:
         logging.error('Options are not provided. Exit to prevent DB damage.')
         return dumps({'success': False}), 422
