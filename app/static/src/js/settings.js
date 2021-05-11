@@ -6,6 +6,8 @@ var dragTarget;
 var tagEdited = false;
 var tableFilled = false;
 
+var loadingTags = false;
+
 // API call for settings modifications
 const submitSetting = (url, set) => {
   if (set.length === 0) {
@@ -192,17 +194,6 @@ function fillListForm() {
   return false;
 }
 
-function delListClick(event) {
-  let name = event.target.getAttribute("id").split("_")[1];
-  $("#par-list-" + name).removeClass("d-flex");
-  $("#par-list-" + name).fadeOut();
-  $(".btn").removeClass("disabled");
-  const listId = LISTS.indexOf(name);
-  if (listId > -1) {
-    LISTS.splice(listId, 1);
-  }
-}
-
 const findListNumById = (id) => {
   for (let listId = 0; listId < LISTS.length; listId++) {
     if (LISTS[parseInt(listId, 10)]["id"] === parseInt(id, 10)) {
@@ -211,6 +202,17 @@ const findListNumById = (id) => {
   }
   return -1;
 };
+
+function delListClick(event) {
+  let name = event.target.getAttribute("id").split("_")[1];
+  $("#par-list-" + name).removeClass("d-flex");
+  $("#par-list-" + name).fadeOut();
+  $(".btn").removeClass("disabled");
+  const listId = findListNumById(name);
+  if (listId > -1) {
+    LISTS.splice(listId, 1);
+  }
+}
 
 const dropList = (event) => {
   dropElement(event, LISTS);
@@ -237,7 +239,7 @@ function renderBookshelf() {
     };
 
     let close = document.createElement("button");
-    close.id = "close_" + listName.replaceAll(".", "111");
+    close.id = "close_" + list.id;
     close.className = "close close-btn";
     close.innerHTML = "&times";
 
@@ -380,8 +382,14 @@ const tableRowClick = (event) => {
 };
 
 $("#show-pubtags").click(() => {
+  if (loadingTags) {
+    event.preventDefault();
+    return;
+  }
+  loadingTags = true;
   if ($("#table-wrapper").css("display") === "block") {
     $("#table-wrapper").css("display", "none");
+    $("#loading-tags").css("display", "none");
     $("#show-pubtags").text("Show users rules examples");
   } else {
     $("#table-wrapper").css("display", "block");
