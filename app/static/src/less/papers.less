@@ -117,21 +117,22 @@
 }
 
 .dark {
-  color: #f5f5f5;
-  background-color: #2d2d2d;
+  color: var(--doi-label-color);
+  background-color: var(--doi-label-bg);
   border-bottom-right-radius: 0;
   border-top-right-radius: 0;
 }
 
 .light {
-  color: #000;
-  background-color: #f5f5f5;
+  color: var(--doi-number-color);
+  background-color: var(--doi-number-bg);
   border-bottom-left-radius: 0;
   border-top-left-radius: 0;
   padding-left: 10px;
 
   & a {
     text-decoration: none;
+    color: var(--doi-number-color);
   }
 }
 
