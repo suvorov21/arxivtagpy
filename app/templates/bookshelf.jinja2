@@ -55,7 +55,7 @@
             {# if more pages exists put [page -1, page + 1] #}
             {% if total_pages > 3 %}
               {# put a separator only of #page is > 3 to avoid spliting 2 and 3 #}
-              {% if page > 3 %}
+              {% if page > 4 %}
                 <li class="page-item disabled"><a class="page-link">...</a></li>
               {% endif %}
               {# [page -1, page + 1] #}
@@ -65,7 +65,10 @@
             {% endif %}
             {# if not all the pages are covered add last one #}
             {% if total_pages > page + 1 %}
-              <li class="page-item disabled"><a class="page-link">...</a></li>
+              {# do not put the separator between page 2 and 3 #}
+              {% if total_pages != 3 %}
+                <li class="page-item disabled"><a class="page-link">...</a></li>
+              {% endif %}
               <li class="page-item"><a class="page-link" href="{{ url_base + (total_pages)|string() }}">{{ total_pages }}</a></li>
             {% endif %}
             <li class="page-item {% if page > total_pages - 1 %} disabled {% endif %}"><a class="page-link" href="{{ url_base + (page + 1)|string() }}">Next</a></li>
