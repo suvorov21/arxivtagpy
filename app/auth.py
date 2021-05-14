@@ -61,7 +61,9 @@ def login():
 @auth_bp.route('/signup')
 def signup():
     """Signup page."""
-    return render_template('signup.jinja2')
+    return render_template('signup.jinja2',
+                           data=default_data()
+                           )
 
 @auth_bp.route('/logout')
 @login_required
