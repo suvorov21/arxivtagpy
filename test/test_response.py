@@ -31,6 +31,11 @@ def test_paper_page(client, login):
                           )
     assert response.status_code == 200
 
+def test_signup_page(client):
+    """Test sign up page."""
+    response = client.get(url_for('auth_bp.signup'))
+    assert response.status_code == 200
+
 def test_paper_page_not_auth(client):
     """Test anauthorised paper access."""
     response = client.get(url_for('main_bp.papers_list'),
