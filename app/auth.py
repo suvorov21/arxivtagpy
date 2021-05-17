@@ -61,7 +61,9 @@ def login():
 @auth_bp.route('/signup')
 def signup():
     """Signup page."""
-    return render_template('signup.jinja2')
+    return render_template('signup.jinja2',
+                           data=default_data()
+                           )
 
 @auth_bp.route('/logout')
 @login_required
@@ -190,7 +192,7 @@ def restore_pass():
         # create an email
         body = 'Hello,\n\nYour password for the website arxivtag.tk'
         body += ' was reset. The new password is provided below.\n'
-        body += 'Please, consider password change immidietly after login'
+        body += 'Please, consider password change immediately after login'
         body += ' at the settings page.'
         body += '\n\nNew password:\n' + new_pass
         body += '\n\nRegards, \narXiv tag team.'

@@ -386,7 +386,6 @@ $("#show-pubtags").click(() => {
     event.preventDefault();
     return;
   }
-  loadingTags = true;
   if ($("#table-wrapper").css("display") === "block") {
     $("#table-wrapper").css("display", "none");
     $("#loading-tags").css("display", "none");
@@ -399,6 +398,8 @@ $("#show-pubtags").click(() => {
     event.preventDefault();
     return;
   }
+
+  loadingTags = true;
 
   $("#loading-tags").css("display", "block");
    $.ajax({
@@ -427,6 +428,7 @@ $("#show-pubtags").click(() => {
         row.appendChild(rule);
       });
       tableFilled = true;
+      loadingTags = false;
       $("#loading-tags").css("display", "none");
     }
   });
