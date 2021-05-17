@@ -250,10 +250,11 @@ def email_papers():
 
             prev_user = tag.user_id
             n_user += 1
-            papers_to_send = [{'tag': tag.name,
-                               'papers': []
-                               }]
+            papers_to_send = []
 
+        papers_to_send.append({'tag': tag.name,
+                               'papers': []
+                               })
         # 3.2
         for paper in papers:
             if tag_suitable(render_paper_json(paper), tag.rule):
