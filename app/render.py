@@ -5,8 +5,8 @@ from datetime import datetime
 from .model import Tag
 
 # dictionary for acccents
-accents = {"\\'a": '&agrave;',
-           "\\'A": '&Agrave;',
+accents = {"\\'a": '&aacute;',
+           "\\'A": '&Aacute;',
            "\\'e": '&eacute;',
            "\\'E": '&Eacute;',
            '\\"u': '&uuml;',
@@ -35,7 +35,11 @@ accents = {"\\'a": '&agrave;',
            "\\v{z}": '&zcaron;',
            "\\v{Z}": '&Zcaron;',
            "\\v{s}": '&scaron;',
-           "\\v{S}": '&Scaron;'
+           "\\v{S}": '&Scaron;',
+           "{\\aa}": '&aring;',
+           "{\\AA}": '&aring;',
+           '\\"a': '&auml;',
+           '\\"A': '&Auml;'
            }
 
 def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
