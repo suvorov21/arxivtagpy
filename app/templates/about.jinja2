@@ -6,7 +6,9 @@
 
 
 {% block script_footer %}
-  <script type="text/javascript">
-    document.getElementById("about-nav").classList.add("active");
-  </script>
+  {% if current_user.is_authenticated %}
+    <script type="text/javascript">
+      document.getElementById("about-nav").classList.add("active");
+    </script>
+  {% endif %}
 {% endblock %}

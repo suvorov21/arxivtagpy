@@ -377,8 +377,8 @@ const tableRowClick = (event) => {
         document.forms["add-tag"]["tag_rule"].value = row.childNodes[parseInt(childId, 10)].textContent;
       }
     }
+    makeTagEdited();
   }
-  makeTagEdited();
 };
 
 $("#show-pubtags").click(() => {
