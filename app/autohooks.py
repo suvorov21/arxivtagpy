@@ -290,6 +290,8 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
     """Send the papers update."""
     body = 'Hello,\n\nWe created a daily paper feed based on your preferences.'
     for paper_tag in papers:
+        if len(paper_tag['papers']) == 0:
+            continue
         body += '\n\nFor tag ' + paper_tag['tag'] + ':\n'
         for number, paper in enumerate(paper_tag['papers']):
             body += f'{str(number+1)}. {paper.title}\n'
