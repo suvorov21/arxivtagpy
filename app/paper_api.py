@@ -60,6 +60,7 @@ class ArxivOaiApi:
     def download_papers(self):
         """Generator for paper downloading."""
         fail_attempts = 0
+        rest = -1
 
         while True:
             logging.debug('Start harvesting')
@@ -90,10 +91,11 @@ class ArxivOaiApi:
             lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
             records = lor.findall(self.OAI + 'record')
 
-            if len(records) != self.BATCH_SIZE:
-                logging.warning('Download may be incomplete. Got %i from %i',
+            if len(records) != self.BATCH_SIZE and len(records) != rest:
+                logging.warning('Download incomplete. Got %i from %i or %i',
                                 len(records),
-                                self.BATCH_SIZE
+                                self.BATCH_SIZE,
+                                rest
                                 )
 
             updated = 'null'
@@ -136,9 +138,12 @@ class ArxivOaiApi:
                 yield paper
 
             # check if the next call is required
-            token = lor.find(self.OAI+"resumptionToken")
+            token = lor.find(self.OAI + 'resumptionToken')
             if token is None or token.text is None:
                 return
+
+            print(token.get('completeListSize'))
+            rest = int(token.get('completeListSize')) % self.BATCH_SIZE
 
             logging.info('Going through resumption. Last date %r', updated)
             self.params = {'resumptionToken': token.text}
