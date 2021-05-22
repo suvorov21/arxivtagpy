@@ -183,6 +183,9 @@ def restore_pass():
     do_send = request.args.get('do_send')
     email_in = request.form.get('email')
     user = User.query.filter_by(email=email_in).first()
+    # Success will go to False ONLY if the user IS find
+    # but the problem during email sending happens
+    success = True
     if user:
         # generate new pass
         letters = string.ascii_letters + string.digits
