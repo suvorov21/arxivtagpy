@@ -197,7 +197,7 @@ def restore_pass():
         body += '\n\nNew password:\n' + new_pass
         body += '\n\nRegards, \narXiv tag team.'
         msg = Message(body=body,
-                      sender="noreply@arxivtag.tk",
+                      sender=current_app.config['MAIL_DEFAULT_SENDER'],
                       recipients=[user.email],
                       subject="arXiv tag password reset"
                       )
