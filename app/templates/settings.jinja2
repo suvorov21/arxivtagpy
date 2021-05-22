@@ -227,8 +227,12 @@
                   </div>
                   <button class="btn btn-primary" type="submit">Change password</button>
                 </form>
+                <form method="POST" onsubmit="return noEmail()">
+                  <button class="btn btn-warning mt-5" id="deleteAcc" type="submit">Unsubscribe from emails</button>
+                </form>
                 <form action="delAcc" method="POST" onsubmit="return delAcc()">
-                <button class="btn btn-danger mt-5" id="deleteAcc" type="submit">Delete account</button>
+                  <button class="btn btn-danger mt-5" id="deleteAcc" type="submit">Delete account</button>
+                </form>
               </div>
             {% endif %}
           </div>

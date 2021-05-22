@@ -104,6 +104,18 @@ def mod_pref():
     session['pref'] = loads(current_user.pref)
     return dumps({'success':True}), 201
 
+@settings_bp.route('/noEmail', methods=["POST"])
+@login_required
+def no_email():
+    """Unsubscribe from all the tag emails."""
+    tags = Tag.query.filter_by(user_id=current_user.id).all()
+
+    for tag in tags:
+        tag.email = False
+
+    db.session.commit()
+    return dumps({'success':True}), 201
+
 def cast_args_to_dict(args) -> Dict:
     """Cast requests args to dictionary."""
     prefs = []

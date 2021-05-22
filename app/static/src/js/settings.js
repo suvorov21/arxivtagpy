@@ -24,7 +24,7 @@ const submitSetting = (url, set) => {
     raiseAlert("Settings are saved", "success");
     return false;
   }).fail(function() {
-    raiseAlert("Settings are not saved. Please try later", "danger");
+    raiseAlert("Settings were not saved. Please try later", "danger");
     return false;
   });
   return false;
@@ -627,7 +627,7 @@ function fillSetForm() {
     window.location.reload(true);
     return false;
   }).fail(function(){
-    raiseAlert("Settings are not saved. Please try later", "danger");
+    raiseAlert("Settings were not saved. Please try later", "danger");
     return false;
   });
 
@@ -637,6 +637,22 @@ function fillSetForm() {
 function delAcc() {
   if (confirm("Do you want to delete account completely? This action could not be undone!")) {
     return true;
+  } else {
+    return false;
+  }
+}
+
+function noEmail() {
+  if (confirm("Do you want to unsubscribe from all your tag email feeds?")) {
+    $.post("noEmail")
+    .done(function() {
+      raiseAlert("Successfully unsubscribed from all tag emails.", "success");
+      return false;
+    }).fail(function() {
+      raiseAlert("Settings were not saved. Please try later", "danger");
+      return false;
+    });
+    return false;
   } else {
     return false;
   }
