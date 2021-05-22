@@ -200,7 +200,13 @@ def restore_pass():
         body += ' at the settings page.'
         body += '\n\nNew password:\n' + new_pass
         body += '\n\nRegards, \narXiv tag team.'
+
+        html = render_template('mail_pass.jinja2',
+                               host=request.headers['Host'],
+                               pasw = new_pass
+                               )
         msg = Message(body=body,
+                      html=html,
                       sender=current_app.config['MAIL_DEFAULT_SENDER'],
                       recipients=[user.email],
                       subject="arXiv tag password reset"
