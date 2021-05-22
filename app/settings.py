@@ -1,7 +1,6 @@
 """Settings management: settings page and settings changes."""
 
 from json import loads, dumps
-import logging
 from typing import Dict
 
 from flask import Blueprint, render_template, session, request

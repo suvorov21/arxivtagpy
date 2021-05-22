@@ -19,8 +19,7 @@ from .model import User, Tag, db, PaperList, Paper, UpdateDate, \
 paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from . import mail
-
+from .utils import mail_catch
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -318,7 +317,7 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
                   )
 
     if do_send:
-        mail.send(msg)
+        mail_catch(msg)
 
 def get_old_update_date() -> UpdateDate:
     """Chech if the database record with latest update exists. If not create."""
