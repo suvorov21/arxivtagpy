@@ -12,15 +12,14 @@ from json import dumps
 from typing import Dict, List
 from functools import wraps
 
-from flask import Blueprint, current_app, request
+from flask import Blueprint, current_app, request, render_template
 from flask_mail import Message
 
 from .model import User, Tag, db, PaperList, Paper, UpdateDate, \
 paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from . import mail
-
+from .utils import mail_catch
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -141,7 +140,7 @@ def bookmark_papers():
     """
     logging.info('Start paper bookmark update')
 
-    tags = Tag.query.filter_by(bookmark=True).order_by(Tag.user_id)
+    tags = Tag.query.filter_by(bookmark=True).order_by(Tag.user_id).all()
 
     # the date until one the papers will be processed
     old_date_record = get_old_update_date()
@@ -197,7 +196,7 @@ def bookmark_papers():
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     old_date_record.last_bookmark = last_paper.date_up
     db.session.commit()
-    logging.info('Done with bookmarks. Users %r, papers, %s',
+    logging.info('Done with bookmarks. Users %r, papers %s',
                  n_user,
                  n_papers
                  )
@@ -225,7 +224,7 @@ def email_papers():
     do_send = request.args.get('do_send')
     logging.info('Start paper email sending update do_send=%r', do_send)
 
-    tags = Tag.query.filter_by(email=True).order_by(Tag.user_id)
+    tags = Tag.query.filter_by(email=True).order_by(Tag.user_id).all()
 
     # the date until one the papers will be processed
     old_date_record = get_old_update_date()
@@ -235,18 +234,23 @@ def email_papers():
     papers_to_send = []
     n_user = 0
     n_papers = 0
+    user = None
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
-            logging.debug('Bookmark for user %i', tag.user_id)
+            # 4. send papers. If tags['papers'] is empty
+            #  --> the first user is processing
+            if any([len(tags['papers']) > 0 for tags in papers_to_send]) \
+                and user:
+                logging.debug('Send email for user %i', user.id)
+                email_paper_update(papers_to_send, user.email, do_send)
+
             user = User.query.filter_by(id=tag.user_id).first()
+            logging.debug('Form the email for user %i', user.id)
             # 2.3 query papers with user's cats
             papers = Paper.query.filter(Paper.cats.overlap(user.arxiv_cat),
                                         Paper.date_up > old_date
                                         ).order_by(Paper.date_up).all()
-            # 4. send papers
-            if any([len(tags['papers']) > 0 for tags in papers_to_send]):
-                email_paper_update(papers_to_send, user.email, do_send)
 
             prev_user = tag.user_id
             n_user += 1
@@ -264,6 +268,7 @@ def email_papers():
 
     # for the last user
     if any([len(tags['papers']) > 0 for tags in papers_to_send]):
+        logging.debug('Send email for user %i', user.id)
         email_paper_update(papers_to_send, user.email, bool(do_send))
 
 
@@ -272,7 +277,7 @@ def email_papers():
     old_date_record.last_email = last_paper.date_up
     db.session.commit()
 
-    logging.info('Done with emails. Users %r, papers, %s',
+    logging.info('Done with emails. Users %r, papers %s',
                  n_user,
                  n_papers
                  )
@@ -289,22 +294,32 @@ def month_start():
 def email_paper_update(papers: List[Dict], email: str, do_send: bool):
     """Send the papers update."""
     body = 'Hello,\n\nWe created a daily paper feed based on your preferences.'
+    html_body = ''
     for paper_tag in papers:
         if len(paper_tag['papers']) == 0:
             continue
         body += '\n\nFor tag ' + paper_tag['tag'] + ':\n'
+        html_body += f'<br/><h3>Fot tag {paper_tag["tag"]}:</h3>'
         for number, paper in enumerate(paper_tag['papers']):
             body += f'{str(number+1)}. {paper.title}\n'
+            html_body += f'<p>{str(number+1)}. {paper.title}</p>'
 
     body += '\n\n\nRegards, \narXiv tag team.'
+
+    html = render_template('mail_feed.jinja2',
+                           papers=html_body,
+                           host=request.headers['Host']
+                           )
+
     msg = Message(body=body,
-                  sender="noreply@arxivtag.tk",
+                  html=html,
+                  sender=current_app.config['MAIL_DEFAULT_SENDER'],
                   recipients=[email],
                   subject="arXiv tag paper feed"
                   )
 
     if do_send:
-        mail.send(msg)
+        mail_catch(msg)
 
 def get_old_update_date() -> UpdateDate:
     """Chech if the database record with latest update exists. If not create."""

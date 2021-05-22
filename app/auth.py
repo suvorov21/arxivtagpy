@@ -3,6 +3,7 @@
 from datetime import datetime
 import secrets
 import string
+import logging
 
 from werkzeug.security import check_password_hash, \
 generate_password_hash
@@ -14,9 +15,9 @@ current_user, login_required
 from flask_mail import Message
 
 from .import login_manager
-from .import mail
+
 from .model import db, User, PaperList, Tag
-from .utils import url
+from .utils import url, mail_catch
 from .settings import default_data
 
 DEFAULT_LIST = 'Favourite'
@@ -182,6 +183,9 @@ def restore_pass():
     do_send = request.args.get('do_send')
     email_in = request.form.get('email')
     user = User.query.filter_by(email=email_in).first()
+    # Success will go to False ONLY if the user IS find
+    # but the problem during email sending happens
+    success = True
     if user:
         # generate new pass
         letters = string.ascii_letters + string.digits
@@ -197,13 +201,20 @@ def restore_pass():
         body += '\n\nNew password:\n' + new_pass
         body += '\n\nRegards, \narXiv tag team.'
         msg = Message(body=body,
-                      sender="noreply@arxivtag.tk",
+                      sender=current_app.config['MAIL_DEFAULT_SENDER'],
                       recipients=[user.email],
                       subject="arXiv tag password reset"
                       )
         if do_send:
-            mail.send(msg)
+            success = mail_catch(msg)
 
-    flash(f'The email with a new password was sent to your email from \
-          {current_app.config["MAIL_DEFAULT_SENDER"]}')
+    if success:
+        flash(f'The email with a new password was sent to your email from \
+              <span class="font-weight-bold"> \
+              {current_app.config["MAIL_DEFAULT_SENDER"]} \
+              </span>. <br /> Check spam folder in case no email is recieved.')
+        logging.info('Successful password recovery.')
+    else:
+        flash('ERROR! Server experienced an internal error. We are working on fix. \
+              Please, try later')
     return redirect(url('main_bp.root'), code=303)
