@@ -234,12 +234,14 @@ def email_papers():
     papers_to_send = []
     n_user = 0
     n_papers = 0
+    user = None
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
             # 4. send papers. If tags['papers'] is empty
             #  --> the first user is processing
-            if any([len(tags['papers']) > 0 for tags in papers_to_send]):
+            if any([len(tags['papers']) > 0 for tags in papers_to_send]) \
+                and user:
                 logging.debug('Send email for user %i', user.id)
                 email_paper_update(papers_to_send, user.email, do_send)
 
