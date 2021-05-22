@@ -88,13 +88,13 @@ def test_paper_bookmark(client):
     assert response.status_code == 201
 
 
-# def test_paper_email(client):
-#     """Test auto email papers."""
-#     response = client.get(url_for('auto_bp.email_papers', # nosec
-#                               token='test_token', # nosec
-#                               do_send=False
-#                               ))
-#     assert response.status_code == 201
+def test_paper_email(client):
+    """Test auto email papers."""
+    response = client.get(url_for('auto_bp.email_papers', # nosec
+                              token='test_token', # nosec
+                              do_send=False
+                              ))
+    assert response.status_code == 201
 
 def test_public_tags(client, login):
     """Test public available tags."""
