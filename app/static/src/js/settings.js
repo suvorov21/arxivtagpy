@@ -1,5 +1,5 @@
 /*global allCatsArray, CATS, TAGS, PREF, LISTS, parseTex, MathJax, raiseAlert, cssVar*/
-/*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc, fillListForm, */
+/*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc, fillListForm, noEmail */
 /*eslint no-undef: "error"*/
 
 var dragTarget;
