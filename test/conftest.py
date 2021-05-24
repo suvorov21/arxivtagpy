@@ -18,6 +18,8 @@ PASS = 'tester' # nosec
 
 TMP_EMAIL = 'tmp_tester@gmail.com'
 
+DEFAULT_LIST = 'Favourite'
+
 def make_user(email):
     """Make a default user."""
     user1 = User(email=email,
