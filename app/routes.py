@@ -276,11 +276,13 @@ def add_bm():
 def del_bm():
     """Delete bookmark."""
     paper_id = request.form.get('paper_id')
+    list_name = request.form.get('list')
     paper = Paper.query.filter_by(paper_id=paper_id).first()
     if not paper:
         return dumps({'success':False}), 204
-    # WARNING work with one list for the time beeing
-    paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
+    paper_list = PaperList.query.filter_by(user_id=current_user.id,
+                                           name=list_name
+                                           ).first()
 
     paper_list.papers.remove(paper)
     db.session.commit()
