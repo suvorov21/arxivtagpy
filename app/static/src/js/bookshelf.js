@@ -44,6 +44,7 @@ function deleteBookmark(event) {
   let paper = DATA.papers[parseInt(num, 10) - (page - 1) * paperPage];
   $.post(url, {
                "paper_id": paper.id.split("v")[0],
+               "list": displayList
                })
   .done(function(data, textStatus, jqXHR) {
     let status = jqXHR.status;

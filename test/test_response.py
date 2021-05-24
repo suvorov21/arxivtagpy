@@ -7,6 +7,8 @@ from flask import url_for
 
 from app.model import Paper
 
+from test.conftest import DEFAULT_LIST
+
 def test_load_papers(client):
     """Test paper loading."""
     response = client.get(url_for('auto_bp.load_papers', # nosec
@@ -55,7 +57,9 @@ def test_del_bm(client, login):
     """Test bookmark delete."""
     test_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     response = client.post(url_for('main_bp.del_bm'),
-                           data={'paper_id': test_paper.paper_id}
+                           data={'paper_id': test_paper.paper_id,
+                                 'list': DEFAULT_LIST
+                                 }
                            )
     assert response.status_code == 201
 
