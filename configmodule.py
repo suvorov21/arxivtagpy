@@ -1,6 +1,7 @@
 """Configuration settings."""
 
 from os import environ
+from datetime import datetime
 
 class Config():
     """Default config."""
@@ -33,6 +34,10 @@ class Config():
 
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
+
+    UPDATE_TIME = datetime.strptime(environ.get('UPDATE_TIME'),
+                                    '%H:%M'
+                                    ).time()
 
 class ProductionConfig(Config):
     """Prod config."""

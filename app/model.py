@@ -43,6 +43,14 @@ class User(UserMixin, db.Model):
                      nullable=False,
                      )
 
+    # bit mask that shows recent viewed days
+    # 0 - no visits in 7 days
+    # 1 - yesterday
+    # 2 - 2 days ago, so on
+    recent_visit = db.Column(db.Integer,
+                             default=0
+                             )
+
     lists = db.relationship('PaperList',
                              backref='user',
                              cascade='all,delete',
