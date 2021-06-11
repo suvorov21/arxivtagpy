@@ -213,7 +213,9 @@ def data():
     if len(papers['papers']) > 0 and papers['papers'][0].get('date_up'):
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
-        current_user.last_paper = papers['papers'][0]['date_up']
+        # update last seen paper only if browsing papers until the last one
+        if new_date == get_arxiv_sub_end(announce_date.date()):
+            current_user.last_paper = papers['papers'][0]['date_up']
         db.session.commit()
 
     papers = process_papers(papers,
