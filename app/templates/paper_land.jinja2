@@ -1,0 +1,111 @@
+{% extends "layout.jinja2" %}
+
+{% block head_scripts %}
+  <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.css"/>
+
+{% endblock %}
+
+ {% block content %}
+  <div class="container-fluid">
+    <div class="row pt-4" class="main-row">
+      <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
+      </div>
+      <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
+        <div class="paper-wrapper">
+          <h4>Select date:</h4>
+          <div class="shift">
+            <div class="main-menu-item"><a href="/papers?date=today" class="non-standard-link">Today</a></div>
+            <div class="main-menu-item"><a href="/papers?date=week" class="non-standard-link">This week</a></div>
+            <div class="main-menu-item"><a href="/papers?date=month" class="non-standard-link">This month</a></div>
+            <br />
+            <div class="main-menu-item"><a href="/papers?date=last" class="non-standard-link">Since last visit ({{last_visit}})</a></div>
+          </div>
+
+          <h5>In range</h5>
+          {# <form id="login-form" name="f_login" action="/login" onsubmit="return validateLogin()" method="POST"> #}
+
+            <div class="form-row align-items-center shift">
+              <div class='col-auto'>
+                <div class="input-group date" data-provide="datepicker" id="datetimepicker1">
+                  <input type="text" class="form-control" name="from" placeholder="From" size="18" id="from" required="required"/>
+                  <div class="input-group-append">
+                    <div class="input-group-text"><i class="fa fa-calendar-o" aria-hidden="true"></i></div>
+                  </div>
+
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+              </div>
+            </div>
+            <div class='col-auto'>
+              <div class="input-group date" data-provide="datepicker" id="datetimepicker2">
+                <input type='text' class="form-control" name="until" placeholder="Until" required="required" id="until" size="18"/>
+                <div class="input-group-append">
+                  <div class="input-group-text"><i class="fa fa-calendar-o" aria-hidden="true"></i></div>
+                </div>
+                <span class="input-group-addon">
+                  <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+              </div>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary" id="range">Go!</button>
+            </div>
+           </div>
+           <div class="sub-alert"></div>
+         {# </form> #}
+
+          <h5 class="pt-2 pb-2">Recent submissions</h5>
+          <div class="shift">
+            {% for day in past_week %}
+              {% if day['day'] == '' %}
+                <div class="pt-4"></div>
+              {% else %}
+                <a href="{{ day['href'] }}" class="non-standard-link">
+                  <div class="paper-day {% if not day['visit'] %} unseen {% endif %}">{{ day['day'] }} </div>
+                </a>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block script_footer %}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='dist/js/layout.min.js') }}"></script>
+  <script type="text/javascript">
+    document.getElementById("papers-nav").classList.add("active");
+  </script>
+
+  <script>
+    $(document).ready(function () {
+      $("#datetimepicker1").datepicker({
+        format: "dd-mm-yyyy",
+        todayHighlight: true,
+        weekStart: 1,
+        endDate: "0d"
+      });
+      $("#datetimepicker2").datepicker({
+        format: "dd-mm-yyyy",
+        useCurrent: false,
+        todayHighlight: true,
+        weekStart: 1,
+        endDate: "0d"
+      });
+    });
+
+    $("#range").click(() => {
+      if ($("#from").val() === "" || $("#until").val() === "") {
+        $(".sub-alert").text("Please, insert the date range");
+        return;
+      }
+      location.href = "/papers?date=range&from=" + $("#from").val() + "&until=" + $("#until").val()
+    });
+
+  </script>
+
+{% endblock %}

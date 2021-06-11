@@ -1,6 +1,6 @@
 """Main blueprint with all the main pages."""
 
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from json import dumps
 import logging
 
@@ -15,7 +15,7 @@ from .render import render_papers, render_title, \
 render_tags_front, tag_name_and_rule
 from .auth import new_default_list, DEFAULT_LIST
 from .papers import process_papers, render_paper_json
-from .paper_api import get_arxiv_last_date
+from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, get_annonce_date
 from .utils import url
 from .settings import load_prefs, default_data
 
@@ -34,6 +34,9 @@ main_bp = Blueprint(
 def root():
     """Landing page."""
     load_prefs()
+    if current_user.is_authenticated:
+        return redirect(url('main_bp.paper_land'))
+
     return render_template('about.jinja2',
                            data=default_data()
                            )
@@ -45,7 +48,8 @@ def papers_list():
     date_dict = {'today': 0,
                  'week': 1,
                  'month': 2,
-                 'last': 3
+                 'last': 3,
+                 'range': 4
                  }
 
     date_type = None
@@ -69,31 +73,116 @@ def papers_list():
                            )
 
 
+@main_bp.route('/paper_land')
+@login_required
+def paper_land():
+    """Access to the paper range selector page."""
+    load_prefs()
+
+    announce_date = get_annonce_date()
+
+    update_recent_papers(announce_date)
+
+    # loop over past week and see what days have been seen
+    past_week = []
+    today = get_annonce_date()
+    count = 0
+    for i in range(10):
+        if count > 6:
+            break
+        day = today - timedelta(days=i)
+        # skip weekend
+        if day.weekday() > 4:
+            past_week.append({'day': ''})
+            continue
+
+        visit = bool(current_user.recent_visit & (2 ** i))
+        past_week.append({'day':datetime.strftime(day,
+                                            '%A, %d %B'),
+                          'href': url('main_bp.papers_list') + \
+                                      '?date=range&from=' + \
+                                      datetime.strftime(day,
+                                                        '%d-%m-%Y'
+                                                        ) + \
+                                      '&until=' + \
+                                      datetime.strftime(day,
+                                                        '%d-%m-%Y'
+                                                        ),
+                          'visit': visit
+                          })
+        count += 1
+
+    return render_template('paper_land.jinja2',
+                           data=default_data(),
+                           last_visit=datetime.strftime(current_user.login,
+                                                        '%d %b %Y'
+                                                        ),
+                           past_week=past_week
+                           )
+
 @main_bp.route('/data')
 @login_required
 def data():
     """API for paper download and process."""
-    date_dict = {'today': 0,
-                 'week': 1,
-                 'month': 2,
-                 'last': 3
-                 }
-
-    if 'date' in request.args:
-        date_type = date_dict.get(request.args['date'])
-    else:
-        logging.error('Wrong data format')
-        return dumps({'success': False}), 422
-
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     if not last_paper:
         logging.error('Paper table is empty')
         return dumps({'success': False}), 422
 
-    today_date = last_paper.date_up
+    announce_date = get_annonce_date()
 
+    new_date = get_arxiv_sub_end(announce_date.date())
+    # by default look for the papers since last visit
     old_date = current_user.last_paper
-    old_date = get_arxiv_last_date(today_date, old_date, date_type)
+
+    update_recent_papers(announce_date)
+
+    if request.args['date'] == 'today':
+        old_date = get_arxiv_sub_start(announce_date.date())
+        # the last day is "seen"
+        current_user.recent_visit = current_user.recent_visit | 1
+
+    elif request.args['date'] == 'week':
+        old_date = get_arxiv_sub_start(announce_date.date(),
+                                       offset=announce_date.weekday()
+                                       )
+        # the last week is "seen"
+        for i in range(announce_date.weekday() + 1):
+            current_user.recent_visit = current_user.recent_visit | 2**i
+
+    elif request.args['date'] == 'month':
+        old_date = get_arxiv_sub_start(announce_date.date(),
+                                       offset=announce_date.day
+                                       )
+        # the last month is "seen"
+        for i in range(announce_date.day):
+            current_user.recent_visit = current_user.recent_visit | 2**i
+
+    elif request.args['date'] == 'range':
+        new_date_tmp = datetime.strptime(request.args['until'],
+                                     '%d-%m-%Y'
+                                     )
+        new_date = get_arxiv_sub_end(new_date_tmp.date())
+        old_date_tmp = datetime.strptime(request.args['from'],
+                                     '%d-%m-%Y'
+                                     )
+        old_date = get_arxiv_sub_start(old_date_tmp.date())
+
+        it_start = (announce_date -  \
+                    new_date_tmp.replace(tzinfo=timezone.utc)).days
+        it_end = (announce_date - \
+                 old_date_tmp.replace(tzinfo=timezone.utc)).days
+
+        for i in range(it_start,
+                       min(10, it_end) + 1,
+                       ):
+            current_user.recent_visit = current_user.recent_visit | 2**i
+
+    logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
+                  datetime.now(timezone.utc),
+                  new_date,
+                  old_date
+                  )
 
     papers = {'n_cats': None,
               'n_nov': None,
@@ -105,10 +194,11 @@ def data():
     # define categories of interest
     load_prefs()
     paper_query = Paper.query.filter(Paper.cats.overlap(session['cats']),
-                                     Paper.date_up > old_date
-                                     ).all()
-    for paper in paper_query:
-        papers['papers'].append(render_paper_json(paper))
+                                     Paper.date_up > old_date,
+                                     Paper.date_up < new_date,
+                                     ).order_by(Paper.date_up.desc()).all()
+
+    papers['papers'] = [render_paper_json(paper) for paper in paper_query]
 
     # error hahdler
     if len(papers['papers']) == 0:
@@ -122,7 +212,7 @@ def data():
     # probably should not be reset completely
     if len(papers['papers']) > 0 and papers['papers'][0].get('date_up'):
         # update the date of last visit
-        current_user.login = datetime.now()
+        current_user.login = announce_date.replace(tzinfo=None)
         current_user.last_paper = papers['papers'][0]['date_up']
         db.session.commit()
 
@@ -316,3 +406,14 @@ def collect_feedback():
     mail.send(msg)
 
     return dumps({'success':True}), 200
+
+def update_recent_papers(announce_date: datetime):
+    """Update "seen" days. Shift the bit map."""
+    login = current_user.login.replace(tzinfo=timezone.utc)
+    delta = (announce_date.date() - login.date()).days
+    # shift acording to delta since last visit
+    current_user.recent_visit = current_user.recent_visit << delta
+    # keep only last 7 days
+    current_user.recent_visit = current_user.recent_visit % 2**10
+    current_user.login = announce_date.replace(tzinfo=None)
+    db.session.commit()

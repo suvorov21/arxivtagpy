@@ -3,11 +3,11 @@
 
 from json import loads
 
+from test.conftest import DEFAULT_LIST
+
 from flask import url_for
 
 from app.model import Paper
-
-from test.conftest import DEFAULT_LIST
 
 def test_load_papers(client):
     """Test paper loading."""
