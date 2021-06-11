@@ -1,7 +1,6 @@
 """API for papr downloading."""
 
 from time import sleep
-from typing import Tuple
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time, date, timezone
 import logging
@@ -198,6 +197,7 @@ def get_arxiv_last_date(today_date: datetime,
 def get_arxiv_sub_start(announce_date: date,
                         offset=0
                         ) -> datetime:
+    """Get arxiv submission start time for a given announcment date."""
     sub_date_begin = announce_date
     # papers announced on day N are submitted between day N-2 and N-1
     sub_date_begin -= timedelta(days=2 + offset)
@@ -224,7 +224,7 @@ def get_arxiv_sub_start(announce_date: date,
     return sub_date_begin
 
 def get_arxiv_sub_end(announce_date: date) -> datetime:
-    """Get arxiv submission start and end time for a given announcment date."""
+    """Get arxiv submission end time for a given announcment date."""
     sub_date_end = announce_date
 
     # papers announced on day N are submitted between day N-2 and N-1
@@ -263,6 +263,6 @@ def get_annonce_date() -> datetime:
                                             )
                                         )
     if announce_date < sub_update_time:
-       announce_date -= timedelta(days=1)
+        announce_date -= timedelta(days=1)
 
     return announce_date

@@ -203,7 +203,7 @@ def restore_pass():
 
         html = render_template('mail_pass.jinja2',
                                host=request.headers['Host'],
-                               pasw = new_pass
+                               pasw=new_pass
                                )
         msg = Message(body=body,
                       html=html,

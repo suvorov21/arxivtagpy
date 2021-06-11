@@ -1,11 +1,11 @@
 """Main blueprint with all the main pages."""
 
-from datetime import datetime, date, timezone, timedelta, time
+from datetime import datetime, timezone, timedelta
 from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-request, jsonify, current_app
+request, jsonify
 from flask_login import current_user, login_required
 from flask_mail import Message
 
@@ -49,8 +49,7 @@ def papers_list():
                  'week': 1,
                  'month': 2,
                  'last': 3,
-                 'range': 4,
-                 'recent': 5
+                 'range': 4
                  }
 
     date_type = None
@@ -82,15 +81,7 @@ def paper_land():
 
     announce_date = get_annonce_date()
 
-    # update "seen" days
-    login = current_user.login.replace(tzinfo=timezone.utc)
-    delta = (announce_date.date() - login.date()).days
-    # shift acording to delta since last visit
-    current_user.recent_visit = current_user.recent_visit << delta
-    # keep only last 7 days
-    current_user.recent_visit = current_user.recent_visit % 2**10
-    current_user.login = announce_date.replace(tzinfo=None)
-    db.session.commit()
+    update_recent_papers(announce_date)
 
     # loop over past week and see what days have been seen
     past_week = []
@@ -133,18 +124,6 @@ def paper_land():
 @login_required
 def data():
     """API for paper download and process."""
-    date_dict = {'today': 0,
-                 'week': 1,
-                 'month': 2,
-                 'last': 3
-                 }
-
-    if 'date' in request.args:
-        date_type = date_dict.get(request.args['date'])
-    else:
-        logging.error('Wrong data format')
-        return dumps({'success': False}), 422
-
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
     if not last_paper:
         logging.error('Paper table is empty')
@@ -156,13 +135,7 @@ def data():
     # by default look for the papers since last visit
     old_date = current_user.last_paper
 
-    # update "seen" days
-    login = current_user.login.replace(tzinfo=timezone.utc)
-    delta = (announce_date.date() - login.date()).days
-    # shift acording to delta since last visit
-    current_user.recent_visit = current_user.recent_visit << delta
-    # keep only last 7 days
-    current_user.recent_visit = current_user.recent_visit % 2**10
+    update_recent_papers(announce_date)
 
     if request.args['date'] == 'today':
         old_date = get_arxiv_sub_start(announce_date.date())
@@ -195,8 +168,13 @@ def data():
                                      )
         old_date = get_arxiv_sub_start(old_date_tmp.date())
 
-        for i in range((announce_date - new_date_tmp.replace(tzinfo=timezone.utc)).days,
-                       min(10, (announce_date - old_date_tmp.replace(tzinfo=timezone.utc)).days) + 1
+        it_start = (announce_date -  \
+                    new_date_tmp.replace(tzinfo=timezone.utc)).days
+        it_end = (announce_date - \
+                 old_date_tmp.replace(tzinfo=timezone.utc)).days
+
+        for i in range(it_start,
+                       min(10, it_end) + 1,
                        ):
             current_user.recent_visit = current_user.recent_visit | 2**i
 
@@ -236,7 +214,6 @@ def data():
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
         current_user.last_paper = papers['papers'][0]['date_up']
-        current_user.recent_visit = current_user.recent_visit % 2**10
         db.session.commit()
 
     papers = process_papers(papers,
@@ -429,3 +406,14 @@ def collect_feedback():
     mail.send(msg)
 
     return dumps({'success':True}), 200
+
+def update_recent_papers(announce_date: datetime):
+    """Update "seen" days. Shift the bit map."""
+    login = current_user.login.replace(tzinfo=timezone.utc)
+    delta = (announce_date.date() - login.date()).days
+    # shift acording to delta since last visit
+    current_user.recent_visit = current_user.recent_visit << delta
+    # keep only last 7 days
+    current_user.recent_visit = current_user.recent_visit % 2**10
+    current_user.login = announce_date.replace(tzinfo=None)
+    db.session.commit()
