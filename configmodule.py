@@ -35,9 +35,13 @@ class Config():
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
 
-    UPDATE_TIME = datetime.strptime(environ.get('UPDATE_TIME'),
+    time_str = '6:30'
+    if environ.get('UPDATE_TIME'):
+        time_str = environ.get('UPDATE_TIME')
+    UPDATE_TIME = datetime.strptime(time_str,
                                     '%H:%M'
                                     ).time()
+
 
 class ProductionConfig(Config):
     """Prod config."""
