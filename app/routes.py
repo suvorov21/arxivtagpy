@@ -411,7 +411,7 @@ def collect_feedback():
 
 def update_recent_papers(announce_date: datetime):
     """Update "seen" days. Shift the bit map."""
-    if type(current_user.recent_visit) != int:
+    if not isinstance(current_user.recent_visit, int):
         current_user.recent_visit = 0
         db.session.commit()
         return

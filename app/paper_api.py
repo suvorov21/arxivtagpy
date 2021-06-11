@@ -6,8 +6,8 @@ from datetime import datetime, timedelta, time, date, timezone
 import logging
 from re import split
 
-from requests import get
 from flask import current_app
+from requests import get
 
 from .model import Paper
 from .utils import fix_xml
