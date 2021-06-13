@@ -80,38 +80,38 @@ integration_test:
     reports:
       cobertura: coverage.xml
 
-stage_to_beta:
-  stage: stage
-  image:
-    alpine:latest
-  before_script:
-    - apk add lftp
-  script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
-  only:
-    - develop
+# stage_to_beta:
+#   stage: stage
+#   image:
+#     alpine:latest
+#   before_script:
+#     - apk add lftp
+#   script:
+#     - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
+#   only:
+#     - develop
 
-production_ftp:
-  type: deploy
-  stage: production
-  image:
-    alpine:latest
-  before_script:
-    - apk add lftp
-  script:
-    - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json -X *.log --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
-  only:
-    - master
+# production_ftp:
+#   type: deploy
+#   stage: production
+#   image:
+#     alpine:latest
+#   before_script:
+#     - apk add lftp
+#   script:
+#     - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json -X *.log --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
+#   only:
+#     - master
 
 # HEROKU PRODUCTION
-production_heroku:
-    type: deploy
-    stage: production
-    before_script:
-      - apt-get update -qy
-      - apt-get install -y ruby-dev
-      - gem install dpl
-    script:
-        - dpl --provider=heroku --skip_cleanup --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
-    only:
-        - master
+# production_heroku:
+#     type: deploy
+#     stage: production
+#     before_script:
+#       - apt-get update -qy
+#       - apt-get install -y ruby-dev
+#       - gem install dpl
+#     script:
+#         - dpl --provider=heroku --skip_cleanup --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
+#     only:
+#         - master
