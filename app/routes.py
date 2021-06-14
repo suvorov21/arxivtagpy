@@ -417,6 +417,8 @@ def update_recent_papers(announce_date: datetime):
         return
     login = current_user.login.replace(tzinfo=timezone.utc)
     delta = (announce_date.date() - login.date()).days
+    if delta < 0:
+        return
     # shift acording to delta since last visit
     current_user.recent_visit = current_user.recent_visit << delta
     # keep only last 7 days
