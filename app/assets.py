@@ -47,6 +47,17 @@ def compile_assets(app):
         output='dist/css/papers.css',
         extra={'rel': 'stylesheet/less'}
     )
+
+    # JavaScript Bundle
+    layout_js_bundle = Bundle(
+        'src/js/layout.js',
+        filters='jsmin',
+        output='dist/js/layout.min.js'
+    )
+    assets.register('layout_js', layout_js_bundle)
+    layout_js_bundle.build()
+
+
     # JavaScript Bundle
     paper_js_bundle = Bundle(
         'src/js/layout.js',
@@ -55,6 +66,8 @@ def compile_assets(app):
         filters='jsmin',
         output='dist/js/papers.min.js'
     )
+
+
 
     # Register assets
     assets.register('paper_less', paper_less_bundle)

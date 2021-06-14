@@ -27,7 +27,8 @@ def make_user(email):
                  created=datetime.now(),
                  login=datetime.now(),
                  arxiv_cat=['hep-ex'],
-                 pref='{"tex": "True"}'
+                 pref='{"tex": "True"}',
+                 recent_visit=0
                  )
     tag = Tag(name='test',
               rule='ti{math}|abs{physics}&au{John}',

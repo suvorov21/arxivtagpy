@@ -111,7 +111,8 @@ def new_user():
                 created=datetime.now(),
                 login=datetime.now(),
                 last_paper=datetime.now(),
-                pref='{"tex":"True", "theme":"light"}'
+                pref='{"tex":"True", "theme":"light"}',
+                recent_visit=0
                 )
 
     tag = Tag(name='example',
@@ -203,7 +204,7 @@ def restore_pass():
 
         html = render_template('mail_pass.jinja2',
                                host=request.headers['Host'],
-                               pasw = new_pass
+                               pasw=new_pass
                                )
         msg = Message(body=body,
                       html=html,

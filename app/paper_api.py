@@ -2,10 +2,11 @@
 
 from time import sleep
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date, timezone
 import logging
 from re import split
 
+from flask import current_app
 from requests import get
 
 from .model import Paper
@@ -60,6 +61,7 @@ class ArxivOaiApi:
     def download_papers(self):
         """Generator for paper downloading."""
         fail_attempts = 0
+        rest = -1
 
         while True:
             logging.debug('Start harvesting')
@@ -90,10 +92,11 @@ class ArxivOaiApi:
             lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
             records = lor.findall(self.OAI + 'record')
 
-            if len(records) != self.BATCH_SIZE:
-                logging.warning('Download may be incomplete. Got %i from %i',
+            if len(records) != self.BATCH_SIZE and len(records) != rest:
+                logging.warning('Download incomplete. Got %i from %i or %i',
                                 len(records),
-                                self.BATCH_SIZE
+                                self.BATCH_SIZE,
+                                rest
                                 )
 
             updated = 'null'
@@ -136,9 +139,12 @@ class ArxivOaiApi:
                 yield paper
 
             # check if the next call is required
-            token = lor.find(self.OAI+"resumptionToken")
+            token = lor.find(self.OAI + 'resumptionToken')
             if token is None or token.text is None:
                 return
+
+            print(token.get('completeListSize'))
+            rest = int(token.get('completeListSize')) % self.BATCH_SIZE
 
             logging.info('Going through resumption. Last date %r', updated)
             self.params = {'resumptionToken': token.text}
@@ -160,6 +166,7 @@ def get_arxiv_last_date(today_date: datetime,
     before the deadline are published the next day, the papers who come
     after deadline are submitted in two days.
     """
+    logging.warning('OBSOLETE!!!')
     if date_type == 0:
         # look at the results of current date
         # last_submission_day - 1 day at 18:00Z
@@ -176,7 +183,7 @@ def get_arxiv_last_date(today_date: datetime,
 
     # over weekend cross
     if old_date.weekday() > 4 and date_type != 4:
-        old_date = old_date - timedelta(days=old_date.weekday()-4)
+        old_date = old_date - (timedelta(days=old_date.weekday()-4))
 
     # papers are submitted by 18:00Z
     if date_type < 3:
@@ -186,3 +193,76 @@ def get_arxiv_last_date(today_date: datetime,
                                     time(hour=17, minute=59, second=59))
 
     return old_date
+
+def get_arxiv_sub_start(announce_date: date,
+                        offset=0
+                        ) -> datetime:
+    """Get arxiv submission start time for a given announcment date."""
+    sub_date_begin = announce_date
+    # papers announced on day N are submitted between day N-2 and N-1
+    sub_date_begin -= timedelta(days=2 + offset)
+    # over weekend cross
+    # if the announce date is on weekend
+    # the situation is equivavlent to Friday announcments
+    # From Wednesday to Thursday
+    if announce_date.weekday() > 4:
+        sub_date_begin -= timedelta(days=sub_date_begin.weekday()-2)
+
+    # on Monday papers from Thursday to Friday are announced
+    if announce_date.weekday() == 0:
+        sub_date_begin -= timedelta(days=2)
+
+    # on Tuesday papers from Friday to Monday are announced
+    if announce_date.weekday() == 1:
+        sub_date_begin -= timedelta(days=2)
+
+    # arxiv submission deadline is at 17:59
+    sub_date_begin = datetime.combine(sub_date_begin,
+                                     time(hour=17, minute=59, second=59)
+                                     )
+
+    return sub_date_begin
+
+def get_arxiv_sub_end(announce_date: date) -> datetime:
+    """Get arxiv submission end time for a given announcment date."""
+    sub_date_end = announce_date
+
+    # papers announced on day N are submitted between day N-2 and N-1
+    sub_date_end -= timedelta(days=1)
+
+    # over weekend cross
+    # if the announce date is on weekend
+    # the situation is equivavlent to Friday announcments
+    # From Wednesday to Thursday
+    if announce_date.weekday() > 4:
+        sub_date_end -= timedelta(days=sub_date_end.weekday()-3)
+    # on Monday papers from Thursday to Friday are announced
+    if announce_date.weekday() == 0:
+        sub_date_end -= timedelta(days=2)
+
+    # arxiv submission deadline is at 17:59
+    sub_date_end = datetime.combine(sub_date_end,
+                                    time(hour=17, minute=59, second=59)
+                                    )
+
+    return sub_date_end
+
+def get_annonce_date() -> datetime:
+    """
+    Compare the current time to the new paper announcment.
+
+    If new papers are nor announced yet, switch annoncment date to yesterday
+    the announcment time is parametrized in UTC in .env file.
+    """
+    announce_date = datetime.now(timezone.utc)
+    sub_update_time = current_app.config['UPDATE_TIME']
+    sub_update_time = datetime.combine(announce_date.date(),
+                                       time(hour=sub_update_time.hour,
+                                            minute=sub_update_time.minute,
+                                            tzinfo=timezone.utc
+                                            )
+                                        )
+    if announce_date < sub_update_time:
+        announce_date -= timedelta(days=1)
+
+    return announce_date
