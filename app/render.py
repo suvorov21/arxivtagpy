@@ -52,6 +52,24 @@ def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
         return 'Papers for this month'
     if date_type == 3:
         return 'Papers since your last visit on ' + last_visit.strftime('%d %b %Y')
+    if date_type == 4:
+        return 'Papers in range'
+    return 'Papers'
+
+def render_title_precise(date: str, old: datetime, new: datetime) -> str:
+    """Render title based on the computed dates."""
+    if date == 'today':
+        return datetime.strftime(new, '%A, %d %B')
+    if date in ('week', 'month'):
+        return datetime.strftime(old, '%d %B') + ' - ' + \
+               datetime.strftime(new, '%d %B')
+    if date == 'range':
+        return 'from '  + \
+               datetime.strftime(old, '%d %B') + ' until ' + \
+               datetime.strftime(new, '%d %B')
+    if date == 'last':
+        return ''
+
     return 'Papers'
 
 def render_papers(papers: Dict, **kwargs) -> Dict:

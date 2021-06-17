@@ -17,7 +17,7 @@ build_assets:
     - apk add py3-wheel py3-pip
     - apk add gcc musl-dev libffi-dev make g++
     - python3 -m pip install --ignore-installed -r requirements_tests.txt
-    - apk add nodejs nodejs-npm
+    - apk add nodejs npm
     - npm install -g less
   script:
     - export BUILD_ASSETS=True
@@ -68,7 +68,7 @@ integration_test:
     - export TOKEN="test_token"
     - export BUILD_ASSETS=True
     - apk add chromium chromium-chromedriver
-    - apk add nodejs nodejs-npm
+    - apk add nodejs npm
     - npm install -g less
   script:
     - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
