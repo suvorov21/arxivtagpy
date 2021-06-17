@@ -6,6 +6,7 @@ let TO_RENDER = 20;
 let START = 0;
 let DONE = false;
 var VISIBLE = 0;
+var titleRendered = false;
 
 function formateDate(date) {
   let dateArray = date.toString().split(" ");
@@ -199,6 +200,11 @@ function addBookmark(event) {
 }
 
 function renderPapers() {
+  if (!titleRendered) {
+    $("#paper-list-title").text($("#paper-list-title").text() + DATA.title);
+    titleRendered = true;
+  }
+
   for (let pId = START; pId < Math.min(START + TO_RENDER, DATA.papers.length); pId++) {
 
     let content = DATA.papers[parseInt(pId, 10)];
