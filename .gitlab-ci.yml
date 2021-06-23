@@ -86,7 +86,6 @@ stage_to_beta:
     - deploy
   script:
     - cd "$CD_STAGE_PATH"
-    - pwd
     - source update.sh
 
 # stage_to_beta:
