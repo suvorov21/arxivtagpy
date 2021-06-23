@@ -123,16 +123,18 @@ def test_change_wrong_new_pass(client, login):
 def test_pass_restore(client):
     """Test passord restore."""
     response = client.post('/new_user',
-                           data={'email': 'tester2@gmail.com',
+                           data={'email': 'tester3@gmail.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
                                  },
                            follow_redirects=True
                            )
-    response = client.post(url_for('auth_bp.restore_pass',
-                                   email='tester2@gmail.com',
-                                   do_send=False
-                                   ),
+    response = client.get('/logout',
+                          follow_redirects=True)
+    response = client.post(url_for('auth_bp.restore_pass'),
+                           data={'email':'tester3@gmail.com',
+                                 'do_send': 'False'
+                                 },
                             follow_redirects=True
                             )
     assert 'was sent' in response.get_data(as_text=True)
