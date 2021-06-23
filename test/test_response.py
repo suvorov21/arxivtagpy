@@ -20,9 +20,15 @@ def test_load_papers(client):
 
 def test_paper_api(client, login):
     """Test paper API."""
-    response = client.get(url_for('main_bp.data', date='today'))
-    data = loads(response.get_data(as_text=True))
-    assert response.status_code == 200
+    response1 = client.get(url_for('main_bp.data', date='today'))
+    response2 = client.get(url_for('main_bp.data', date='week'))
+    response3 = client.get(url_for('main_bp.data', date='month'))
+    response4 = client.get(url_for('main_bp.data', date='last'))
+    data = loads(response1.get_data(as_text=True))
+    assert response1.status_code == 200
+    assert response2.status_code == 200
+    assert response3.status_code == 200
+    assert response4.status_code == 200
     assert data.get('papers') is not None
     assert len(data.get('papers')) > 0
 

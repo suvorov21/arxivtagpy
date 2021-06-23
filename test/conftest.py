@@ -31,7 +31,7 @@ def make_user(email):
                  recent_visit=0
                  )
     tag = Tag(name='test',
-              rule='ti{math}|abs{physics}&au{John}',
+              rule='ti{math}|abs{physics&math}&au{!John}',
               color='#ff0000',
               order=0,
               public=True,

@@ -153,47 +153,6 @@ class ArxivOaiApi:
 
         return
 
-def get_arxiv_last_date(today_date: datetime,
-                        old_date: datetime,
-                        date_type: int
-                        ) -> datetime:
-    """
-    Get the data of the previous sumission deadline.
-
-    The method helps to get "today's" submissions. As the submission date
-    is actually "yesterday".
-    arXiv has submission deadline at 18:00. So that the papers submitted
-    before the deadline are published the next day, the papers who come
-    after deadline are submitted in two days.
-    """
-    logging.warning('OBSOLETE!!!')
-    if date_type == 0:
-        # look at the results of current date
-        # last_submission_day - 1 day at 18:00Z
-        old_date = today_date - timedelta(days=1)
-    elif date_type == 1:
-        # if last paper is published on Friday
-        # "this week" starts from next Monday
-        if today_date.weekday() == 4:
-            old_date = today_date - timedelta(days=1)
-        else:
-            old_date = today_date - timedelta(days=today_date.weekday()+4)
-    elif date_type == 2:
-        old_date = today_date - timedelta(days=today_date.day)
-
-    # over weekend cross
-    if old_date.weekday() > 4 and date_type != 4:
-        old_date = old_date - (timedelta(days=old_date.weekday()-4))
-
-    # papers are submitted by 18:00Z
-    if date_type < 3:
-        old_date = old_date.replace(hour=17, minute=59, second=59)
-    else:
-        old_date = datetime.combine(old_date,
-                                    time(hour=17, minute=59, second=59))
-
-    return old_date
-
 def get_arxiv_sub_start(announce_date: date,
                         offset=0
                         ) -> datetime:
