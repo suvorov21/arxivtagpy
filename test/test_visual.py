@@ -46,6 +46,15 @@ class TestLiveServer():
         num = driver.find_element_by_id('paper-num-0').text
         assert num == '1'
 
+    def test_paper_selector(self, driver):
+        """Test paper selector href."""
+        driver.get(url_for('main_bp.paper_land', _external=True))
+        sleep(3)
+        element = driver.find_element_by_class_name('paper-day').click()
+        sleep(3)
+        num = driver.find_element_by_id('paper-num-0').text
+        assert num == '1'
+
     def test_paper_view_month(self, driver):
         """Test paper view month."""
         driver.get(url_for('main_bp.root', _external=True) + '/papers?date=month')

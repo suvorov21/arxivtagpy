@@ -1,1 +1,0 @@
-web: gunicorn --workers=2 --worker-connections=1000 --worker-class=gevent -t 300 wsgi:app

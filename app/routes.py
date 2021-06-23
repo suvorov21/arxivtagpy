@@ -12,7 +12,7 @@ from flask_mail import Message
 from .import mail
 from .model import db, Paper, PaperList, paper_associate, Tag
 from .render import render_papers, render_title, \
-render_tags_front, tag_name_and_rule
+render_tags_front, tag_name_and_rule, render_title_precise
 from .auth import new_default_list, DEFAULT_LIST
 from .papers import process_papers, render_paper_json
 from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, get_annonce_date
@@ -143,17 +143,18 @@ def data():
         current_user.recent_visit = current_user.recent_visit | 1
 
     elif request.args['date'] == 'week':
-        old_date = get_arxiv_sub_start(announce_date.date(),
-                                       offset=announce_date.weekday()
-                                       )
+        announce_date = announce_date - \
+                        timedelta(days=announce_date.weekday())
+        old_date = get_arxiv_sub_start(announce_date.date())
+
         # the last week is "seen"
         for i in range(announce_date.weekday() + 1):
             current_user.recent_visit = current_user.recent_visit | 2**i
 
     elif request.args['date'] == 'month':
-        old_date = get_arxiv_sub_start(announce_date.date(),
-                                       offset=announce_date.day
-                                       )
+        announce_date = announce_date - \
+                        timedelta(days=announce_date.day - 1)
+        old_date = get_arxiv_sub_start(announce_date.date())
         # the last month is "seen"
         for i in range(announce_date.day):
             current_user.recent_visit = current_user.recent_visit | 2**i
@@ -229,7 +230,11 @@ def data():
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
               'ntag': papers['n_tags'],
-              'nnov': papers['n_nov']
+              'nnov': papers['n_nov'],
+              'title': render_title_precise(request.args['date'],
+                                            announce_date,
+                                            new_date + timedelta(days=1)
+                                            )
               }
     return jsonify(result)
 

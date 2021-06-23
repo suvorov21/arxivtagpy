@@ -184,7 +184,7 @@ def restore_pass():
     do_send = request.args.get('do_send')
     email_in = request.form.get('email')
     user = User.query.filter_by(email=email_in).first()
-    # Success will go to False ONLY if the user IS find
+    # Success will go to False ONLY if the user IS found
     # but the problem during email sending happens
     success = True
     if user:
@@ -222,6 +222,7 @@ def restore_pass():
               </span>. <br /> Check spam folder in case no email is recieved.')
         logging.info('Successful password recovery.')
     else:
+        logging.error('Error sending email with pass recovery')
         flash('ERROR! Server experienced an internal error. We are working on fix. \
               Please, try later')
     return redirect(url('main_bp.root'), code=303)
