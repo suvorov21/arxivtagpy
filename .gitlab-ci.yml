@@ -80,6 +80,15 @@ integration_test:
     reports:
       cobertura: coverage.xml
 
+stage_to_beta:
+  stage: stage
+  tags:
+    - deploy
+  script:
+    - pwd
+    - ls
+    - whoami
+
 # stage_to_beta:
 #   stage: stage
 #   image:
