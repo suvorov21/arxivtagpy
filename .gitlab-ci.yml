@@ -87,6 +87,19 @@ stage_to_beta:
   script:
     - cd "$CD_STAGE_PATH"
     - source update.sh
+  only:
+    - develop
+
+prod:
+  type: deploy
+  stage: production
+  tags:
+    - deploy
+  script:
+    - cd "$CD_PROD_PATH"
+    - source update.sh
+  only:
+    - master
 
 # stage_to_beta:
 #   stage: stage
