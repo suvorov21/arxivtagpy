@@ -143,23 +143,26 @@ def data():
         current_user.recent_visit = current_user.recent_visit | 1
 
     elif request.args['date'] == 'week':
-        announce_date = announce_date - \
-                        timedelta(days=announce_date.weekday())
-        old_date = get_arxiv_sub_start(announce_date.date())
-
         # the last week is "seen"
+        logging.debug("Anounce week date %r", announce_date)
         for i in range(announce_date.weekday() + 1):
             current_user.recent_visit = current_user.recent_visit | 2**i
+            logging.debug('RV %r', format(current_user.recent_visit, 'b'))
+        old_date_tmp = announce_date - \
+                        timedelta(days=announce_date.weekday())
+        old_date = get_arxiv_sub_start(old_date_tmp.date())
 
     elif request.args['date'] == 'month':
-        announce_date = announce_date - \
-                        timedelta(days=announce_date.day - 1)
-        old_date = get_arxiv_sub_start(announce_date.date())
         # the last month is "seen"
         for i in range(announce_date.day):
             current_user.recent_visit = current_user.recent_visit | 2**i
+        old_date_tmp = announce_date - \
+                        timedelta(days=announce_date.day - 1)
+        old_date = get_arxiv_sub_start(old_date_tmp.date())
 
-    elif request.args['date'] == 'range':
+    old_date_tmp = announce_date
+
+    if request.args['date'] == 'range':
         new_date_tmp = datetime.strptime(request.args['until'],
                                      '%d-%m-%Y'
                                      )
@@ -174,6 +177,7 @@ def data():
         it_end = (announce_date - \
                  old_date_tmp.replace(tzinfo=timezone.utc)).days
 
+        # announce_date = old_date_tmp
         for i in range(it_start,
                        min(10, it_end) + 1,
                        ):
@@ -217,6 +221,7 @@ def data():
         # update last seen paper only if browsing papers until the last one
         if new_date == get_arxiv_sub_end(announce_date.date()):
             current_user.last_paper = papers['papers'][0]['date_up']
+        logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         db.session.commit()
 
     papers = process_papers(papers,
@@ -232,7 +237,7 @@ def data():
               'ntag': papers['n_tags'],
               'nnov': papers['n_nov'],
               'title': render_title_precise(request.args['date'],
-                                            announce_date,
+                                            old_date_tmp,
                                             new_date + timedelta(days=1)
                                             )
               }
