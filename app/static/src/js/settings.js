@@ -513,7 +513,7 @@ $("#tag-color").on("change", function() {
 // check if tag info is filled properly
 // if yes, do API call
 function checkTag() {
-  $(".cat-alert").empty();
+  $(".sub-alert").empty();
   // in case of simple replacement no check required
   if (!tagEdited) {
     submitSetting("mod_tag", TAGS);
@@ -524,7 +524,7 @@ function checkTag() {
   if (document.forms["add-tag"]["tag_name"].value === "" ||
       document.forms["add-tag"]["tag_rule"].value === "" ||
       document.forms["add-tag"]["tag_color"].value === "") {
-    $(".cat-alert").html("Fill all the fields in the form!");
+    $(".sub-alert").html("Fill all the fields in the form!");
     return false;
   }
 
@@ -532,20 +532,20 @@ function checkTag() {
                                     "name"
                                     );
   if (tagWithSameNameId !== -1 && tagWithSameNameId !== editTagId) {
-    $(".cat-alert").html("Tag with this name already exists. Consider a unique name!");
+    $(".sub-alert").html("Tag with this name already exists. Consider a unique name!");
     return false;
   }
 
   // check rule
   let rule = document.forms["add-tag"]["tag_rule"].value;
-  if (!/^(ti|au|abs){.*?}((\||\&)(\(|)((ti|au|abs){.*?})(\)|))*$/i.test(rule)) {
-    $(".cat-alert").html("Check the rule syntax!");
+  if (!/^(\(|)(ti|au|abs){.*?}((\||\&)(\(|)((ti|au|abs){.*?})(\)|))*$/i.test(rule)) {
+    $(".sub-alert").html("Check the rule syntax!");
     return false;
   }
 
   // check color
   if (!/^#[0-9A-F]{6}$/i.test(document.forms["add-tag"]["tag_color"].value)) {
-    $(".cat-alert").html("Color should be in hex format: e.g. #aaaaaa");
+    $(".sub-alert").html("Color should be in hex format: e.g. #aaaaaa");
     return false;
   }
 
