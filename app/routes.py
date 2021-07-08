@@ -160,8 +160,6 @@ def data():
                         timedelta(days=announce_date.day - 1)
         old_date = get_arxiv_sub_start(old_date_tmp.date())
 
-    old_date_tmp = announce_date
-
     if request.args['date'] == 'range':
         new_date_tmp = datetime.strptime(request.args['until'],
                                      '%d-%m-%Y'
