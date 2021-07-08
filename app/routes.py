@@ -139,6 +139,7 @@ def data():
 
     if request.args['date'] == 'today':
         old_date = get_arxiv_sub_start(announce_date.date())
+        old_date_tmp = old_date
         # the last day is "seen"
         current_user.recent_visit = current_user.recent_visit | 1
 
