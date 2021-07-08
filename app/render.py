@@ -55,7 +55,7 @@ def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
     if date_type == 3:
         return 'Papers since your last visit on ' + last_visit.strftime('%d %b %Y')
     if date_type == 4:
-        return 'Papers in range'
+        return 'Papers'
     return 'Papers'
 
 def render_title_precise(date: str, old: datetime, new: datetime) -> str:
@@ -66,9 +66,12 @@ def render_title_precise(date: str, old: datetime, new: datetime) -> str:
         return datetime.strftime(old, '%d %B') + ' - ' + \
                datetime.strftime(new, '%d %B')
     if date == 'range':
-        return 'from '  + \
-               datetime.strftime(old, '%d %B') + ' until ' + \
-               datetime.strftime(new, '%d %B')
+        if (old.date() == new.date()):
+            return 'for ' + datetime.strftime(old, '%A, %d %B')
+        else:
+            return 'from '  + \
+                   datetime.strftime(old, '%d %B') + ' until ' + \
+                   datetime.strftime(new, '%d %B')
     if date == 'last':
         return ''
 

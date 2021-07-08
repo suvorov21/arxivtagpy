@@ -14,7 +14,8 @@ from .paper_api import ArxivOaiApi
 
 rule_dict = {'ti': 'title',
              'au': 'author',
-             'abs': 'abstract'
+             'abs': 'abstract',
+             'cat': 'cats'
              }
 
 def update_papers(api_list: list, **kwargs):
@@ -234,7 +235,7 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
 
 def parse_simple_rule(paper: Dict, condition: str) -> bool:
     """Parse simple rules as ti/au/abs."""
-    prefix_re = search(r'^(ti|abs|au)\{(.*?)\}', condition)
+    prefix_re = search(r'^(ti|abs|au|cat)\{(.*?)\}', condition)
     if not prefix_re:
         return False
 
@@ -242,13 +243,17 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
     condition = prefix_re.group(2)
 
     if prefix not in rule_dict:
-        raise ValueError('Prefix is unknown')
+        logging.error('Prefix is unknown %r', prefix)
 
     search_target = paper[rule_dict[prefix]]
-    # in case of author the target is a list
+    # in case of
+    # 1. author
+    # 2. Paper category
+    #  the target is a list
     # join the list into string
     if isinstance(search_target, list):
-        search_target = ', '.join(paper['author'])
+        target = paper['author' if prefix == 'au' else 'cats']
+        search_target = ', '.join(target)
 
     # cast logic AND to proper REGEX
     if '&' in condition:
