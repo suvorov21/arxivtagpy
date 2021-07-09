@@ -139,6 +139,7 @@ def data():
 
     if request.args['date'] == 'today':
         old_date = get_arxiv_sub_start(announce_date.date())
+        old_date_tmp = old_date
         # the last day is "seen"
         current_user.recent_visit = current_user.recent_visit | 1
 
@@ -159,8 +160,6 @@ def data():
         old_date_tmp = announce_date - \
                         timedelta(days=announce_date.day - 1)
         old_date = get_arxiv_sub_start(old_date_tmp.date())
-
-    old_date_tmp = announce_date
 
     if request.args['date'] == 'range':
         new_date_tmp = datetime.strptime(request.args['until'],
