@@ -1,7 +1,7 @@
 """Render utils."""
 
 from typing import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from .model import Tag
 
 # dictionary for acccents
@@ -53,7 +53,8 @@ def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
     if date_type == 2:
         return 'Papers for this month'
     if date_type == 3:
-        return 'Papers since your last visit on ' + last_visit.strftime('%d %b %Y')
+        return 'Papers since your last visit on ' + \
+                (last_visit + timedelta(days=1)).strftime('%d %b %Y')
     if date_type == 4:
         return 'Papers'
     return 'Papers'
