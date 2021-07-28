@@ -134,6 +134,7 @@ def data():
     new_date = get_arxiv_sub_end(announce_date.date())
     # by default look for the papers since last visit
     old_date = current_user.last_paper
+    old_date_tmp = old_date
 
     update_recent_papers(announce_date)
 
