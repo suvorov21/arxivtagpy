@@ -20,6 +20,7 @@ from .utils import url
 from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
+RECENT_PAPER_RANGE = 10
 
 main_bp = Blueprint(
     'main_bp',
@@ -66,7 +67,7 @@ def papers_list():
     tags_dict = render_tags_front(session['tags'])
 
     return render_template('papers.jinja2',
-                           title=render_title(date_type, current_user.login),
+                           title=render_title(date_type, current_user.last_paper),
                            cats=session['cats'],
                            tags=dumps(tags_dict),
                            data=default_data()
@@ -87,7 +88,7 @@ def paper_land():
     past_week = []
     today = get_annonce_date()
     count = 0
-    for i in range(10):
+    for i in range(RECENT_PAPER_RANGE):
         if count > 6:
             break
         day = today - timedelta(days=i)
@@ -114,7 +115,8 @@ def paper_land():
 
     return render_template('paper_land.jinja2',
                            data=default_data(),
-                           last_visit=datetime.strftime(current_user.login,
+                           last_visit=datetime.strftime(current_user.last_paper \
+                                                        + timedelta(days=1),
                                                         '%d %b %Y'
                                                         ),
                            past_week=past_week
@@ -162,6 +164,12 @@ def data():
                         timedelta(days=announce_date.day - 1)
         old_date = get_arxiv_sub_start(old_date_tmp.date())
 
+    elif request.args['date'] == 'last':
+        # update seen papers since the last visit
+        for i in range(RECENT_PAPER_RANGE):
+            if current_user.recent_visit & 2**i: break
+            current_user.recent_visit = current_user.recent_visit | 2**i
+
     if request.args['date'] == 'range':
         new_date_tmp = datetime.strptime(request.args['until'],
                                      '%d-%m-%Y'
@@ -179,7 +187,7 @@ def data():
 
         # announce_date = old_date_tmp
         for i in range(it_start,
-                       min(10, it_end) + 1,
+                       min(RECENT_PAPER_RANGE, it_end) + 1,
                        ):
             current_user.recent_visit = current_user.recent_visit | 2**i
 
@@ -193,7 +201,8 @@ def data():
               'n_nov': None,
               'n_tags': None,
               'last_date': old_date,
-              'papers': []
+              'papers': [],
+              'title': ''
               }
 
     # define categories of interest
@@ -219,7 +228,7 @@ def data():
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
         # update last seen paper only if browsing papers until the last one
-        if new_date == get_arxiv_sub_end(announce_date.date()):
+        if current_user.last_paper < papers['papers'][0]['date_up']:
             current_user.last_paper = papers['papers'][0]['date_up']
         logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         db.session.commit()
@@ -432,6 +441,6 @@ def update_recent_papers(announce_date: datetime):
     # shift acording to delta since last visit
     current_user.recent_visit = current_user.recent_visit << delta
     # keep only last 7 days
-    current_user.recent_visit = current_user.recent_visit % 2**10
+    current_user.recent_visit = current_user.recent_visit % 2**RECENT_PAPER_RANGE
     current_user.login = announce_date.replace(tzinfo=None)
     db.session.commit()
