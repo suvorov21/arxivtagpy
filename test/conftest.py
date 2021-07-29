@@ -2,7 +2,7 @@
 # pylint: disable=redefined-outer-name
 
 import multiprocessing
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
@@ -26,6 +26,7 @@ def make_user(email):
                  pasw=generate_password_hash(PASS),
                  created=datetime.now(),
                  login=datetime.now(),
+                 last_paper=datetime.now() - timedelta(days=4),
                  arxiv_cat=['hep-ex'],
                  pref='{"tex": "True"}',
                  recent_visit=0

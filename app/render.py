@@ -1,7 +1,7 @@
 """Render utils."""
 
 from typing import Dict, List
-from datetime import datetime
+from datetime import datetime, timedelta
 from .model import Tag
 
 # dictionary for acccents
@@ -44,18 +44,19 @@ accents = {"\\'a": '&aacute;',
            '\\"A': '&Auml;'
            }
 
-def render_title(date_type: int = 0, last_visit: datetime = 0) -> str:
+def render_title(date_type: str, last_visit: datetime = 0) -> str:
     """Put the date type in the title text."""
-    if date_type == 0:
+    if date_type == 'today':
         return 'Papers for today'
-    if date_type == 1:
+    elif date_type == 'week':
         return 'Papers for this week'
-    if date_type == 2:
+    elif date_type == 'month':
         return 'Papers for this month'
-    if date_type == 3:
-        return 'Papers since your last visit on ' + last_visit.strftime('%d %b %Y')
-    if date_type == 4:
-        return 'Papers'
+    elif date_type == 'last':
+        return 'Papers since your last visit on ' + \
+                (last_visit + timedelta(days=1)).strftime('%d %b %Y')
+    # elif date_type == 'range':
+    #     return 'Papers'
     return 'Papers'
 
 def render_title_precise(date: str, old: datetime, new: datetime) -> str:

@@ -20,17 +20,27 @@ def test_load_papers(client):
 
 def test_paper_api(client, login):
     """Test paper API."""
+    response4 = client.get(url_for('main_bp.data', date='last'))
     response1 = client.get(url_for('main_bp.data', date='today'))
     response2 = client.get(url_for('main_bp.data', date='week'))
     response3 = client.get(url_for('main_bp.data', date='month'))
-    response4 = client.get(url_for('main_bp.data', date='last'))
-    data = loads(response1.get_data(as_text=True))
+    # response4 = client.get(url_for('main_bp.data', date='last'))
+    data1 = loads(response1.get_data(as_text=True))
+    data2 = loads(response2.get_data(as_text=True))
+    data3 = loads(response3.get_data(as_text=True))
+    data4 = loads(response4.get_data(as_text=True))
     assert response1.status_code == 200
     assert response2.status_code == 200
     assert response3.status_code == 200
     assert response4.status_code == 200
-    assert data.get('papers') is not None
-    assert len(data.get('papers')) > 0
+    assert data1.get('papers') is not None
+    assert len(data1.get('papers')) > 0
+    assert data2.get('papers') is not None
+    assert len(data2.get('papers')) > 0
+    assert data3.get('papers') is not None
+    assert len(data3.get('papers')) > 0
+    assert data4.get('papers') is not None
+    assert len(data4.get('papers')) > 0
 
 def test_paper_page(client, login):
     """Test paper page load."""
