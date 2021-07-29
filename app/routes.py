@@ -21,6 +21,7 @@ from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
 RECENT_PAPER_RANGE = 10
+DATE_TYPES = ['today', 'week', 'month', 'last', 'range']
 
 main_bp = Blueprint(
     'main_bp',
@@ -46,17 +47,7 @@ def root():
 @login_required
 def papers_list():
     """Papers list page."""
-    date_dict = {'today': 0,
-                 'week': 1,
-                 'month': 2,
-                 'last': 3,
-                 'range': 4
-                 }
-
-    date_type = None
-    if 'date' in request.args:
-        date_type = date_dict.get(request.args['date'])
-
+    date_type = request.args.get('date')
     if date_type is None:
         return redirect(url('main_bp.papers_list', date='today'))
 
@@ -89,6 +80,7 @@ def paper_land():
     today = get_annonce_date()
     count = 0
     for i in range(RECENT_PAPER_RANGE):
+        # display only last week
         if count > 6:
             break
         day = today - timedelta(days=i)
@@ -215,7 +207,7 @@ def data():
     papers['papers'] = [render_paper_json(paper) for paper in paper_query]
 
     # error hahdler
-    if len(papers['papers']) == 0:
+    if len(papers['papers']) == 0 and request.args['date'] != 'last':
         # TODO check the agreement with JS error handler
         logging.warning('No papers suitable with request')
         return jsonify(papers)
@@ -429,7 +421,12 @@ def collect_feedback():
     return dumps({'success':True}), 200
 
 def update_recent_papers(announce_date: datetime):
-    """Update "seen" days. Shift the bit map."""
+    """
+    Update "seen" days.
+
+    1. Shift the "last visit day" to the current date.
+    2. Shift the bit map with "seen" papers accordingly.
+    """
     if not isinstance(current_user.recent_visit, int):
         current_user.recent_visit = 0
         db.session.commit()
