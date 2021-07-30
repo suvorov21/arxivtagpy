@@ -6,101 +6,112 @@
 
 {% block content %}
 
-<div class="container-fluid">
-  <div class="row pt-4" class="main-row">
-    <div class="col-sm-12 col-md-12 col-lg-12 col-xl-12">
+{# If  not quthorised show jumbotron #}
+{% if not current_user.is_authenticated %}
+  <div class="jumbotron jumb">
+    <h1 class="display-4">ar<span id="chi">&#120536;</span>iv tag</h1>
+    <p class="lead">your paper submission secretary</p>
+    {# <hr class="my-4"> #}
+    <p class="mt-5">Categorises papers submissions for you.<br>Never miss an important paper.</p>
+    <p class="lead">
+      <a class="btn btn-primary btn-lg" href="/signup" role="button">Sigh up</a>
+    </p>
+
+    <section class="down-link">
+      <a href="#overview"><span></span>Overview</a>
+    </section>
+  </div>
+{% endif %}
+
+<div class="container-fluid" id="overview">
+  <div class="row pt-4 justify-content-md-center" class="main-row">
+    <div class="col-sm-12 col-md-11">
       <div class="paper-wrapper">
-      {# If  not quthorised show jumbotron #}
-      {% if not current_user.is_authenticated %}
-        <div class="jumbotron" style="height: 80vh">
-          <h1 class="display-4">arXiv tag</h1>
-          <p class="lead">your submission secretary</p>
-          <hr class="my-4">
-          <p>Categorise papers submissions for you.<br>Never miss an important paper.</p>
-          <p class="lead">
-            <a class="btn btn-primary btn-lg" href="/signup" role="button">Sigh up</a>
-          </p>
+        <div class="row pt-4 pl-3 full-screen">
+          <div class="col-sm-12 col-md-3">
+            <img class="" src="{{ url_for('static', filename='dist/img/main.png') }}" width="100%">
+          </div>
+          <div class="col-sm-12 col-md-9">
+            <h4>What is arXiv tag?</h4>
+            <p>A web-service for monitoring paper submissions at <a href="https://arxiv.org/">arXiv.org</a>.</p>
+            <ol>
+              <li>View the most relevant papers on top of the list.</li>
+              <li>Never miss the interesting submission as it bookmarks automatically.</li>
+              <li>Receive an email notification once the paper of your topic is submitted.</li>
+            </ol>
+          </div>
+          <section class="down-link">
+            <a href="#features" id="feature-ref"><span class="bit-up"></span>Features</a>
+          </section>
         </div>
-      {% endif %}
 
-      <div class="row pt-4 pl-3">
-        <div class="col-sm-12 col-md-3">
-          <img class="" src="{{ url_for('static', filename='dist/img/main.png') }}" width="100%">
-        </div>
-        <div class="col-sm-12 col-md-9">
-          <h4>What is arXiv tag?</h4>
-          <p>A web-service for {# user-friendly #} monitoring paper submissions at <a href="https://arxiv.org/">arXiv.org</a>.</p>
-          {# <span>Define simple rules for your topics of interest and arXiv tag will do the job:</span> #}
-          <ol>
-            <li>View the most relevant papers on top of the list.</li>
-            <li>Never miss the interesting submission as it bookmarks automatically.</li><li>Receive an email notification once the paper of your topic is submitted.</li>
-          </ol>
-        </div>
-      </div>
-      <hr>
-      <div class="row pt-5 pl-3">
-        <div class="col-sm-12 col-md-7">
-          <h4>Paper feed</h4>
-          <p>Define your categories of interest and toggle them later.</p>
-          <p>Easily control the novelty of the submissions and the papers from cross-categories.</p>
-          <p>Monitor the number of submissions in each category</p>
-        </div>
-        <div class="col-sm-12 col-md-3">
-          <img class="" src="{{ url_for('static', filename='dist/img/feed.png') }}" width="100%">
-        </div>
-      </div>
-      <hr>
-      <div class="row pt-5 pl-3">
-        <div class="col-sm-12 col-md-5">
-          <img class="" src="{{ url_for('static', filename='dist/img/tags.png') }}" width="100%">
-        </div>
-        <div class="col-sm-12 col-md-7">
-          <h4>Tags - the key feature</h4>
-          <p>Define simple rules for the paper title, abstract and author list. <br>
-          ArXiv tag assigns topic tags for every paper automatically. </p>
-          <p>The tag order defines papers on top of your feed.</p>
-          <p>Practical example:<br>
-            In high energy physics we have ~1500 submissions per month. My experiment is titled "T2K". <br>
-            ArXiv tag shows papers that mention my experiment on top of the heap.
-          </p>
-        </div>
-      </div>
-      <hr>
-      <div class="row pt-5 pl-3">
-        <div class="col-sm-12 col-md-7">
-          <h4>Bookmarks</h4>
-          <p>Papers suitable with a given tag can be bookmarked automatically.</p>
-          <p>Imagine, you haven't visited arXiv for a while. What did you miss? <br>
-          arXiv tag saves papers of interest for you!</p>
-          <p>The labels indicates number of new submissions.</p>
-        </div>
-        <div class="col-sm-12 col-md-2">
-          <img class="" src="{{ url_for('static', filename='dist/img/book.png') }}" width="100%">
-        </div>
-      </div>
-      <hr>
 
-      <div class="row pt-5 pl-3">
-        <div class="col-sm-12 col-md-4">
-          <img class="" src="{{ url_for('static', filename='dist/img/email.png') }}" width="100%">
+
+        <h2 class="pt-5" id="features" style="display:none;">Features</h2>
+
+        <div class="row pt-5 pl-3">
+          <div class="col-sm-12 col-md-7">
+            <h4>Paper feed</h4>
+            <p>Define your categories of interest and toggle them later.</p>
+            <p>Easily control the novelty of the submissions and the papers from cross-categories.</p>
+            <p>Monitor the number of submissions in each category</p>
+          </div>
+          <div class="col-sm-12 col-md-3">
+            <img class="" src="{{ url_for('static', filename='dist/img/feed.png') }}" width="100%">
+          </div>
         </div>
-        <div class="col-sm-12 col-md-7">
-          <h4>Email notification</h4>
-          <p>Setup the email notification for the announcement of the papers suitable with a given tag.</p>
+        <hr>
+        <div class="row pt-5 pl-3">
+          <div class="col-sm-12 col-md-5">
+            <img class="" src="{{ url_for('static', filename='dist/img/tags.png') }}" width="100%">
+          </div>
+          <div class="col-sm-12 col-md-7">
+            <h4>Tags - the key feature</h4>
+            <p>Define simple rules for the paper title, abstract and author list. <br>
+            ArXiv tag assigns topic tags for every paper automatically. </p>
+            <p>The tag order defines papers on top of your feed.</p>
+            <p>Practical example:<br>
+              In high energy physics we have ~1500 submissions per month. My experiment is titled "T2K". <br>
+              ArXiv tag shows papers that mention my experiment on top of the heap.
+            </p>
+          </div>
+        </div>
+        <hr>
+        <div class="row pt-5 pl-3">
+          <div class="col-sm-12 col-md-7">
+            <h4>Bookmarks</h4>
+            <p>Papers suitable with a given tag can be bookmarked automatically.</p>
+            <p>Imagine, you haven't visited arXiv for a while. What did you miss? <br>
+            arXiv tag saves papers of interest for you!</p>
+            <p>The labels indicate number of new submissions.</p>
+          </div>
+          <div class="col-sm-12 col-md-2">
+            <img class="" src="{{ url_for('static', filename='dist/img/book.png') }}" width="100%">
+          </div>
+        </div>
+        <hr>
+
+        <div class="row pt-5 pl-3">
+          <div class="col-sm-12 col-md-4">
+            <img class="" src="{{ url_for('static', filename='dist/img/email.png') }}" width="100%">
+          </div>
+          <div class="col-sm-12 col-md-7">
+            <h4>Email notification</h4>
+            <p>Setup the email notification for the announcement of the papers suitable with a given tag.</p>
+          </div>
+        </div>
+
+        <hr>
+        <div class="row pt-5 pl-3">
+          <div class="col-sm-12 col-md-7">
+            <h4>Light and dark theme</h4>
+            <p>Choose your favourite color scheme for the website.</p>
+          </div>
+          <div class="col-sm-12 col-md-4">
+            <img class="" src="{{ url_for('static', filename='dist/img/theme.png') }}" width="100%">
+          </div>
         </div>
       </div>
-
-      <hr>
-      <div class="row pt-5 pl-3">
-        <div class="col-sm-12 col-md-7">
-          <h4>Light and dark theme</h4>
-          <p>Choose you favourite color scheme of the website.</p>
-        </div>
-        <div class="col-sm-12 col-md-4">
-          <img class="" src="{{ url_for('static', filename='dist/img/theme.png') }}" width="100%">
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
@@ -108,10 +119,22 @@
 {% endblock %}
 
 {% block script_footer %}
+  <script type="text/javascript">
   {% if current_user.is_authenticated %}
-    <script type="text/javascript">
-      document.getElementById("about-nav").classList.add("active");
-    </script>
+    document.getElementById("about-nav").classList.add("active");
   {% endif %}
+  // jumbotron animation
+  $(function() {
+    $('a[href*="#"]').on('click', function(e) {
+      if (event.target.getAttribute("id") === "feature-ref") {
+        $("#features").css("display", "block");
+      }
+      e.preventDefault();
+      $('html, body').animate({ scrollTop: $($(this).attr('href')).offset().top}, 500, 'linear');
+
+    });
+  });
+
+  </script>
   <script type="text/javascript" src="{{ url_for('static', filename='dist/js/layout.min.js') }}"></script>
 {% endblock %}
