@@ -2,11 +2,12 @@
   height: 80vh;
   background-image: url("/static/dist/img/lib.jpg");
   background-size: cover;
-  // font-size: 1.2rem;
+
   & h1 {
     font-weight: 350;
     font-family: Helvetica, "Trebuchet MS", Verdana, sans-serif;
   }
+
   & p {
     font-size: 1.1rem;
   }
@@ -30,11 +31,12 @@ h2 {
   -webkit-transform: translate(0, -50%);
   transform: translate(0, -50%);
   color: var(--wrap_color);
-  font : normal 400 20px/1 'Josefin Sans', sans-serif;
-  letter-spacing: .1em;
+  font: normal 400 20px/1 'Josefin Sans', sans-serif;
+  letter-spacing: 0.1em;
   text-decoration: none;
-  transition: opacity .3s;
-  opacity: .7;
+  transition: opacity 0.3s;
+  opacity: 0.7;
+
   & span {
     position: absolute;
     top: 80px;
@@ -44,7 +46,7 @@ h2 {
     margin-left: -12px;
     border-left: 3px solid var(--wrap_color);
     border-bottom: 3px solid var(--wrap_color);
-    opacity: .7;
+    opacity: 0.7;
     -webkit-transform: rotate(-45deg);
     transform: rotate(-45deg);
     -webkit-animation: sdb05 1.5s infinite;
@@ -52,12 +54,13 @@ h2 {
     box-sizing: border-box;
   }
 }
+
 .down-link a:hover {
-  opacity: .4;
+  opacity: 0.4;
 }
 
 .bit-up {
-  top: 0px !important;
+  top: 0 !important;
 }
 
 @-webkit-keyframes sdb05 {
@@ -65,22 +68,27 @@ h2 {
     -webkit-transform: rotate(-45deg) translate(0, 0);
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
+
   100% {
     -webkit-transform: rotate(-45deg) translate(-20px, 20px);
     opacity: 0;
   }
 }
+
 @keyframes sdb05 {
   0% {
     transform: rotate(-45deg) translate(0, 0);
     opacity: 0;
   }
+
   50% {
     opacity: 1;
   }
+
   100% {
     transform: rotate(-45deg) translate(-20px, 20px);
     opacity: 0;

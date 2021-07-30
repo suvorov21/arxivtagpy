@@ -54,7 +54,7 @@
             <h4>Paper feed</h4>
             <p>Define your categories of interest and toggle them later.</p>
             <p>Easily control the novelty of the submissions and the papers from cross-categories.</p>
-            <p>Monitor the number of submissions in each category</p>
+            {# <p>Monitor the number of submissions in each category</p> #}
           </div>
           <div class="col-sm-12 col-md-3">
             <img class="" src="{{ url_for('static', filename='dist/img/feed.png') }}" width="100%">
@@ -70,7 +70,8 @@
             <p>Define simple rules for the paper title, abstract and author list. <br>
             ArXiv tag assigns topic tags for every paper automatically. </p>
             <p>The tag order defines papers on top of your feed.</p>
-            <p>Practical example:<br>
+            <p style="font-style: italic; font-size: 1rem">Practical example:<br>
+
               In high energy physics we have ~1500 submissions per month. My experiment is titled "T2K". <br>
               ArXiv tag shows papers that mention my experiment on top of the heap.
             </p>
