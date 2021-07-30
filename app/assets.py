@@ -67,8 +67,6 @@ def compile_assets(app):
         output='dist/js/papers.min.js'
     )
 
-
-
     # Register assets
     assets.register('paper_less', paper_less_bundle)
     assets.register('paper_js', paper_js_bundle)
@@ -113,3 +111,14 @@ def compile_assets(app):
     assets.register('bookshelf_js', bookshelf_js_bundle)
     # Build assets in development mode
     bookshelf_js_bundle.build()
+
+    about_less = Bundle(
+        'src/less/layout.less',
+        'src/less/about.less',
+        filters='less,cssmin',
+        output='dist/css/about.css',
+        extra={'rel': 'stylesheet/less'}
+    )
+    assets.register('about_less', about_less)
+    # Build assets in development mode
+    about_less.build(force=app.config['DEBUG'])
