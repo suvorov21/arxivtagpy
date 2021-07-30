@@ -112,13 +112,13 @@ def compile_assets(app):
     # Build assets in development mode
     bookshelf_js_bundle.build()
 
-    about_less = Bundle(
-        'src/less/layout.less',
-        'src/less/about.less',
-        filters='less,cssmin',
-        output='dist/css/about.css',
-        extra={'rel': 'stylesheet/less'}
-    )
-    assets.register('about_less', about_less)
-    # Build assets in development mode
-    about_less.build(force=app.config['DEBUG'])
+    # about_less = Bundle(
+    #     'src/less/layout.less',
+    #     'src/less/about.less',
+    #     filters='less,cssmin',
+    #     output='dist/css/about.css',
+    #     extra={'rel': 'stylesheet/less'}
+    # )
+    # assets.register('about_less', about_less)
+    # # Build assets in development mode
+    # about_less.build(force=app.config['DEBUG'])
