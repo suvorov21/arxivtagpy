@@ -15,7 +15,8 @@ from .render import render_papers, render_title, \
 render_tags_front, tag_name_and_rule, render_title_precise
 from .auth import new_default_list, DEFAULT_LIST
 from .papers import process_papers, render_paper_json
-from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, get_annonce_date
+from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, \
+get_annonce_date, get_axiv_announce_date
 from .utils import url
 from .settings import load_prefs, default_data
 
@@ -57,8 +58,10 @@ def papers_list():
     # get rid of tag rule at front-end
     tags_dict = render_tags_front(session['tags'])
 
+    last_visit_date = get_axiv_announce_date(current_user.last_paper)
+
     return render_template('papers.jinja2',
-                           title=render_title(date_type, current_user.last_paper),
+                           title=render_title(date_type, last_visit_date),
                            cats=session['cats'],
                            tags=dumps(tags_dict),
                            data=default_data()
@@ -105,12 +108,14 @@ def paper_land():
                           })
         count += 1
 
+    last_visit_date = get_axiv_announce_date(current_user.last_paper)
     return render_template('paper_land.jinja2',
                            data=default_data(),
-                           last_visit=datetime.strftime(current_user.last_paper \
-                                                        + timedelta(days=1),
-                                                        '%d %b %Y'
-                                                        ),
+                           last_visit = datetime.strftime(last_visit_date,
+                                                          '%d %b %Y'
+                                                          ),
+
+
                            past_week=past_week
                            )
 
@@ -125,63 +130,55 @@ def data():
 
     announce_date = get_annonce_date()
 
-    new_date = get_arxiv_sub_end(announce_date.date())
+    # tmp value stores the annonced date of the paper
+    new_date_tmp = announce_date
+    # the real submission end period
+    new_date = get_arxiv_sub_end(new_date_tmp.date())
     # by default look for the papers since last visit
-    old_date = current_user.last_paper
-    old_date_tmp = old_date
+    old_date_tmp = current_user.last_paper
+    old_date = old_date_tmp
 
     update_recent_papers(announce_date)
 
     if request.args['date'] == 'today':
-        old_date = get_arxiv_sub_start(announce_date.date())
+        old_date = announce_date
         old_date_tmp = old_date
-        # the last day is "seen"
-        current_user.recent_visit = current_user.recent_visit | 1
+        logging.debug("Start for today %r", old_date_tmp)
 
     elif request.args['date'] == 'week':
-        # the last week is "seen"
-        logging.debug("Anounce week date %r", announce_date)
-        for i in range(announce_date.weekday() + 1):
-            current_user.recent_visit = current_user.recent_visit | 2**i
-            logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         old_date_tmp = announce_date - \
-                        timedelta(days=announce_date.weekday())
-        old_date = get_arxiv_sub_start(old_date_tmp.date())
+                       timedelta(days=announce_date.weekday())
 
     elif request.args['date'] == 'month':
-        # the last month is "seen"
-        for i in range(announce_date.day):
-            current_user.recent_visit = current_user.recent_visit | 2**i
         old_date_tmp = announce_date - \
-                        timedelta(days=announce_date.day - 1)
-        old_date = get_arxiv_sub_start(old_date_tmp.date())
+                       timedelta(days=announce_date.day-1)
+        if old_date_tmp.weekday() > 4:
+            old_date_tmp += timedelta(days=7-old_date_tmp.weekday())
 
-    elif request.args['date'] == 'last':
-        # update seen papers since the last visit
-        for i in range(RECENT_PAPER_RANGE):
-            if current_user.recent_visit & 2**i: break
-            current_user.recent_visit = current_user.recent_visit | 2**i
-
-    if request.args['date'] == 'range':
+    elif request.args['date'] == 'range':
         new_date_tmp = datetime.strptime(request.args['until'],
-                                     '%d-%m-%Y'
-                                     )
+                                         '%d-%m-%Y'
+                                         ).replace(tzinfo=timezone.utc)
         new_date = get_arxiv_sub_end(new_date_tmp.date())
         old_date_tmp = datetime.strptime(request.args['from'],
-                                     '%d-%m-%Y'
-                                     )
+                                         '%d-%m-%Y'
+                                         ).replace(tzinfo=timezone.utc)
+
+    if request.args['date'] != 'last':
         old_date = get_arxiv_sub_start(old_date_tmp.date())
 
-        it_start = (announce_date -  \
-                    new_date_tmp.replace(tzinfo=timezone.utc)).days
-        it_end = (announce_date - \
-                 old_date_tmp.replace(tzinfo=timezone.utc)).days
+    logging.debug('%r\n%r', old_date_tmp, old_date)
 
-        # announce_date = old_date_tmp
-        for i in range(it_start,
-                       min(RECENT_PAPER_RANGE, it_end) + 1,
-                       ):
-            current_user.recent_visit = current_user.recent_visit | 2**i
+    # update "seen" papers
+    it_start = (announce_date -  \
+                new_date_tmp.replace(tzinfo=timezone.utc)).days
+    it_end = (announce_date - \
+             old_date_tmp.replace(tzinfo=timezone.utc)).days
+
+    for i in range(it_start,
+                   min(RECENT_PAPER_RANGE, it_end) + 1,
+                   ):
+        current_user.recent_visit = current_user.recent_visit | 2**i
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
                   datetime.now(timezone.utc),
@@ -214,8 +211,6 @@ def data():
 
     # store the info about last checked paper
     # descending paper order is assumed
-    # TODO checkl the logic. If person visit "today" page the "lat visit"
-    # probably should not be reset completely
     if len(papers['papers']) > 0 and papers['papers'][0].get('date_up'):
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
@@ -239,7 +234,7 @@ def data():
               'nnov': papers['n_nov'],
               'title': render_title_precise(request.args['date'],
                                             old_date_tmp,
-                                            new_date + timedelta(days=1)
+                                            new_date_tmp
                                             )
               }
     return jsonify(result)
