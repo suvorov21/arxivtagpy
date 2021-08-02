@@ -104,7 +104,7 @@ class ArxivOaiApi:
                 info = record.find(self.OAI + 'metadata').find(self.ARXIV + 'arXivRaw')
 
                 # WARNING is 'v?' tag always ordered?
-                # assum yes, but who knows...
+                # assume yes, but who knows...
                 versions = info.findall(self.ARXIV + 'version')
                 created = versions[0].find(self.ARXIV + 'date').text
                 created = created.split(', ')[1]
@@ -205,6 +205,17 @@ def get_arxiv_sub_end(announce_date: date) -> datetime:
                                     )
 
     return sub_date_end
+
+def get_axiv_announce_date(paper_sub: datetime) -> datetime:
+    """Get the announce date for a given paper."""
+    announce_date = paper_sub
+    announce_date = announce_date \
+        + timedelta(days=1 if paper_sub.hour < 18 else 2)
+    if (announce_date.weekday() > 4):
+        announce_date = announce_date \
+            + timedelta(days=7-announce_date.weekday())
+
+    return announce_date
 
 def get_annonce_date() -> datetime:
     """

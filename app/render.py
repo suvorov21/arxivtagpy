@@ -54,9 +54,8 @@ def render_title(date_type: str, last_visit: datetime = 0) -> str:
         return 'Papers for this month'
     elif date_type == 'last':
         return 'Papers since your last visit on ' + \
-                (last_visit + timedelta(days=1)).strftime('%d %b %Y')
-    # elif date_type == 'range':
-    #     return 'Papers'
+                (last_visit).strftime('%d %b %Y')
+
     return 'Papers'
 
 def render_title_precise(date: str, old: datetime, new: datetime) -> str:
