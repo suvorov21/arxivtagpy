@@ -8,6 +8,8 @@ let DONE = false;
 var VISIBLE = 0;
 var titleRendered = false;
 
+var TAGSSHOW = [];
+
 function formateDate(date) {
   let dateArray = date.toString().split(" ");
   return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
@@ -45,6 +47,9 @@ function toggleVis(start=0) {
       catsShow.push(key);
     }
   }
+
+  let allVisible = TAGSSHOW.every(x=>x);
+
   for(let pId = start; pId < DATA.papers.length; pId++) {
     let paper = DATA.papers[parseInt(pId, 10)];
     // Logic: if check-box is off --> cut all the affected papers
@@ -52,7 +57,9 @@ function toggleVis(start=0) {
         (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
         (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
         // filter on categories check boxes
-        catsShow.filter((value) => paper.cats.includes(value)).length > 0
+        catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
+        // filter on tags
+        (allVisible || TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0)
         ) {
       passed += 1;
       paperVisibility(true, pId);
@@ -74,14 +81,18 @@ function checkCat(event) {
   let number = event.target.getAttribute("id").split("-")[2];
   let cat = document.getElementById("cat-label-" + number).textContent;
   prefs.data.catsArr[`${cat}`] = document.getElementById("check-cat-" + number).checked;
+  // save the cookies
   prefs.save();
-  toggleVis();
+  setTimeout(function () {
+    toggleVis();
+  }, 0);
 }
 
 function renderCats() {
   // TODO check if there are old cats in cookies
   CATS.forEach((cat, num) => {
     // if category not in cookies visibility dictionary --> add it
+    // TODO remove excessive categories from cookies
     if (!(cat in prefs.data.catsArr)) {
       prefs.data.catsArr[`${cat}`] = true;
     }
@@ -121,8 +132,57 @@ function renderCats() {
   });
 }
 
+const tagBorder = (num, border) => {
+  TAGSSHOW[parseInt(num, 10)] = border;
+
+  $("#tag-label-" + num).css("border-color",
+                             border ? cssVar("--tag_border_color") : "transparent"
+                             );
+};
+
+const clickTag = (event) => {
+  let number = event.target.getAttribute("id").split("-")[2];
+  let thisVisible = TAGSSHOW[parseInt(number, 10)];
+  let allVisible = TAGSSHOW.every(x=>x);
+
+  // if this tag is selected
+  if (thisVisible) {
+    if (allVisible) {
+      // select only this tag
+      // make all others invisible
+      TAGSSHOW = TAGSSHOW.map(x => false);
+
+      // but this one visible
+      tagBorder(number, true);
+    } else {
+      // hide this tag
+      TAGSSHOW[parseInt(number, 10)] = false;
+      // if this was the only left tag
+      if (TAGSSHOW.filter((value) => value).length === 0) {
+        // make all tags visible
+        TAGSSHOW = TAGSSHOW.map(x => true);
+      }
+      // remove border
+      $("#tag-label-" + number).css("border-color", "transparent");
+    }
+  // if this tag is UNselected
+  } else {
+    // make this tag selected
+    tagBorder(number, true);
+  }
+
+  setTimeout(function () {
+    toggleVis();
+  }, 0);
+};
+
 function renderTags() {
   TAGS.forEach((tag, num) => {
+    // store tag in settings for visibility control
+    // do NOT store this values in cookies
+    // keep it just for the current session
+    TAGSSHOW.push(true);
+
     let parent = document.createElement("div");
     parent.className = "d-flex justify-content-between align-items-center";
 
@@ -131,6 +191,8 @@ function renderTags() {
     tagElement.id = "tag-label-"+num;
     tagElement.style = "background-color: " + tag.color;
     tagElement.textContent = tag.name;
+
+    tagElement.addEventListener("click", clickTag);
 
     let counter = document.createElement("div");
     counter.className = "counter";
@@ -345,7 +407,9 @@ document.getElementById("filter-button").onclick = function() {
 function novChange(number) {
   prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
   prefs.save();
-  toggleVis();
+  setTimeout(function () {
+    toggleVis();
+  }, 0);
 }
 
 window.onload = function() {

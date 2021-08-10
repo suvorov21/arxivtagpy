@@ -178,6 +178,7 @@ def data():
     for i in range(it_start,
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
+        print(i)
         current_user.recent_visit = current_user.recent_visit | 2**i
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
