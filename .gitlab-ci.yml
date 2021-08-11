@@ -1,7 +1,6 @@
 stages:
   - build
   - test
-  - stage
   - production
 
 include:
@@ -81,9 +80,12 @@ integration_test:
       cobertura: coverage.xml
 
 stage_to_beta:
-  stage: stage
+  stage: deploy
   tags:
     - deploy
+  environment:
+    name: staging
+    url: https://beta.arxivtag.tk/
   script:
     - cd "$CD_STAGE_PATH"
     - source update.sh
@@ -95,6 +97,9 @@ prod:
   stage: production
   tags:
     - deploy
+  environment:
+    name: production
+    url: https://arxivtag.tk/
   script:
     - cd "$CD_PROD_PATH"
     - source update.sh
