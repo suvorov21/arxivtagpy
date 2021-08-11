@@ -316,10 +316,10 @@ function sortPapers() {
 
     DATA.papers.sort((a, b) => {
       if (b.tags.length === 0 && a.tags.length !== 0) {
-        return "tag-as" ? -1 : 1;
+        return sortMethod === "tag-as" ? -1 : 1;
       }
       if (b.tags.length !== 0 && a.tags.length === 0) {
-        return "tag-as" ? 1 : -1;
+        return sortMethod === "tag-as" ? 1 : -1;
       }
       if (b.tags.length === 0 && a.tags.length === 0) {
         return -1;
