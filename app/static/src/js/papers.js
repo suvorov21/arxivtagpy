@@ -1,4 +1,4 @@
-/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase*/
+/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase, cssVar*/
 /*exported novChange */
 /*eslint no-undef: "error"*/
 
@@ -48,7 +48,7 @@ function toggleVis(start=0) {
     }
   }
 
-  let allVisible = TAGSSHOW.every(x=>x);
+  let allVisible = TAGSSHOW.every((x) => x);
 
   for(let pId = start; pId < DATA.papers.length; pId++) {
     let paper = DATA.papers[parseInt(pId, 10)];
@@ -59,7 +59,7 @@ function toggleVis(start=0) {
         // filter on categories check boxes
         catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
         // filter on tags
-        (allVisible || TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0)
+        (allVisible || (TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0))
         ) {
       passed += 1;
       paperVisibility(true, pId);
@@ -73,7 +73,9 @@ function toggleVis(start=0) {
   }
 
   if (!DONE) {
-    scrollIfNeeded();
+    setTimeout(function() {
+      scrollIfNeeded();
+    }, 0);
   }
 }
 
@@ -92,7 +94,6 @@ function renderCats() {
   // TODO check if there are old cats in cookies
   CATS.forEach((cat, num) => {
     // if category not in cookies visibility dictionary --> add it
-    // TODO remove excessive categories from cookies
     if (!(cat in prefs.data.catsArr)) {
       prefs.data.catsArr[`${cat}`] = true;
     }
@@ -143,14 +144,14 @@ const tagBorder = (num, border) => {
 const clickTag = (event) => {
   let number = event.target.getAttribute("id").split("-")[2];
   let thisVisible = TAGSSHOW[parseInt(number, 10)];
-  let allVisible = TAGSSHOW.every(x=>x);
+  let allVisible = TAGSSHOW.every((x) => x);
 
   // if this tag is selected
   if (thisVisible) {
     if (allVisible) {
       // select only this tag
       // make all others invisible
-      TAGSSHOW = TAGSSHOW.map(x => false);
+      TAGSSHOW = TAGSSHOW.map(() => false);
 
       // but this one visible
       tagBorder(number, true);
@@ -160,7 +161,7 @@ const clickTag = (event) => {
       // if this was the only left tag
       if (TAGSSHOW.filter((value) => value).length === 0) {
         // make all tags visible
-        TAGSSHOW = TAGSSHOW.map(x => true);
+        TAGSSHOW = TAGSSHOW.map(() => true);
       }
       // remove border
       $("#tag-label-" + number).css("border-color", "transparent");
@@ -304,13 +305,23 @@ function sortFunction(a, b, order=true) {
 
 function sortPapers() {
   $("#paper-list-content").empty();
+  // Completely reset the rendering process
   START = 0;
+  DONE = false;
+  document.getElementById("loading-papers").style["display"] = "block";
+  document.getElementById("done-papers").style["display"] = "none";
   let sortMethod = $("#sort-sel").val();
   // tags
   if (sortMethod.includes("tag")) {
 
     DATA.papers.sort((a, b) => {
-      if (b.tags.length === 0 || a.tags.length === 0) {
+      if (b.tags.length === 0 && a.tags.length !== 0) {
+        return "tag-as" ? -1 : 1;
+      }
+      if (b.tags.length !== 0 && a.tags.length === 0) {
+        return "tag-as" ? 1 : -1;
+      }
+      if (b.tags.length === 0 && a.tags.length === 0) {
         return -1;
       }
       return sortFunction(a.tags[0], b.tags[0],
@@ -368,9 +379,6 @@ $("#sort-sel").change(() => {
   setTimeout(function () {
     renderPapers();
     $("#sorting-proc").css("display", "none");
-    // if (parseTex) {
-    //   MathJax.typesetPromise();
-    // }
   }, 0);
 });
 
