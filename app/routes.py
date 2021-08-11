@@ -178,6 +178,8 @@ def data():
     for i in range(it_start,
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
+        # prevent underflow by 1
+        if i == -1: i += 1
         current_user.recent_visit = current_user.recent_visit | 2**i
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
@@ -290,7 +292,11 @@ def bookshelf():
               }
 
     # read the papers
-    for paper in paper_list.papers[PAPERS_PAGE * (page-1):][:PAPERS_PAGE]:
+    sorted_papers = sorted(paper_list.papers,
+                           key=lambda p: p.date_up,
+                           reverse=True
+                           )
+    for paper in sorted_papers[PAPERS_PAGE * (page-1):][:PAPERS_PAGE]:
         papers['papers'].append(render_paper_json(paper))
 
     total_pages = len(paper_list.papers) // PAPERS_PAGE
@@ -304,7 +310,7 @@ def bookshelf():
                             do_tag=True
                             )
 
-    render_papers(papers, sort='date_up')
+    render_papers(papers)
     tags_dict = render_tags_front(session['tags'])
 
     url_base = url('main_bp.bookshelf',
