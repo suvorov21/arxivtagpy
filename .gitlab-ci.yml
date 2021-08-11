@@ -1,7 +1,7 @@
 stages:
   - build
   - test
-  - production
+  - deploy
 
 include:
   - template: Code-Quality.gitlab-ci.yml
@@ -94,7 +94,7 @@ stage_to_beta:
 
 prod:
   type: deploy
-  stage: production
+  stage: deploy
   tags:
     - deploy
   environment:
