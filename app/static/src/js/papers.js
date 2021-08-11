@@ -1,4 +1,4 @@
-/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase*/
+/*global MathJax, parseTex, DATA, prefs, CATS, TAGS, raiseAlert, renderPapersBase, cssVar*/
 /*exported novChange */
 /*eslint no-undef: "error"*/
 
@@ -7,6 +7,8 @@ let START = 0;
 let DONE = false;
 var VISIBLE = 0;
 var titleRendered = false;
+
+var TAGSSHOW = [];
 
 function formateDate(date) {
   let dateArray = date.toString().split(" ");
@@ -45,6 +47,9 @@ function toggleVis(start=0) {
       catsShow.push(key);
     }
   }
+
+  let allVisible = TAGSSHOW.every((x) => x);
+
   for(let pId = start; pId < DATA.papers.length; pId++) {
     let paper = DATA.papers[parseInt(pId, 10)];
     // Logic: if check-box is off --> cut all the affected papers
@@ -52,7 +57,9 @@ function toggleVis(start=0) {
         (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
         (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
         // filter on categories check boxes
-        catsShow.filter((value) => paper.cats.includes(value)).length > 0
+        catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
+        // filter on tags
+        (allVisible || (TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0))
         ) {
       passed += 1;
       paperVisibility(true, pId);
@@ -66,7 +73,9 @@ function toggleVis(start=0) {
   }
 
   if (!DONE) {
-    scrollIfNeeded();
+    setTimeout(function() {
+      scrollIfNeeded();
+    }, 0);
   }
 }
 
@@ -74,8 +83,11 @@ function checkCat(event) {
   let number = event.target.getAttribute("id").split("-")[2];
   let cat = document.getElementById("cat-label-" + number).textContent;
   prefs.data.catsArr[`${cat}`] = document.getElementById("check-cat-" + number).checked;
+  // save the cookies
   prefs.save();
-  toggleVis();
+  setTimeout(function () {
+    toggleVis();
+  }, 0);
 }
 
 function renderCats() {
@@ -121,8 +133,57 @@ function renderCats() {
   });
 }
 
+const tagBorder = (num, border) => {
+  TAGSSHOW[parseInt(num, 10)] = border;
+
+  $("#tag-label-" + num).css("border-color",
+                             border ? cssVar("--tag_border_color") : "transparent"
+                             );
+};
+
+const clickTag = (event) => {
+  let number = event.target.getAttribute("id").split("-")[2];
+  let thisVisible = TAGSSHOW[parseInt(number, 10)];
+  let allVisible = TAGSSHOW.every((x) => x);
+
+  // if this tag is selected
+  if (thisVisible) {
+    if (allVisible) {
+      // select only this tag
+      // make all others invisible
+      TAGSSHOW = TAGSSHOW.map(() => false);
+
+      // but this one visible
+      tagBorder(number, true);
+    } else {
+      // hide this tag
+      TAGSSHOW[parseInt(number, 10)] = false;
+      // if this was the only left tag
+      if (TAGSSHOW.filter((value) => value).length === 0) {
+        // make all tags visible
+        TAGSSHOW = TAGSSHOW.map(() => true);
+      }
+      // remove border
+      $("#tag-label-" + number).css("border-color", "transparent");
+    }
+  // if this tag is UNselected
+  } else {
+    // make this tag selected
+    tagBorder(number, true);
+  }
+
+  setTimeout(function () {
+    toggleVis();
+  }, 0);
+};
+
 function renderTags() {
   TAGS.forEach((tag, num) => {
+    // store tag in settings for visibility control
+    // do NOT store this values in cookies
+    // keep it just for the current session
+    TAGSSHOW.push(true);
+
     let parent = document.createElement("div");
     parent.className = "d-flex justify-content-between align-items-center";
 
@@ -131,6 +192,8 @@ function renderTags() {
     tagElement.id = "tag-label-"+num;
     tagElement.style = "background-color: " + tag.color;
     tagElement.textContent = tag.name;
+
+    tagElement.addEventListener("click", clickTag);
 
     let counter = document.createElement("div");
     counter.className = "counter";
@@ -242,13 +305,23 @@ function sortFunction(a, b, order=true) {
 
 function sortPapers() {
   $("#paper-list-content").empty();
+  // Completely reset the rendering process
   START = 0;
+  DONE = false;
+  document.getElementById("loading-papers").style["display"] = "block";
+  document.getElementById("done-papers").style["display"] = "none";
   let sortMethod = $("#sort-sel").val();
   // tags
   if (sortMethod.includes("tag")) {
 
     DATA.papers.sort((a, b) => {
-      if (b.tags.length === 0 || a.tags.length === 0) {
+      if (b.tags.length === 0 && a.tags.length !== 0) {
+        return sortMethod === "tag-as" ? -1 : 1;
+      }
+      if (b.tags.length !== 0 && a.tags.length === 0) {
+        return sortMethod === "tag-as" ? 1 : -1;
+      }
+      if (b.tags.length === 0 && a.tags.length === 0) {
         return -1;
       }
       return sortFunction(a.tags[0], b.tags[0],
@@ -306,9 +379,6 @@ $("#sort-sel").change(() => {
   setTimeout(function () {
     renderPapers();
     $("#sorting-proc").css("display", "none");
-    // if (parseTex) {
-    //   MathJax.typesetPromise();
-    // }
   }, 0);
 });
 
@@ -345,7 +415,9 @@ document.getElementById("filter-button").onclick = function() {
 function novChange(number) {
   prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
   prefs.save();
-  toggleVis();
+  setTimeout(function () {
+    toggleVis();
+  }, 0);
 }
 
 window.onload = function() {
