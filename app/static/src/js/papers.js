@@ -2,43 +2,86 @@
 /*exported novChange */
 /*eslint no-undef: "error"*/
 
-let TO_RENDER = 20;
-let START = 0;
-let DONE = false;
-var VISIBLE = 0;
+let PAPERS_PER_PAGE = 40;
 var titleRendered = false;
 
 var TAGSSHOW = [];
+var PAGE = 1;
+var VISIBLE = 0;
 
 function formateDate(date) {
   let dateArray = date.toString().split(" ");
   return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
 }
 
-function paperVisibility(vis, pId) {
-  // do not show too much papers
-  if (pId >= START + TO_RENDER) {
-    return;
-  }
+// ****************** Filter papers with checkboxes rules *********************
 
-  if (vis) {
-    // show paper with aproproate number
-    document.getElementById("paper-" + pId).style["display"] = "block";
-    let number = document.getElementById("paper-num-" + pId);
+const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
+  /** Check if the paper passes visibility rules.
+   * Logic: if check-box is off --> cut all the affected papers
+   */
+
+  if ((prefs.data.showNov[0] === true || !(paper.nov & 1)) &&
+      (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
+      (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
+      // filter on categories check boxes
+      catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
+      // filter on tags
+      (allVisible || (TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0))
+      ) {
     VISIBLE += 1;
-    number.textContent = String(VISIBLE);
+    return true;
   } else {
-    // hide paper
-    document.getElementById("paper-" + pId).style["display"] = "none";
+
+    return false;
+  }
+};
+
+const cleanPageList = () => {
+  /** Clean the displayd papers.
+   */
+  $("#paper-list-content").empty();
+  document.getElementById("loading-papers").style["display"] = "block";
+  document.getElementById("no-paper").style["display"] = "none";
+};
+
+const cleanPagination = () => {
+  /** Remove page links
+   * Required when the number of pages is changing e.g. at checkbox click
+   */
+  document.getElementById("pagination").style["display"] = "none";
+
+  let oldPage = document.getElementsByClassName("pageTmp");
+  let len = oldPage.length;
+  for (let i = 0; i < len; i++) {
+    oldPage[0].remove();
   }
 }
 
+const resetPage = (p="1") => {
+  /** Go to first page.
+   * Only href update. No actual page reload. Should be called manually if needed.
+   */
+  PAGE = parseInt(p, 10);
+  const regex = /page=[0-9]*/i;
+  href_first_page = location.href.replace(regex, "page=" + p);
+  history.pushState({}, document.title, href_first_page);
+};
+
 // toggle the visibility of rendered papers
-function toggleVis(start=0) {
-  let passed = 0;
-  if (start === 0) {
-    VISIBLE = 0;
-  }
+function filterVisiblePapers() {
+  /** Select papers that should be visible.
+   * Filter papers from the backend according to visibility settings at the front-end.
+   * In case of visibility settings change:
+   * call filterVisiblePapers() that will call renderPapers()
+   * At any function call return to 1st page.
+   *
+   * TODO think about promise chaining?
+   */
+
+  VISIBLE = 0;
+  cleanPageList();
+  cleanPagination();
 
   // create a list of categories that are visible based on checkbox selection
   let catsShow = [];
@@ -50,48 +93,114 @@ function toggleVis(start=0) {
 
   let allVisible = TAGSSHOW.every((x) => x);
 
-  for(let pId = start; pId < DATA.papers.length; pId++) {
-    let paper = DATA.papers[parseInt(pId, 10)];
-    // Logic: if check-box is off --> cut all the affected papers
-    if ((prefs.data.showNov[0] === true || !(paper.nov & 1)) &&
-        (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
-        (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
-        // filter on categories check boxes
-        catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
-        // filter on tags
-        (allVisible || (TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0))
-        ) {
-      passed += 1;
-      paperVisibility(true, pId);
-    } else {
-      paperVisibility(false, pId);
-    }
+  DATA.papers_vis = DATA.papers.filter((paper) => checkPaperVis(paper,
+                                                                 catsShow,
+                                                                 allVisible,
+                                                                 TAGSSHOW
+                                                                 )
+  );
+
+  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE + 1);
+  let plural = nPages > 1 ? "s" : "";
+  $("#passed").text(VISIBLE + " results (" + nPages + " page" + plural + ")");
+
+  if (!VISIBLE) {
+    $("#paper-list-content").empty();
+    document.getElementById("loading-papers").style["display"] = "none";
+    document.getElementById("pagination").style["display"] = "none";
+    document.getElementById("no-paper").style["display"] = "block";
+    return;
   }
 
-  if (start === 0) {
-    $("#passed").text(passed);
-  }
+  setTimeout(function() {
+    sortPapers();
+  }, 0);
 
-  if (!DONE) {
-    setTimeout(function() {
-      scrollIfNeeded();
-    }, 0);
-  }
+  setTimeout(function() {
+    renderPapers();
+  }, 0);
 }
 
+// ****************** Checkbox click listeners ***************************
+
 function checkCat(event) {
+  /** Click on category checkbox.
+   */
   let number = event.target.getAttribute("id").split("-")[2];
   let cat = document.getElementById("cat-label-" + number).textContent;
   prefs.data.catsArr[`${cat}`] = document.getElementById("check-cat-" + number).checked;
   // save the cookies
   prefs.save();
+  resetPage();
   setTimeout(function () {
-    toggleVis();
+    filterVisiblePapers();
   }, 0);
 }
 
+const tagBorder = (num, border) => {
+  TAGSSHOW[parseInt(num, 10)] = border;
+
+  $("#tag-label-" + num).css("border-color",
+                             border ? cssVar("--tag_border_color") : "transparent"
+                             );
+};
+
+const checkTag = (event) => {
+  /** Click on tag.
+   */
+  let number = event.target.getAttribute("id").split("-")[2];
+  let thisVisible = TAGSSHOW[parseInt(number, 10)];
+  let allVisible = TAGSSHOW.every((x) => x);
+
+  // if this tag is selected
+  if (thisVisible) {
+    if (allVisible) {
+      // select only this tag
+      // make all others invisible
+      TAGSSHOW = TAGSSHOW.map(() => false);
+
+      // but this one visible
+      tagBorder(number, true);
+    } else {
+      // hide this tag
+      TAGSSHOW[parseInt(number, 10)] = false;
+      // if this was the only left tag
+      if (TAGSSHOW.filter((value) => value).length === 0) {
+        // make all tags visible
+        TAGSSHOW = TAGSSHOW.map(() => true);
+      }
+      // remove border
+      $("#tag-label-" + number).css("border-color", "transparent");
+    }
+  // if this tag is UNselected
+  } else {
+    // make this tag selected
+    tagBorder(number, true);
+  }
+  resetPage();
+  setTimeout(function () {
+    filterVisiblePapers();
+  }, 0);
+};
+
+function novChange(number) {
+  /** CLick on novelty checkbox.
+   */
+  prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
+  prefs.save();
+  resetPage();
+  setTimeout(function () {
+    filterVisiblePapers();
+  }, 0);
+}
+
+// ********************** RENDERS  ***************************
+
 function renderCats() {
-  // TODO check if there are old cats in cookies
+  // clean unused categories from cookies
+  unusedCats = Object.keys(prefs.data.catsArr).filter((x) => !CATS.includes(x));
+  unusedCats.forEach((cat) => delete prefs.data.catsArr[`${cat}`]);
+
   CATS.forEach((cat, num) => {
     // if category not in cookies visibility dictionary --> add it
     if (!(cat in prefs.data.catsArr)) {
@@ -131,57 +240,18 @@ function renderCats() {
     form.appendChild(catElement);
     parent.appendChild(counter);
   });
+
+  // save cookies
+  prefs.save();
 }
-
-const tagBorder = (num, border) => {
-  TAGSSHOW[parseInt(num, 10)] = border;
-
-  $("#tag-label-" + num).css("border-color",
-                             border ? cssVar("--tag_border_color") : "transparent"
-                             );
-};
-
-const clickTag = (event) => {
-  let number = event.target.getAttribute("id").split("-")[2];
-  let thisVisible = TAGSSHOW[parseInt(number, 10)];
-  let allVisible = TAGSSHOW.every((x) => x);
-
-  // if this tag is selected
-  if (thisVisible) {
-    if (allVisible) {
-      // select only this tag
-      // make all others invisible
-      TAGSSHOW = TAGSSHOW.map(() => false);
-
-      // but this one visible
-      tagBorder(number, true);
-    } else {
-      // hide this tag
-      TAGSSHOW[parseInt(number, 10)] = false;
-      // if this was the only left tag
-      if (TAGSSHOW.filter((value) => value).length === 0) {
-        // make all tags visible
-        TAGSSHOW = TAGSSHOW.map(() => true);
-      }
-      // remove border
-      $("#tag-label-" + number).css("border-color", "transparent");
-    }
-  // if this tag is UNselected
-  } else {
-    // make this tag selected
-    tagBorder(number, true);
-  }
-
-  setTimeout(function () {
-    toggleVis();
-  }, 0);
-};
 
 function renderTags() {
   TAGS.forEach((tag, num) => {
     // store tag in settings for visibility control
     // do NOT store this values in cookies
     // keep it just for the current session
+
+    // TODO think about storage in cookies?
     TAGSSHOW.push(true);
 
     let parent = document.createElement("div");
@@ -193,7 +263,7 @@ function renderTags() {
     tagElement.style = "background-color: " + tag.color;
     tagElement.textContent = tag.name;
 
-    tagElement.addEventListener("click", clickTag);
+    tagElement.addEventListener("click", checkTag);
 
     let counter = document.createElement("div");
     counter.className = "counter";
@@ -236,7 +306,98 @@ function renderCounters() {
   return;
 }
 
+function selectActivePage() {
+  // clean old pagination artefacts
+  let oldPage = document.getElementsByClassName("page-item");
+  for (let i = 0; i < oldPage.length; i++) {
+    oldPage[i].classList.remove("active");
+  }
+  document.getElementById("Page1").classList.remove("active");
+  document.getElementById("prev").classList.add("disabled");
+  document.getElementById("next").classList.add("disabled");
+
+  if (PAGE === 1) {
+    document.getElementById("Page1").classList.add("active");
+  } else {
+    document.getElementById("prev").classList.remove("disabled");
+  }
+
+  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+  if (PAGE !== nPages) {
+    document.getElementById("next").classList.remove("disabled");
+  }
+
+  // make the current page active
+  document.getElementById("Page" + PAGE.toString()).classList.add("active");
+}
+
+function pageLinkClick(event) {
+  /** Listener for the click on page number
+   */
+  event.preventDefault();
+
+  // do nothing if the link is disabled
+  if (event.target.parentElement.classList.contains('disabled')) {
+    return;
+  }
+  cleanPageList();
+
+  let page = event.target.textContent;
+
+  if (page === "Previous") {
+    page = PAGE - 1;
+  } else if (page === "Next") {
+    page = PAGE + 1;
+  } else {
+    page = parseInt(page, 10);
+  }
+
+  resetPage(page);
+
+  // scxroll to top
+  window.scrollTo(0, 0);
+
+  // remove focus from page button
+  document.activeElement.blur();
+
+  selectActivePage();
+
+  setTimeout(function() {
+    renderPapers(false);
+  }, 0);
+
+}
+
+$(".page-link").click((event) => pageLinkClick(event));
+
+function renderPagination() {
+  /** Render all the page links at the bottom of the page.
+   */
+
+  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+  for (let i = 2; i <= nPages; i++) {
+    let newPageItem = document.createElement("li");
+    newPageItem.className = "page-item pageTmp";
+    newPageItem.id = "Page" + i.toString();
+
+    let newPageRef = document.createElement("a");
+    newPageRef.className = "page-link";
+    newPageRef.textContent = i;
+    newPageRef.href = "#";
+    newPageRef.addEventListener("click", pageLinkClick);
+
+    newPageItem.appendChild(newPageRef);
+    document.getElementById("Page" + (i-1).toString()).after(newPageItem);
+  }
+
+  // make pagination visible
+  document.getElementById("pagination").style["display"] = "block";
+}
+
 function addBookmark(event) {
+  /** Listener for add bookmark button.
+   */
+
   // WARNING
   // UB addBookmark listener is added to all the buttons, not the bookmark only one
   // prevent the bookmark adding for other buttons
@@ -262,15 +423,19 @@ function addBookmark(event) {
   });
 }
 
-function renderPapers() {
+function renderPapers(renderPages=true) {
   if (!titleRendered) {
     $("#paper-list-title").text($("#paper-list-title").text() + DATA.title);
     titleRendered = true;
   }
 
-  for (let pId = START; pId < Math.min(START + TO_RENDER, DATA.papers.length); pId++) {
+  let start = PAPERS_PER_PAGE * (PAGE - 1);
 
-    let content = DATA.papers[parseInt(pId, 10)];
+  for (let pId = start;
+           pId < Math.min(start + PAPERS_PER_PAGE, DATA.papers_vis.length);
+           pId++) {
+
+    let content = DATA.papers_vis[parseInt(pId, 10)];
     let paperBase = renderPapersBase(content, pId);
     let btnPanel = paperBase[1];
 
@@ -288,14 +453,15 @@ function renderPapers() {
     btnGroup4.appendChild(btnBook);
   }
 
-  // check papers compatibility with visibility settings with checkboxes
-  toggleVis(START);
+  document.getElementById("loading-papers").style["display"] = "none";
 
   if (parseTex) {
     MathJax.typesetPromise();
   }
-  if (!DONE) {
-    scrollIfNeeded();
+
+  if (renderPages) {
+    renderPagination();
+    selectActivePage();
   }
 }
 
@@ -304,17 +470,15 @@ function sortFunction(a, b, order=true) {
 }
 
 function sortPapers() {
-  $("#paper-list-content").empty();
   // Completely reset the rendering process
   START = 0;
   DONE = false;
   document.getElementById("loading-papers").style["display"] = "block";
-  document.getElementById("done-papers").style["display"] = "none";
   let sortMethod = $("#sort-sel").val();
   // tags
   if (sortMethod.includes("tag")) {
 
-    DATA.papers.sort((a, b) => {
+    DATA.papers_vis.sort((a, b) => {
       if (b.tags.length === 0 && a.tags.length !== 0) {
         return sortMethod === "tag-as" ? -1 : 1;
       }
@@ -330,7 +494,7 @@ function sortPapers() {
   }
   // dates
   if (sortMethod.includes("date-up")) {
-    DATA.papers.sort((a, b) => {
+    DATA.papers_vis.sort((a, b) => {
       let aDate = new Date(a.date_up);
       let bDate = new Date(b.date_up);
       return sortFunction(aDate, bDate,
@@ -339,7 +503,7 @@ function sortPapers() {
   }
 
   if (sortMethod.includes("date-sub")) {
-    DATA.papers.sort((a, b) => {
+    DATA.papers_vis.sort((a, b) => {
       let aDate = new Date(a.date_sub);
       let bDate = new Date(b.date_sub);
       return sortFunction(aDate, bDate,
@@ -349,7 +513,7 @@ function sortPapers() {
 
   // caregories
   if (sortMethod.includes("cat")) {
-    DATA.papers.sort((a, b) => {
+    DATA.papers_vis.sort((a, b) => {
       let catA = "";
       let catB = "";
       for (let id = 0; id < a.cats.length; id++) {
@@ -374,33 +538,14 @@ function sortPapers() {
 $("#sort-sel").change(() => {
   $("#sorting-proc").css("display", "block");
   sortPapers();
-  // dirty fix to throw renderPapers() in the separate thread
-  // and not freeze the selector
+  // clean paper list before display new sorted list
+  cleanPageList();
+  PAGE = 1;
   setTimeout(function () {
-    renderPapers();
+    renderPapers(false);
     $("#sorting-proc").css("display", "none");
   }, 0);
 });
-
-function scrollIfNeeded() {
-  if (START > DATA.papers.length) {
-    DONE = true;
-    document.getElementById("loading-papers").style["display"] = "none";
-    document.getElementById("done-papers").style["display"] = "block";
-    return;
-  }
-
-  var scrollTop = window.scrollY;
-  var windowHeight = window.innerHeight;
-  var bodyHeight = document.body.clientHeight - windowHeight;
-  var scrollPercentage = (scrollTop / bodyHeight);
-
-  if(scrollPercentage > 0.9 || bodyHeight < 0) {
-    START += TO_RENDER;
-    document.getElementById("loading-papers").style["display"] = "block";
-    renderPapers();
-  }
-}
 
 document.getElementById("filter-button").onclick = function() {
   if (document.getElementById("menu-col").classList.contains("d-none")) {
@@ -412,24 +557,19 @@ document.getElementById("filter-button").onclick = function() {
   }
 };
 
-function novChange(number) {
-  prefs.data.showNov[parseInt(number, 10)] = document.getElementById("check-nov-"+number).checked;
-  prefs.save();
-  setTimeout(function () {
-    toggleVis();
-  }, 0);
-}
-
 window.onload = function() {
   var url = document.location.href;
   url = url.replace("papers", "data");
+
+  PAGE = url.split("page=")[1];
+  PAGE = parseInt(PAGE.split("&")[0]);
 
   // Get paper data from backend
   $.get(url)
   .done(function(data) {
     DATA = data;
     renderCounters();
-    renderPapers();
+    filterVisiblePapers();
     $("#sort-block").css("display", "block");
   }).fail(function(jqXHR){
     $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please, try later.");
@@ -437,10 +577,4 @@ window.onload = function() {
   renderNov();
   renderCats();
   renderTags();
-};
-
-window.onscroll = function() {
-  if (!DONE) {
-    scrollIfNeeded();
-  }
 };

@@ -49,8 +49,19 @@ def root():
 def papers_list():
     """Papers list page."""
     date_type = request.args.get('date')
+    # date is obligatory argument
     if date_type is None:
-        return redirect(url('main_bp.papers_list', date='today'))
+        return redirect(url('main_bp.papers_list',
+                            date='today',
+                            *request.args
+                            ))
+
+    # page is obligatory for front-end rendering
+    if request.args.get('page') is None:
+        return redirect(url('main_bp.papers_list',
+                            **request.args,
+                            page='1'
+                            ))
 
     # load preferences
     load_prefs()
@@ -178,7 +189,6 @@ def data():
     for i in range(it_start,
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
-        print(i)
         current_user.recent_visit = current_user.recent_visit | 2**i
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
