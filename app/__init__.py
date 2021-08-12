@@ -16,6 +16,9 @@ from flask_migrate import Migrate
 
 from dotenv import load_dotenv
 
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+
 # read .env file with configurations
 load_dotenv()
 
@@ -34,6 +37,20 @@ def app_init():
         cfg = import_string('configmodule.ProductionConfig')()
 
     app.config.from_object(cfg)
+
+    # initialise sentry interface
+    if app.config['SENTRY_HOOK']:
+        sentry_sdk.init(
+            dsn=app.config['SENTRY_HOOK'],
+            integrations=[FlaskIntegration()],
+            environment=environ['SERVER_CONF'].split('.')[1],
+            release=app.config['VERSION'],
+
+            # Set traces_sample_rate to 1.0 to capture 100%
+            # of transactions for performance monitoring.
+            # We recommend adjusting this value in production.
+            traces_sample_rate=1.0
+        )
 
     # fix a syntax for database
     if 'postgres://' in app.config['SQLALCHEMY_DATABASE_URI']:

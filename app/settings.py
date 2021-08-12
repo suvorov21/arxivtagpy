@@ -3,7 +3,8 @@
 from json import loads, dumps
 from typing import Dict
 
-from flask import Blueprint, render_template, session, request
+from flask import Blueprint, render_template, session, request, \
+current_app
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
@@ -244,6 +245,12 @@ def load_prefs():
 def default_data():
     """Get default template render params."""
     data = dict()
+    data['sentry'] = ''
+    if current_app.config['SENTRY_HOOK']:
+        data['sentry'] = 'long'
+        data['sentry_dsn'] = current_app.config['SENTRY_HOOK']
+        data['sentry_key'] = current_app.config['SENTRY_HOOK'].split('//')[1].split('@')[0]
+        data['version'] = current_app.config['VERSION']
     if 'pref' in session:
         data['theme'] = session['pref'].get('theme')
         data['math_jax'] = session['pref'].get('tex')

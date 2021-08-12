@@ -25,6 +25,9 @@ class Config():
     assets = environ.get('BUILD_ASSETS')
     BUILD_ASSETS = True if assets == 'True' else False
 
+    SENTRY_HOOK = environ.get('SENTRY_HOOK')
+    VERSION = environ.get('VERSION')
+
     # email config
     MAIL_SERVER = environ.get('MAIL_SERVER')
     MAIL_PORT = environ.get('MAIL_PORT')

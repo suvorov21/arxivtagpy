@@ -12,6 +12,34 @@
     <link href="{{ url_for('static', filename='dist/css/vars.css') }}" rel="stylesheet" type="text/css">
   {% endif %}
 
+  {% if data['sentry'] == 'short' %}
+    <script
+      src="https://js.sentry-cdn.com/{{ data['sentry_key'] }}.min.js"
+      crossorigin="anonymous">
+    </script>
+    <script type="text/javascript">
+      Sentry.onLoad(function() {
+        Sentry.init({
+          release: "{{ data['version'] }}",
+        });
+    </script>
+  {% endif %}
+
+  {% if data['sentry'] == 'long' %}
+    <script
+      src="https://browser.sentry-cdn.com/6.11.0/bundle.tracing.min.js"
+      integrity="sha384-XuDodOP4mgLWA8eRlqZJWs+mtmznHF6ES/nOotK0fE7SHjj0Ec3YMVIzjh5ytsKH"
+      crossorigin="anonymous"
+    ></script>
+    <script type="text/javascript">
+      Sentry.init({ dsn: "{{ data['sentry_dsn'] }}",
+        release: "{{ data['version'] }}",
+        integrations: [new Sentry.Integrations.BrowserTracing()],
+        tracesSampleRate: 1.0,
+      });
+    </script>
+  {% endif %}
+
   <script type="text/javascript">
     var parseTex = false;
   </script>
