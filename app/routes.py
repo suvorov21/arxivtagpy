@@ -49,8 +49,19 @@ def root():
 def papers_list():
     """Papers list page."""
     date_type = request.args.get('date')
+    # date is obligatory argument
     if date_type is None:
-        return redirect(url('main_bp.papers_list', date='today'))
+        return redirect(url('main_bp.papers_list',
+                            date='today',
+                            *request.args
+                            ))
+
+    # page is obligatory for front-end rendering
+    if request.args.get('page') is None:
+        return redirect(url('main_bp.papers_list',
+                            **request.args,
+                            page='1'
+                            ))
 
     # load preferences
     load_prefs()

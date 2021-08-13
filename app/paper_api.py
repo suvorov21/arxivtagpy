@@ -143,7 +143,6 @@ class ArxivOaiApi:
             if token is None or token.text is None:
                 return
 
-            print(token.get('completeListSize'))
             rest = int(token.get('completeListSize')) % self.BATCH_SIZE
 
             logging.info('Going through resumption. Last date %r', updated)
