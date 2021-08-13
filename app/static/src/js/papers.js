@@ -148,6 +148,19 @@ function selectActivePage() {
   document.getElementById("Page" + PAGE.toString()).classList.add("active");
 }
 
+const resetPage = (p="1") => {
+  /** Go to first page.
+   * Only href update. No actual page reload. Should be called manually if needed.
+   */
+  PAGE = parseInt(p, 10);
+  const regex = /page=[0-9]*/i;
+  let hrefPage = location.href.replace(regex, "page=" + p);
+  // remove focus from page button
+  document.activeElement.blur();
+  history.pushState({}, document.title, hrefPage);
+  pageUpdate();
+};
+
 function pageLinkClick(event) {
   /** Listener for the click on page number
    */
@@ -196,6 +209,35 @@ function renderPagination() {
 
   // make pagination visible
   document.getElementById("pagination").style["display"] = "block";
+}
+
+function addBookmark(event) {
+  /** Listener for add bookmark button.
+   */
+
+  // WARNING
+  // UB addBookmark listener is added to all the buttons, not the bookmark only one
+  // prevent the bookmark adding for other buttons
+  if (!event.target.id.includes("btn-book") &&
+      !event.target.id.includes("a-icon")) {
+    return;
+  }
+  let url = "add_bm";
+  let num = event.target.getAttribute("id").split("-")[2];
+  let paper = DATA.papers[parseInt(num, 10)];
+  // we take paper id w/o version --> do not overload paper DB
+  $.post(url, {"paper_id": paper.id.split("v")[0]})
+  .done(function(data, textStatus, jqXHR) {
+    let status = jqXHR.status;
+    if (status === 200) {
+      raiseAlert("Paper has been already saved", "success");
+    }
+    if (status === 201) {
+      raiseAlert("Paper has been added", "success");
+    }
+  }).fail(function(){
+    raiseAlert("Paper is not saved due to server error", "danger");
+  });
 }
 
 function renderPapers(renderPages=true) {
@@ -249,19 +291,6 @@ const pageUpdate = () => {
   PAGE = parseInt(location.href.split("page=")[1].split("&")[0], 10);
   selectActivePage();
   renderPapers(false);
-}
-
-const resetPage = (p="1") => {
-  /** Go to first page.
-   * Only href update. No actual page reload. Should be called manually if needed.
-   */
-  PAGE = parseInt(p, 10);
-  const regex = /page=[0-9]*/i;
-  let hrefPage = location.href.replace(regex, "page=" + p);
-  // remove focus from page button
-  document.activeElement.blur();
-  history.pushState({}, document.title, hrefPage);
-  pageUpdate();
 };
 
 // toggle the visibility of rendered papers
@@ -500,35 +529,6 @@ function renderCounters() {
     document.getElementById("tag-count-"+tagId).textContent = DATA.ntag[parseInt(tagId, 10)];
   }
   return;
-}
-
-function addBookmark(event) {
-  /** Listener for add bookmark button.
-   */
-
-  // WARNING
-  // UB addBookmark listener is added to all the buttons, not the bookmark only one
-  // prevent the bookmark adding for other buttons
-  if (!event.target.id.includes("btn-book") &&
-      !event.target.id.includes("a-icon")) {
-    return;
-  }
-  let url = "add_bm";
-  let num = event.target.getAttribute("id").split("-")[2];
-  let paper = DATA.papers[parseInt(num, 10)];
-  // we take paper id w/o version --> do not overload paper DB
-  $.post(url, {"paper_id": paper.id.split("v")[0]})
-  .done(function(data, textStatus, jqXHR) {
-    let status = jqXHR.status;
-    if (status === 200) {
-      raiseAlert("Paper has been already saved", "success");
-    }
-    if (status === 201) {
-      raiseAlert("Paper has been added", "success");
-    }
-  }).fail(function(){
-    raiseAlert("Paper is not saved due to server error", "danger");
-  });
 }
 
 // change sort selector
