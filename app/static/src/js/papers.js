@@ -37,6 +37,75 @@ const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
   }
 };
 
+function sortFunction(a, b, order=true) {
+  return order? a - b : b - a;
+}
+
+function sortPapers() {
+  // Completely reset the rendering process
+  START = 0;
+  DONE = false;
+  document.getElementById("loading-papers").style["display"] = "block";
+  let sortMethod = $("#sort-sel").val();
+  // tags
+  if (sortMethod.includes("tag")) {
+
+    DATA.papersVis.sort((a, b) => {
+      if (b.tags.length === 0 && a.tags.length !== 0) {
+        return sortMethod === "tag-as" ? -1 : 1;
+      }
+      if (b.tags.length !== 0 && a.tags.length === 0) {
+        return sortMethod === "tag-as" ? 1 : -1;
+      }
+      if (b.tags.length === 0 && a.tags.length === 0) {
+        return -1;
+      }
+      return sortFunction(a.tags[0], b.tags[0],
+                          sortMethod === "tag-as"? true : false);
+    });
+  }
+  // dates
+  if (sortMethod.includes("date-up")) {
+    DATA.papersVis.sort((a, b) => {
+      let aDate = new Date(a.date_up);
+      let bDate = new Date(b.date_up);
+      return sortFunction(aDate, bDate,
+                          sortMethod === "date-up_des"? true : false);
+    });
+  }
+
+  if (sortMethod.includes("date-sub")) {
+    DATA.papersVis.sort((a, b) => {
+      let aDate = new Date(a.date_sub);
+      let bDate = new Date(b.date_sub);
+      return sortFunction(aDate, bDate,
+                          sortMethod === "date-sub_des"? true : false);
+    });
+  }
+
+  // caregories
+  if (sortMethod.includes("cat")) {
+    DATA.papersVis.sort((a, b) => {
+      let catA = "";
+      let catB = "";
+      for (let id = 0; id < a.cats.length; id++) {
+        if (CATS.includes(a.cats[parseInt(id, 10)])) {
+          catA = a.cats[parseInt(id, 10)];
+          break;
+        }
+      }
+      for (let id = 0; id < b.cats.length; id++) {
+        if (CATS.includes(b.cats[parseInt(id, 10)])) {
+          catB = b.cats[parseInt(id, 10)];
+          break;
+        }
+      }
+      return sortFunction(CATS.indexOf(catA), CATS.indexOf(catB),
+                          sortMethod === "cat-as"? true : false);
+    });
+  }
+}
+
 const cleanPageList = () => {
   /** Clean the displayd papers.
    */
@@ -58,14 +127,27 @@ const cleanPagination = () => {
   }
 }
 
+const pageUpdate = () => {
+  /** Clean the page, update the page number and render new papers
+   */
+  cleanPageList();
+  window.scrollTo(0,0);
+  PAGE = parseInt(location.href.split("page=")[1].split('&')[0], 10);
+  selectActivePage();
+  renderPapers(false);
+}
+
 const resetPage = (p="1") => {
   /** Go to first page.
    * Only href update. No actual page reload. Should be called manually if needed.
    */
   PAGE = parseInt(p, 10);
   const regex = /page=[0-9]*/i;
-  href_first_page = location.href.replace(regex, "page=" + p);
-  history.pushState({}, document.title, href_first_page);
+  let hrefPage = location.href.replace(regex, "page=" + p);
+  // remove focus from page button
+  document.activeElement.blur();
+  history.pushState({}, document.title, hrefPage);
+  pageUpdate();
 };
 
 // toggle the visibility of rendered papers
@@ -93,7 +175,7 @@ function filterVisiblePapers() {
 
   let allVisible = TAGSSHOW.every((x) => x);
 
-  DATA.papers_vis = DATA.papers.filter((paper) => checkPaperVis(paper,
+  DATA.papersVis = DATA.papers.filter((paper) => checkPaperVis(paper,
                                                                  catsShow,
                                                                  allVisible,
                                                                  TAGSSHOW
@@ -198,7 +280,7 @@ function novChange(number) {
 
 function renderCats() {
   // clean unused categories from cookies
-  unusedCats = Object.keys(prefs.data.catsArr).filter((x) => !CATS.includes(x));
+  let unusedCats = Object.keys(prefs.data.catsArr).filter((x) => !CATS.includes(x));
   unusedCats.forEach((cat) => delete prefs.data.catsArr[`${cat}`]);
 
   CATS.forEach((cat, num) => {
@@ -310,7 +392,7 @@ function selectActivePage() {
   // clean old pagination artefacts
   let oldPage = document.getElementsByClassName("page-item");
   for (let i = 0; i < oldPage.length; i++) {
-    oldPage[i].classList.remove("active");
+    oldPage[parseInt(i, 10)].classList.remove("active");
   }
   document.getElementById("Page1").classList.remove("active");
   document.getElementById("prev").classList.add("disabled");
@@ -337,7 +419,7 @@ function pageLinkClick(event) {
   event.preventDefault();
 
   // do nothing if the link is disabled
-  if (event.target.parentElement.classList.contains('disabled')) {
+  if (event.target.parentElement.classList.contains("disabled")) {
     return;
   }
   cleanPageList();
@@ -353,19 +435,6 @@ function pageLinkClick(event) {
   }
 
   resetPage(page);
-
-  // scxroll to top
-  window.scrollTo(0, 0);
-
-  // remove focus from page button
-  document.activeElement.blur();
-
-  selectActivePage();
-
-  setTimeout(function() {
-    renderPapers(false);
-  }, 0);
-
 }
 
 $(".page-link").click((event) => pageLinkClick(event));
@@ -432,10 +501,10 @@ function renderPapers(renderPages=true) {
   let start = PAPERS_PER_PAGE * (PAGE - 1);
 
   for (let pId = start;
-           pId < Math.min(start + PAPERS_PER_PAGE, DATA.papers_vis.length);
+           pId < Math.min(start + PAPERS_PER_PAGE, DATA.papersVis.length);
            pId++) {
 
-    let content = DATA.papers_vis[parseInt(pId, 10)];
+    let content = DATA.papersVis[parseInt(pId, 10)];
     let paperBase = renderPapersBase(content, pId);
     let btnPanel = paperBase[1];
 
@@ -465,75 +534,6 @@ function renderPapers(renderPages=true) {
   }
 }
 
-function sortFunction(a, b, order=true) {
-  return order? a - b : b - a;
-}
-
-function sortPapers() {
-  // Completely reset the rendering process
-  START = 0;
-  DONE = false;
-  document.getElementById("loading-papers").style["display"] = "block";
-  let sortMethod = $("#sort-sel").val();
-  // tags
-  if (sortMethod.includes("tag")) {
-
-    DATA.papers_vis.sort((a, b) => {
-      if (b.tags.length === 0 && a.tags.length !== 0) {
-        return sortMethod === "tag-as" ? -1 : 1;
-      }
-      if (b.tags.length !== 0 && a.tags.length === 0) {
-        return sortMethod === "tag-as" ? 1 : -1;
-      }
-      if (b.tags.length === 0 && a.tags.length === 0) {
-        return -1;
-      }
-      return sortFunction(a.tags[0], b.tags[0],
-                          sortMethod === "tag-as"? true : false);
-    });
-  }
-  // dates
-  if (sortMethod.includes("date-up")) {
-    DATA.papers_vis.sort((a, b) => {
-      let aDate = new Date(a.date_up);
-      let bDate = new Date(b.date_up);
-      return sortFunction(aDate, bDate,
-                          sortMethod === "date-up_des"? true : false);
-    });
-  }
-
-  if (sortMethod.includes("date-sub")) {
-    DATA.papers_vis.sort((a, b) => {
-      let aDate = new Date(a.date_sub);
-      let bDate = new Date(b.date_sub);
-      return sortFunction(aDate, bDate,
-                          sortMethod === "date-sub_des"? true : false);
-    });
-  }
-
-  // caregories
-  if (sortMethod.includes("cat")) {
-    DATA.papers_vis.sort((a, b) => {
-      let catA = "";
-      let catB = "";
-      for (let id = 0; id < a.cats.length; id++) {
-        if (CATS.includes(a.cats[parseInt(id, 10)])) {
-          catA = a.cats[parseInt(id, 10)];
-          break;
-        }
-      }
-      for (let id = 0; id < b.cats.length; id++) {
-        if (CATS.includes(b.cats[parseInt(id, 10)])) {
-          catB = b.cats[parseInt(id, 10)];
-          break;
-        }
-      }
-      return sortFunction(CATS.indexOf(catA), CATS.indexOf(catB),
-                          sortMethod === "cat-as"? true : false);
-    });
-  }
-}
-
 // change sort selector
 $("#sort-sel").change(() => {
   $("#sorting-proc").css("display", "block");
@@ -558,6 +558,10 @@ document.getElementById("filter-button").onclick = function() {
 };
 
 window.onload = function() {
+  // a fix that prevent browser scrolling on "back" button
+  // essential for nice work of window.onpopstate
+  history.scrollRestoration = 'manual';
+
   var url = document.location.href;
   url = url.replace("papers", "data");
 
@@ -578,3 +582,9 @@ window.onload = function() {
   renderCats();
   renderTags();
 };
+
+window.onpopstate = function() {
+  /** catch the "back" button usage for page switch
+   */
+  pageUpdate();
+}
