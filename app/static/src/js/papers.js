@@ -14,8 +14,6 @@ function formateDate(date) {
   return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
 }
 
-// ****************** Filter papers with checkboxes rules *********************
-
 const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
   /** Check if the paper passes visibility rules.
    * Logic: if check-box is off --> cut all the affected papers
@@ -43,8 +41,6 @@ function sortFunction(a, b, order=true) {
 
 function sortPapers() {
   // Completely reset the rendering process
-  START = 0;
-  DONE = false;
   document.getElementById("loading-papers").style["display"] = "block";
   let sortMethod = $("#sort-sel").val();
   // tags
@@ -125,6 +121,123 @@ const cleanPagination = () => {
   for (let i = 0; i < len; i++) {
     oldPage[0].remove();
   }
+};
+
+function selectActivePage() {
+  // clean old pagination artefacts
+  let oldPage = document.getElementsByClassName("page-item");
+  for (let i = 0; i < oldPage.length; i++) {
+    oldPage[parseInt(i, 10)].classList.remove("active");
+  }
+  document.getElementById("Page1").classList.remove("active");
+  document.getElementById("prev").classList.add("disabled");
+  document.getElementById("next").classList.add("disabled");
+
+  if (PAGE === 1) {
+    document.getElementById("Page1").classList.add("active");
+  } else {
+    document.getElementById("prev").classList.remove("disabled");
+  }
+
+  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+  if (PAGE !== nPages) {
+    document.getElementById("next").classList.remove("disabled");
+  }
+
+  // make the current page active
+  document.getElementById("Page" + PAGE.toString()).classList.add("active");
+}
+
+function pageLinkClick(event) {
+  /** Listener for the click on page number
+   */
+  event.preventDefault();
+
+  // do nothing if the link is disabled
+  if (event.target.parentElement.classList.contains("disabled")) {
+    return;
+  }
+  cleanPageList();
+
+  let page = event.target.textContent;
+
+  if (page === "Previous") {
+    page = PAGE - 1;
+  } else if (page === "Next") {
+    page = PAGE + 1;
+  } else {
+    page = parseInt(page, 10);
+  }
+
+  resetPage(page);
+}
+
+$(".page-link").click((event) => pageLinkClick(event));
+
+function renderPagination() {
+  /** Render all the page links at the bottom of the page.
+   */
+
+  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+  for (let i = 2; i <= nPages; i++) {
+    let newPageItem = document.createElement("li");
+    newPageItem.className = "page-item pageTmp";
+    newPageItem.id = "Page" + i.toString();
+
+    let newPageRef = document.createElement("a");
+    newPageRef.className = "page-link";
+    newPageRef.textContent = i;
+    newPageRef.href = "#";
+    newPageRef.addEventListener("click", pageLinkClick);
+
+    newPageItem.appendChild(newPageRef);
+    document.getElementById("Page" + (i-1).toString()).after(newPageItem);
+  }
+
+  // make pagination visible
+  document.getElementById("pagination").style["display"] = "block";
+}
+
+function renderPapers(renderPages=true) {
+  if (!titleRendered) {
+    $("#paper-list-title").text($("#paper-list-title").text() + DATA.title);
+    titleRendered = true;
+  }
+
+  let start = PAPERS_PER_PAGE * (PAGE - 1);
+
+  for (let pId = start;
+           pId < Math.min(start + PAPERS_PER_PAGE, DATA.papersVis.length);
+           pId++) {
+
+    let content = DATA.papersVis[parseInt(pId, 10)];
+    let paperBase = renderPapersBase(content, pId);
+    let btnPanel = paperBase[1];
+
+    // add bookmark button
+    let btnBook = document.createElement("button");
+    btnBook.className = "btn btn-primary";
+    btnBook.id = "btn-book-"+pId;
+    btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true' id='a-icon-" + pId + "'></i>";
+    btnBook.onclick = addEventListener("click", addBookmark);
+
+    let btnGroup4 = document.createElement("div");
+    btnGroup4.className = "btn-group mr-2";
+    btnGroup4.role = "group";
+    btnPanel.appendChild(btnGroup4);
+    btnGroup4.appendChild(btnBook);
+  }
+
+  document.getElementById("loading-papers").style["display"] = "none";
+
+  if (parseTex) {
+    MathJax.typesetPromise();
+  }
+
+  if (renderPages) {
+    renderPagination();
+    selectActivePage();
+  }
 }
 
 const pageUpdate = () => {
@@ -132,7 +245,8 @@ const pageUpdate = () => {
    */
   cleanPageList();
   window.scrollTo(0,0);
-  PAGE = parseInt(location.href.split("page=")[1].split('&')[0], 10);
+  // WARNING not a very accurate parsing
+  PAGE = parseInt(location.href.split("page=")[1].split("&")[0], 10);
   selectActivePage();
   renderPapers(false);
 }
@@ -388,81 +502,6 @@ function renderCounters() {
   return;
 }
 
-function selectActivePage() {
-  // clean old pagination artefacts
-  let oldPage = document.getElementsByClassName("page-item");
-  for (let i = 0; i < oldPage.length; i++) {
-    oldPage[parseInt(i, 10)].classList.remove("active");
-  }
-  document.getElementById("Page1").classList.remove("active");
-  document.getElementById("prev").classList.add("disabled");
-  document.getElementById("next").classList.add("disabled");
-
-  if (PAGE === 1) {
-    document.getElementById("Page1").classList.add("active");
-  } else {
-    document.getElementById("prev").classList.remove("disabled");
-  }
-
-  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
-  if (PAGE !== nPages) {
-    document.getElementById("next").classList.remove("disabled");
-  }
-
-  // make the current page active
-  document.getElementById("Page" + PAGE.toString()).classList.add("active");
-}
-
-function pageLinkClick(event) {
-  /** Listener for the click on page number
-   */
-  event.preventDefault();
-
-  // do nothing if the link is disabled
-  if (event.target.parentElement.classList.contains("disabled")) {
-    return;
-  }
-  cleanPageList();
-
-  let page = event.target.textContent;
-
-  if (page === "Previous") {
-    page = PAGE - 1;
-  } else if (page === "Next") {
-    page = PAGE + 1;
-  } else {
-    page = parseInt(page, 10);
-  }
-
-  resetPage(page);
-}
-
-$(".page-link").click((event) => pageLinkClick(event));
-
-function renderPagination() {
-  /** Render all the page links at the bottom of the page.
-   */
-
-  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
-  for (let i = 2; i <= nPages; i++) {
-    let newPageItem = document.createElement("li");
-    newPageItem.className = "page-item pageTmp";
-    newPageItem.id = "Page" + i.toString();
-
-    let newPageRef = document.createElement("a");
-    newPageRef.className = "page-link";
-    newPageRef.textContent = i;
-    newPageRef.href = "#";
-    newPageRef.addEventListener("click", pageLinkClick);
-
-    newPageItem.appendChild(newPageRef);
-    document.getElementById("Page" + (i-1).toString()).after(newPageItem);
-  }
-
-  // make pagination visible
-  document.getElementById("pagination").style["display"] = "block";
-}
-
 function addBookmark(event) {
   /** Listener for add bookmark button.
    */
@@ -492,48 +531,6 @@ function addBookmark(event) {
   });
 }
 
-function renderPapers(renderPages=true) {
-  if (!titleRendered) {
-    $("#paper-list-title").text($("#paper-list-title").text() + DATA.title);
-    titleRendered = true;
-  }
-
-  let start = PAPERS_PER_PAGE * (PAGE - 1);
-
-  for (let pId = start;
-           pId < Math.min(start + PAPERS_PER_PAGE, DATA.papersVis.length);
-           pId++) {
-
-    let content = DATA.papersVis[parseInt(pId, 10)];
-    let paperBase = renderPapersBase(content, pId);
-    let btnPanel = paperBase[1];
-
-    // add bookmark button
-    let btnBook = document.createElement("button");
-    btnBook.className = "btn btn-primary";
-    btnBook.id = "btn-book-"+pId;
-    btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true' id='a-icon-" + pId + "'></i>";
-    btnBook.onclick = addEventListener("click", addBookmark);
-
-    let btnGroup4 = document.createElement("div");
-    btnGroup4.className = "btn-group mr-2";
-    btnGroup4.role = "group";
-    btnPanel.appendChild(btnGroup4);
-    btnGroup4.appendChild(btnBook);
-  }
-
-  document.getElementById("loading-papers").style["display"] = "none";
-
-  if (parseTex) {
-    MathJax.typesetPromise();
-  }
-
-  if (renderPages) {
-    renderPagination();
-    selectActivePage();
-  }
-}
-
 // change sort selector
 $("#sort-sel").change(() => {
   $("#sorting-proc").css("display", "block");
@@ -560,7 +557,7 @@ document.getElementById("filter-button").onclick = function() {
 window.onload = function() {
   // a fix that prevent browser scrolling on "back" button
   // essential for nice work of window.onpopstate
-  history.scrollRestoration = 'manual';
+  history.scrollRestoration = "manual";
 
   var url = document.location.href;
   url = url.replace("papers", "data");
