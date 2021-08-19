@@ -4,6 +4,8 @@
   <link href="{{ url_for('static', filename='dist/css/about.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
+<title>arXiv tag. Paper submission monitor</title>
+
 {% block content %}
 
 {# If  not quthorised show jumbotron #}
@@ -31,7 +33,7 @@
             <img class="" src="{{ url_for('static', filename='dist/img/main.png') }}" width="100%">
           </div>
           <div class="col-sm-12 col-md-9">
-            <h4>What is arXiv tag?</h4>
+            <h4>What is "arXiv tag"?</h4>
             <p>A web-service for monitoring paper submissions at <a href="https://arxiv.org/">arXiv.org</a>.</p>
             <ol>
               <li>View the most relevant to you papers on top of the list.</li>

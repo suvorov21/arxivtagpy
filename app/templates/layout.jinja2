@@ -61,14 +61,13 @@
   {% endif %}
 
   {% block head_scripts %}{% endblock %}
-  <title>arxiv tagger</title>
 </head>
 <body>
   <nav class="navbar navbar-expand-md navbar-dark header">
-    <a class="navbar-brand d-flex {% if current_user.is_authenticated %} w-50 {% else %} w-25 {% endif %} mr-auto page-title" href="/">ar
+    <a class="navbar-brand d-flex {% if current_user.is_authenticated %} w-50 {% else %} w-25 {% endif %} mr-auto page-title ml-2" href="/">ar
         <span id="chi">
           &#120536;
-        </span>iv tagger</a>
+        </span>iv tag</a>
     {% if current_user.is_authenticated %}
       {# show top menu #}
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
