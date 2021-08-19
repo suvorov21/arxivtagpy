@@ -136,3 +136,10 @@ def test_paper_delete(client, login):
                        set='physics:hep-ex'
                        ))
     assert response.status_code == 201
+
+def test_unsubscribe(client, login):
+    """Test unsubscribe from all emails."""
+    response = client.post(url_for('settings_bp.no_email'))
+    assert response.status_code == 201
+
+
