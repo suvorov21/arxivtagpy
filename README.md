@@ -13,26 +13,10 @@ Main features:
 To run server locally with Docker, build and run the image with
 
 ```bash
-docker-compose build arxiv_dev
-docker-compose run -p 8000:8000 -p 5000:5000 arxiv_dev
+docker-compose build && docker-compose up
 ```
 
-Setup environment:
-```bash
-cd /arxivtagpy
-cp .env_example .env
-```
-
-PostgreSQL database should be setup with
-```bash
-su - postgres
-createdb -h "postgres" -U "runner" "arxiv_debug"
-# pass: tester
-exit
-flask db stamp head; flask db migrate; flask db upgrade
-````
-
-After installation you can run a server in a dev mode with `./launch_dev.py`. And access it with a browser at `http://0.0.0.0:8000/`
+The website is accesible with a browser at `http://0.0.0.0:8000/`
 
 The bulk paper download for the last month could be triggered with 
 `http://0.0.0.0:8000/load_papers?token=test_token`

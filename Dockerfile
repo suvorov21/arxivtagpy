@@ -1,33 +1,15 @@
-FROM alpine:latest as arxiv_dev
+FROM python:3.9.5-slim-buster
 
-RUN apk add python3-dev postgresql postgresql-dev \
-    py3-wheel py3-pip chromium chromium-chromedriver
+WORKDIR /usr/src/app
 
-RUN apk add gcc musl-dev libffi-dev make g++ nodejs nodejs-npm
-RUN npm install -g less
+RUN apt-get update && apt-get install -y --no-install-recommends netcat  && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-ENV POSTGRES_DB arxiv_test
-ENV POSTGRES_DB_DEBUG arxiv_debug
-ENV POSTGRES_USER runner
-ENV POSTGRES_PASSWORD tester
-ENV POSTGRES_HOST_AUTH_METHOD trust
+COPY . /usr/src/app/
+COPY .env_example /usr/src/app/.env
 
-ENV DATABASE_URL_TEST postgresql://runner:tester@postgres:5432/arxiv_test
-ENV DATABASE_URL_DEBUG postgresql://runner:tester@postgres:5432/arxiv_debug
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV TOKEN test_token
-
-COPY requirements.txt requirements.txt
+RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install -r requirements.txt
 
-FROM arxiv_dev as arxiv_run
-
-COPY . .
-RUN flask assets build
-CMD ["gunicorn", \
-    "--workers=2", \
-    "--worker-connections=1000", \
-    "--worker-class=gevent" \
-    "-t 300" \
-    "-b 0.0.0.0:8000" \
-    "wsgi:app"]
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

@@ -50,6 +50,7 @@ def app():
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
     with app.app_context():
+        db.drop_all()
         db.create_all()
         user = make_user(EMAIL)
         db.session.add(user)

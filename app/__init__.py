@@ -6,6 +6,8 @@ import sys
 
 import logging
 
+import click
+
 from werkzeug.utils import import_string
 
 from flask import Flask
@@ -27,9 +29,17 @@ login_manager = LoginManager()
 mail = Mail()
 migrate = Migrate()
 
+app = Flask(__name__, instance_relative_config=True)
+
+@app.cli.command("create-db")
+def create_db():
+    """CLI for database creation."""
+    db.init_app(app)
+    db.create_all()
+    db.session.commit()
+
 def app_init():
     """Initialise app."""
-    app = Flask(__name__, instance_relative_config=True)
 
     if 'SERVER_CONF' in environ:
         cfg = import_string(environ['SERVER_CONF'])()
@@ -52,6 +62,10 @@ def app_init():
             traces_sample_rate=1.0
         )
 
+    if app.config.get('SQLALCHEMY_DATABASE_URI') is None:
+        logging.error("Database URL is not specified.")
+        return
+
     # fix a syntax for database
     if 'postgres://' in app.config['SQLALCHEMY_DATABASE_URI']:
         app.config['SQLALCHEMY_DATABASE_URI'] = \
@@ -62,7 +76,9 @@ def app_init():
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
-    migrate.init_app(app, db)
+
+    if "Development" in environ['SERVER_CONF'] or "Production" in environ['SERVER_CONF']:
+        migrate.init_app(app, db)
 
     level = logging.DEBUG if app.config['DEBUG'] else logging.INFO
     log_file = app.config.get('LOG_PATH') if app.config.get('LOG_PATH') else ''
