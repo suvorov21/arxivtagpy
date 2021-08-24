@@ -1,55 +1,29 @@
 stages:
-  - build
+  - syntax
   - test
   - deploy
 
 include:
   - template: Code-Quality.gitlab-ci.yml
 
-build_assets:
-  stage: build
-  image:
-    alpine:latest
-  before_script:
-    - apk add python3-dev
-    - apk add postgresql postgresql-dev
-    - apk add py3-wheel py3-pip
-    - apk add gcc musl-dev libffi-dev make g++
-    - python3 -m pip install --ignore-installed -r requirements_tests.txt
-    - apk add nodejs npm
-    - npm install -g less
-  script:
-    - export BUILD_ASSETS=True
-    - flask assets build
-  artifacts:
-    paths:
-      - app/static/dist/css/*.css
-      - app/static/dist/js/*.js
-    expire_in: 1 week
-
-
 code_quality:
-  stage: test
+  stage: syntax
   artifacts:
     paths: [gl-code-quality-report.json]
 
 syntax_test:
-  stage: test
+  stage: syntax
   image:
-    alpine:latest
+    python:3.9.5-slim-buster
   before_script:
-    - apk add python3-dev
-    - apk add postgresql postgresql-dev
-    - apk add py3-wheel py3-pip
-    - apk add gcc musl-dev libffi-dev make g++
-    - python3 -m pip install --ignore-installed -r requirements_tests.txt
+    - python3 -m pip install --ignore-installed -r requirements.txt
   script:
     - python3 -m py_compile app/*.py
 
 integration_test:
   stage: test
   image:
-    alpine:latest
+    python:3.9.5-slim-buster
   services:
     - postgres:latest
   variables:
@@ -58,26 +32,20 @@ integration_test:
     POSTGRES_PASSWORD: tester
     POSTGRES_HOST_AUTH_METHOD: trust
   before_script:
-    - apk add python3-dev
-    - apk add postgresql postgresql-dev
-    - apk add py3-wheel py3-pip
-    - apk add gcc musl-dev libffi-dev make g++
-    - python3 -m pip install --ignore-installed -r requirements_tests.txt
-    - export PGPASSWORD=$POSTGRES_PASSWORD
-    - export TOKEN="test_token"
-    - export BUILD_ASSETS=True
-    - apk add chromium chromium-chromedriver
-    - apk add nodejs npm
+    - python3 -m pip install --ignore-installed -r requirements.txt
+    - apt update
+    - apt install -y chromium chromium-driver wget nodejs npm
     - npm install -g less
+    - mv .env_example .env
   script:
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
-    - pytest --cov=app test/
+    - pytest --cov=app --junitxml=report.xml test/
     - coverage xml -o coverage.xml
     - wget https://coverage.codacy.com/get.sh
     - . get.sh report -r coverage.xml
   artifacts:
     reports:
       cobertura: coverage.xml
+      junit: report.xml
 
 stage_to_beta:
   stage: deploy

@@ -2,21 +2,30 @@ version: '3.9'
 
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:13-alpine
     environment:
-      POSTGRES_DB: arxiv_test
+      POSTGRES_DB: arxiv_debug
       POSTGRES_USER: runner
       POSTGRES_PASSWORD: tester
-  arxiv_dev:
-    build:
-      target: arxiv_dev
-      context: .
 
     volumes:
-      - .:/arxivtagpy
+      - ./data/:/var/lib/postgresql/data/
+
+  arxiv_dev:
+    build: .
+    # sleep 20 seconds while postgres is starting
+    command: sh -c "flask create-db || true; flask db init || flask db stamp head; flask db migrate; flask db upgrade; gunicorn --workers=2 -t 300 -b 0.0.0.0:8000 wsgi:app"
+
+    volumes:
+      - .:/usr/src/app/
     links:
+      - "postgres"
+    depends_on:
       - "postgres"
 
     ports:
       - "8000:8000"
       - "5000:5000"
+
+volumes:
+  data:
