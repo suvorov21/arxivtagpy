@@ -9,11 +9,6 @@ var TAGSSHOW = [];
 var PAGE = 1;
 var VISIBLE = 0;
 
-function formateDate(date) {
-  let dateArray = date.toString().split(" ");
-  return dateArray[2] + " " + dateArray[1] + " " + dateArray[3];
-}
-
 const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
   /** Check if the paper passes visibility rules.
    * Logic: if check-box is off --> cut all the affected papers
@@ -572,7 +567,7 @@ window.onload = function() {
     renderCounters();
     filterVisiblePapers();
     $("#sort-block").css("display", "block");
-  }).fail(function(jqXHR){
+  }).fail(function() {
     $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please, try later.");
   });
   renderNov();
