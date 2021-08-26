@@ -5,18 +5,19 @@ from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-request, jsonify
+    request, jsonify
 from flask_login import current_user, login_required
 from flask_mail import Message
 
 from .import mail
 from .model import db, Paper, PaperList, paper_associate, Tag
 from .render import render_papers, render_title, \
-render_tags_front, tag_name_and_rule, render_title_precise
+    render_tags_front, tag_name_and_rule, render_title_precise
 from .auth import new_default_list, DEFAULT_LIST
-from .papers import process_papers, render_paper_json
+from .papers import process_papers, render_paper_json, \
+    get_json_papers, get_json_unseen_papers
 from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, \
-get_annonce_date, get_axiv_announce_date
+    get_annonce_date, get_axiv_announce_date, get_date_range
 from .utils import url
 from .settings import load_prefs, default_data
 
@@ -141,57 +142,19 @@ def data():
 
     announce_date = get_annonce_date()
 
-    # tmp value stores the annonced date of the paper
-    new_date_tmp = announce_date
-    # the real submission end period
-    new_date = get_arxiv_sub_end(new_date_tmp.date())
-    # by default look for the papers since last visit
-    old_date_tmp = current_user.last_paper
-    old_date = old_date_tmp
-
     update_recent_papers(announce_date)
 
-    if request.args['date'] == 'today':
-        old_date = announce_date
-        old_date_tmp = old_date
-        logging.debug("Start for today %r", old_date_tmp)
-
-    elif request.args['date'] == 'week':
-        old_date_tmp = announce_date - \
-                       timedelta(days=announce_date.weekday())
-
-    elif request.args['date'] == 'month':
-        old_date_tmp = announce_date - \
-                       timedelta(days=announce_date.day-1)
-        if old_date_tmp.weekday() > 4:
-            old_date_tmp += timedelta(days=7-old_date_tmp.weekday())
-
-    elif request.args['date'] == 'range':
-        new_date_tmp = datetime.strptime(request.args['until'],
-                                         '%d-%m-%Y'
-                                         ).replace(tzinfo=timezone.utc)
-        new_date = get_arxiv_sub_end(new_date_tmp.date())
-        old_date_tmp = datetime.strptime(request.args['from'],
-                                         '%d-%m-%Y'
-                                         ).replace(tzinfo=timezone.utc)
+    old_date_tmp, new_date_tmp, new_date = get_date_range(
+                                           request.args['date'],
+                                           announce_date,
+                                           fr=request.args.get('from'),
+                                           un=request.args.get('until')
+                                           )
 
     if request.args['date'] != 'last':
         old_date = get_arxiv_sub_start(old_date_tmp.date())
-
-    logging.debug('%r\n%r', old_date_tmp, old_date)
-
-    # update "seen" papers
-    it_start = (announce_date -  \
-                new_date_tmp.replace(tzinfo=timezone.utc)).days
-    it_end = (announce_date - \
-             old_date_tmp.replace(tzinfo=timezone.utc)).days
-
-    for i in range(it_start,
-                   min(RECENT_PAPER_RANGE, it_end) + 1,
-                   ):
-        # prevent underflow by 1
-        if i == -1: i += 1
-        current_user.recent_visit = current_user.recent_visit | 2**i
+    else:
+        old_date = current_user.last_paper
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
                   datetime.now(timezone.utc),
@@ -209,12 +172,33 @@ def data():
 
     # define categories of interest
     load_prefs()
-    paper_query = Paper.query.filter(Paper.cats.overlap(session['cats']),
-                                     Paper.date_up > old_date,
-                                     Paper.date_up < new_date,
-                                     ).order_by(Paper.date_up.desc()).all()
+    if request.args['date'] != 'unseen':
+        papers['papers'] = get_json_papers(session['cats'],
+                                           old_date,
+                                           new_date
+                                           )
+    else:
+        papers['papers'] = get_json_unseen_papers(session['cats'],
+                                                  current_user.recent_visit,
+                                                  RECENT_PAPER_RANGE,
+                                                  announce_date)
 
-    papers['papers'] = [render_paper_json(paper) for paper in paper_query]
+    # update "seen" papers
+    it_start = (announce_date -  \
+                new_date_tmp.replace(tzinfo=timezone.utc)).days
+    it_end = (announce_date - \
+             old_date_tmp.replace(tzinfo=timezone.utc)).days
+
+    if request.args['date'] == 'unseen':
+        it_start = 0
+        it_end = RECENT_PAPER_RANGE
+
+    for i in range(it_start,
+                   min(RECENT_PAPER_RANGE, it_end) + 1,
+                   ):
+        # prevent underflow by 1
+        if i == -1: i += 1
+        current_user.recent_visit = current_user.recent_visit | 2**i
 
     # error hahdler
     if len(papers['papers']) == 0 and request.args['date'] != 'last':

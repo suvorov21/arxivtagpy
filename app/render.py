@@ -57,6 +57,8 @@ def render_title(date_type: str, last_visit: datetime = 0) -> str:
     elif date_type == 'last':
         return 'Papers since your last visit on ' + \
                 (last_visit).strftime('%d %b %Y')
+    elif date_type == "unseen":
+        return 'Unseen papers during the past week'
 
     return 'Papers'
 
