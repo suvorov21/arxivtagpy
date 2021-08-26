@@ -235,3 +235,58 @@ def get_annonce_date() -> datetime:
         announce_date -= timedelta(days=1)
 
     return announce_date
+
+def get_date_range(date_type: str,
+                   announce_date: datetime,
+                   **kwargs
+                   ) -> tuple:
+    """Return start and end for the submission range."""
+    # tmp value stores the annonced date of the paper
+    new_date_tmp = announce_date
+    # the real submission end period
+    new_date = get_arxiv_sub_end(new_date_tmp.date())
+
+    if date_type  == 'today':
+        old_date_tmp = announce_date
+        logging.debug("Start for today %r", old_date_tmp)
+        return old_date_tmp, announce_date, new_date
+
+    if date_type == 'week':
+        old_date_tmp = announce_date - \
+                       timedelta(days=announce_date.weekday())
+        logging.debug("Start for week %r", old_date_tmp)
+        return old_date_tmp, announce_date, new_date
+
+    if date_type == 'month':
+        old_date_tmp = announce_date - \
+                       timedelta(days=announce_date.day-1)
+        if old_date_tmp.weekday() > 4:
+            old_date_tmp += timedelta(days=7-old_date_tmp.weekday())
+
+        logging.debug("Start for month %r", old_date_tmp)
+
+        return old_date_tmp, announce_date, new_date
+
+    if date_type == 'range':
+        if kwargs.get('un') is None or kwargs.get('un') is None:
+            logging.error('Range date type but the arguments are empty')
+            return announce_date, announce_date, announce_date
+
+        new_date_tmp = datetime.strptime(kwargs['un'],
+                                         '%d-%m-%Y'
+                                         ).replace(tzinfo=timezone.utc)
+        new_date = get_arxiv_sub_end(new_date_tmp.date())
+        old_date_tmp = datetime.strptime(kwargs['fr'],
+                                         '%d-%m-%Y'
+                                         ).replace(tzinfo=timezone.utc)
+        logging.debug("Start for range %r %r",
+                      old_date_tmp,
+                      new_date_tmp
+                      )
+        return old_date_tmp, announce_date, new_date
+
+    # the last uncovered requiest type
+    # otherwise log an error
+    if (date_type != 'unseen'):
+        logging.error('Unsupported date type %r', date_type)
+    return announce_date, announce_date, announce_date
