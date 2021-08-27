@@ -222,7 +222,7 @@ function addBookmark(event) {
   });
 }
 
-function renderPapers(renderPagination=false) {
+function renderPapers() {
 
   let start = PAPERS_PER_PAGE * (PAGE - 1);
 
@@ -230,7 +230,7 @@ function renderPapers(renderPagination=false) {
   // If number of visible papers if too low to go to s specified page,
   // then go to 1st one
   if (start >= DATA.papersVis.length) {
-    pageChange(p=1, push=true);
+    pageChange(1, true);
     start = 0;
   }
 
@@ -257,10 +257,6 @@ function renderPapers(renderPagination=false) {
   }
 
   document.getElementById("loading-papers").style["display"] = "none";
-
-  if (renderPagination) {
-    doRenderPagination();
-  }
 
   selectActivePage();
 
@@ -291,7 +287,7 @@ function pageLinkClick(event) {
   }
 
   pageChange(page);
-  renderPapers(doSort=false);
+  renderPapers();
 }
 
 $(".page-link").click((event) => pageLinkClick(event));
@@ -304,7 +300,6 @@ function filterVisiblePapers() {
    */
 
   VISIBLE = 0;
-  cleanPageList();
   cleanPagination();
 
   // create a list of categories that are visible based on checkbox selection
@@ -337,7 +332,8 @@ function filterVisiblePapers() {
   }
 
   setTimeout(() => {
-    renderPapers(renderPagination=true);
+    renderPapers();
+    doRenderPagination();
   }, 0);
 }
 
@@ -537,7 +533,7 @@ $("#sort-sel").change(() => {
     sortPapers();
     // render the main page content
     // #pages is still the same, so no point of rendering from scratch
-    renderPapers(renderPagination=false);
+    renderPapers();
   }, 0);
 });
 
@@ -581,6 +577,6 @@ window.onload = function() {
 window.onpopstate = function() {
   /** catch the "back" button usage for page switch
    */
-  pageChange(p=-1, push=false);
-  renderPapers(renderPagination=false);
+  pageChange(-1, false);
+  renderPapers();
 };
