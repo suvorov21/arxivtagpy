@@ -558,7 +558,7 @@ window.onload = function() {
   url = url.replace("papers", "data");
 
   PAGE = url.split("page=")[1];
-  PAGE = parseInt(PAGE.split("&")[0]);
+  PAGE = parseInt(PAGE.split("&")[0], 10);
 
   // Get paper data from backend
   $.get(url)
@@ -579,4 +579,4 @@ window.onpopstate = function() {
   /** catch the "back" button usage for page switch
    */
   pageUpdate();
-}
+};

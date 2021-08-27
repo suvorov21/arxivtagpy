@@ -246,7 +246,7 @@ def get_date_range(date_type: str,
     # the real submission end period
     new_date = get_arxiv_sub_end(new_date_tmp.date())
 
-    if date_type  == 'today':
+    if date_type == 'today':
         old_date_tmp = announce_date
         logging.debug("Start for today %r", old_date_tmp)
         return old_date_tmp, announce_date, new_date
@@ -287,6 +287,6 @@ def get_date_range(date_type: str,
 
     # the last uncovered requiest type
     # otherwise log an error
-    if (date_type != 'unseen'):
+    if date_type != 'unseen':
         logging.error('Unsupported date type %r', date_type)
     return announce_date, announce_date, announce_date

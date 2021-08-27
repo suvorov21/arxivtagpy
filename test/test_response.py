@@ -47,7 +47,7 @@ def test_paper_dates(client, login):
     """Test dates of the papers in the API response."""
     response1 = client.get(url_for('main_bp.data', date='today'))
 
-    date_list = [datetime.strptime(paper['date_up'],'%d %B %Y')
+    date_list = [datetime.strptime(paper['date_up'], '%d %B %Y')
                                    for paper in response1.json['papers']]
     date_list = sorted(date_list, reverse=True)
 
@@ -165,5 +165,3 @@ def test_unsubscribe(client, login):
     """Test unsubscribe from all emails."""
     response = client.post(url_for('settings_bp.no_email'))
     assert response.status_code == 201
-
-

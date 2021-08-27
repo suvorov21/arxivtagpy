@@ -76,7 +76,7 @@ def render_title_precise(date: str, old: datetime, new: datetime) -> str:
             return 'from '  + \
                    datetime.strftime(old, '%d %B') + ' until ' + \
                    datetime.strftime(new, '%d %B')
-    if date == 'last' or date == 'unseen':
+    if date in ('last', 'unseen'):
         return ''
 
     return 'Papers'
