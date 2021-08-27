@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name, unused-argument
 
 from json import loads
+from datetime import datetime
 
 from test.conftest import DEFAULT_LIST
 
@@ -13,7 +14,7 @@ def test_load_papers(client):
     """Test paper loading."""
     response = client.get(url_for('auto_bp.load_papers', # nosec
                                   token='test_token', # nosec
-                                  n_papers=100,
+                                  n_papers=500,
                                   set='physics:hep-ex'
                                   ))
     assert response.status_code == 201
@@ -41,6 +42,29 @@ def test_paper_api(client, login):
     assert len(data3.get('papers')) > 0
     assert data4.get('papers') is not None
     assert len(data4.get('papers')) > 0
+
+def test_paper_dates(client, login):
+    """Test dates of the papers in the API response."""
+    response1 = client.get(url_for('main_bp.data', date='today'))
+
+    date_list = [datetime.strptime(paper['date_up'], '%d %B %Y')
+                                   for paper in response1.json['papers']]
+    date_list = sorted(date_list, reverse=True)
+
+    assert abs((date_list[0] - date_list[-1]).days) < 2 and  \
+           date_list[0].weekday != 1 or \
+           abs((date_list[0] - date_list[-1]).days) < 4
+
+def test_paper_dates_week(client, login):
+    """Test dates of the papers in the API response."""
+    response1 = client.get(url_for('main_bp.data', date='week'))
+
+    date_list = [datetime.strptime(paper['date_up'], '%d %B %Y')
+                                   for paper in response1.json['papers']]
+    date_list = sorted(date_list, reverse=True)
+
+    assert abs((date_list[0] - date_list[-1]).days) < 8
+
 
 def test_paper_page(client, login):
     """Test paper page load."""
@@ -135,4 +159,9 @@ def test_paper_delete(client, login):
                        n_papers=100,
                        set='physics:hep-ex'
                        ))
+    assert response.status_code == 201
+
+def test_unsubscribe(client, login):
+    """Test unsubscribe from all emails."""
+    response = client.post(url_for('settings_bp.no_email'))
     assert response.status_code == 201

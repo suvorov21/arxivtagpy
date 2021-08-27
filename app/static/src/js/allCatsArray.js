@@ -1,3 +1,5 @@
+/*exported  allCatsArray */
+
 const allCatsArray = {
   "astro-ph.CO": "Cosmology and Nongalactic Astrophysics",
   "astro-ph.EP": "Earth and Planetary Astrophysics",

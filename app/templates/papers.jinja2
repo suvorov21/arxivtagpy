@@ -1,6 +1,8 @@
 {% extends "layout.jinja2" %}
 
 {% block head_scripts %}
+  <title>arXiv tag. Paper feed</title>
+
   <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
   <script type="text/javascript">
     var DATA = [];
@@ -60,8 +62,8 @@
             {{ title }}
           </div>
           <div id="sort-block">
-            <span id="passed">0</span>
-            <span>&nbsp;results</span>
+            <span id="passed">0 results</span>
+            {# <span>&nbsp;results</span> #}
             <span id="sort-label" class="ml-3">Sort by</span>
             <select class="form-control form-control-sm" id="sort-sel">
               <option value="tag-as">tag (first)</option>
@@ -76,7 +78,6 @@
               <option value="date-sub_as">submitted (recent)</option>
               <option value="date-sub_des">submitted (old)</option>
             </select>
-            <span id="sorting-proc" style="float: left;">Sorting...</span>
           </div>
           <div id="paper-list-content">
 
@@ -86,7 +87,15 @@
 
           <div id="done-papers" class="paper-footer"><span style="color: #0f0;"><i class="fa fa-check-circle-o" aria-hidden="true"></i></span> You are done with papers!</div>
 
-          <div id="no-paper" style="display: none">No papers suitable with your request.</div>
+          <div id="no-paper" class="paper-footer" style="display: none">No papers suitable with your request.</div>
+
+          <nav aria-label="Page navigation" id="pagination" style="display: none;">
+            <ul class="pagination justify-content-center mt-5 flex-wrap" id="page-ul">
+              <li class="page-item disabled" id="prev"><a class="page-link" href="#">Previous</a></li>
+              <li class="page-item" id="Page1"><a class="page-link" href="#">1</a></li>
+              <li class="page-item disabled" id="next"><a class="page-link" href="#">Next</a></li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>

@@ -1,6 +1,8 @@
 {% extends "layout.jinja2" %}
 
 {% block head_scripts %}
+  <title>arXiv tag. Daily paper submissions</title>
+
   <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.css"/>
 
@@ -23,8 +25,6 @@
           </div>
 
           <h5>In range</h5>
-          {# <form id="login-form" name="f_login" action="/login" onsubmit="return validateLogin()" method="POST"> #}
-
             <div class="form-row align-items-center shift">
               <div class='col-auto'>
                 <div class="input-group date" data-provide="datepicker" id="datetimepicker1">
@@ -54,7 +54,6 @@
             </div>
            </div>
            <div class="sub-alert"></div>
-         {# </form> #}
 
           <h5 class="pt-2 pb-2">Recent submissions</h5>
           <div class="shift">
@@ -67,6 +66,7 @@
                 </a>
               {% endif %}
             {% endfor %}
+            <a href="/papers?date=unseen" class="pt-4 non-standard-link link-under" style="font-size: 0.9rem;">show all unseen</a>
           </div>
         </div>
       </div>

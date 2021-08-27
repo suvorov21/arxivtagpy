@@ -5,7 +5,7 @@ var unseenCurrentList = 0;
 
 function renderLists() {
   let hrefBase = document.location.href.split("=")[0];
-  LISTS.forEach((listName, num) => {
+  LISTS.forEach((listName) => {
     let listItem = document.createElement("li");
     listItem.className = "nav-item";
     let link = document.createElement("a");

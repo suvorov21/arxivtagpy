@@ -7,10 +7,11 @@ Tag processor checks if a given paper is suitable with the tag
 
 from typing import Dict, Tuple
 from re import search, compile, sub, IGNORECASE
+from datetime import datetime, timedelta
 import logging
 
 from .model import db, Paper
-from .paper_api import ArxivOaiApi
+from .paper_api import ArxivOaiApi, get_date_range, get_arxiv_sub_start
 
 rule_dict = {'ti': 'title',
              'au': 'author',
@@ -287,3 +288,38 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
     if  found != inversion:
         return True
     return False
+
+def get_json_papers(cats: list,
+                    old_date: datetime,
+                    new_date: datetime
+                    ) -> dict:
+    """Get list of papers from DB in JSON format."""
+    paper_query = Paper.query.filter(
+                        Paper.cats.overlap(cats),
+                        Paper.date_up > old_date,
+                        Paper.date_up < new_date,
+                        ).order_by(Paper.date_up.desc()).all()
+    return [render_paper_json(paper) for paper in paper_query]
+
+def get_json_unseen_papers(cats: list,
+                           recent_visit: int,
+                           recent_range: int,
+                           announce_date: datetime
+                           ) ->dict:
+    """Get unseen papers from DB in JSON format."""
+    result = []
+    for i in range(recent_range - 1):
+        if not 2**i & recent_visit:
+            # current_user.recent_visit = current_user.recent_visit | 2**i
+            old_date_tmp, new_date_tmp, new_date = get_date_range(
+                                'today',
+                                announce_date - timedelta(days=i)
+                                )
+            old_date = get_arxiv_sub_start(old_date_tmp.date())
+            paper_query = Paper.query.filter(
+                        Paper.cats.overlap(cats),
+                        Paper.date_up > old_date,
+                        Paper.date_up < new_date,
+                        ).order_by(Paper.date_up.desc()).all()
+            result.extend([render_paper_json(paper) for paper in paper_query])
+    return result
