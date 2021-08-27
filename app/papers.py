@@ -311,7 +311,7 @@ def get_json_unseen_papers(cats: list,
     for i in range(recent_range - 1):
         if not 2**i & recent_visit:
             # current_user.recent_visit = current_user.recent_visit | 2**i
-            old_date_tmp, new_date_tmp, new_date =get_date_range(
+            old_date_tmp, new_date_tmp, new_date = get_date_range(
                                 'today',
                                 announce_date - timedelta(days=i)
                                 )

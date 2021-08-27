@@ -59,7 +59,7 @@ def test_paper_dates_week(client, login):
     """Test dates of the papers in the API response."""
     response1 = client.get(url_for('main_bp.data', date='week'))
 
-    date_list = [datetime.strptime(paper['date_up'],'%d %B %Y')
+    date_list = [datetime.strptime(paper['date_up'], '%d %B %Y')
                                    for paper in response1.json['papers']]
     date_list = sorted(date_list, reverse=True)
 
