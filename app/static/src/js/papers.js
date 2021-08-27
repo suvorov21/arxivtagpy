@@ -169,30 +169,6 @@ const pageChange = (p="1", push=true) => {
   }
 };
 
-function doRenderPagination() {
-  /** Render all the page links at the bottom of the page.
-   */
-
-  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
-  for (let i = 2; i <= nPages; i++) {
-    let newPageItem = document.createElement("li");
-    newPageItem.className = "page-item pageTmp";
-    newPageItem.id = "Page" + i.toString();
-
-    let newPageRef = document.createElement("a");
-    newPageRef.className = "page-link";
-    newPageRef.textContent = i;
-    newPageRef.href = "#";
-    newPageRef.addEventListener("click", pageLinkClick);
-
-    newPageItem.appendChild(newPageRef);
-    document.getElementById("Page" + (i-1).toString()).after(newPageItem);
-  }
-
-  // make pagination visible
-  document.getElementById("pagination").style["display"] = "block";
-}
-
 function addBookmark(event) {
   /** Listener for add bookmark button.
    */
@@ -291,6 +267,30 @@ function pageLinkClick(event) {
 }
 
 $(".page-link").click((event) => pageLinkClick(event));
+
+function doRenderPagination() {
+  /** Render all the page links at the bottom of the page.
+   */
+
+  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+  for (let i = 2; i <= nPages; i++) {
+    let newPageItem = document.createElement("li");
+    newPageItem.className = "page-item pageTmp";
+    newPageItem.id = "Page" + i.toString();
+
+    let newPageRef = document.createElement("a");
+    newPageRef.className = "page-link";
+    newPageRef.textContent = i;
+    newPageRef.href = "#";
+    newPageRef.addEventListener("click", pageLinkClick);
+
+    newPageItem.appendChild(newPageRef);
+    document.getElementById("Page" + (i-1).toString()).after(newPageItem);
+  }
+
+  // make pagination visible
+  document.getElementById("pagination").style["display"] = "block";
+}
 
 // toggle the visibility of rendered papers
 function filterVisiblePapers() {
