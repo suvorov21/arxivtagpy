@@ -268,7 +268,7 @@ def get_date_range(date_type: str,
         return old_date_tmp, announce_date, new_date
 
     if date_type == 'range':
-        if kwargs.get('un') is None or kwargs.get('un') is None:
+        if kwargs.get('un') is None or kwargs.get('fr') is None:
             logging.error('Range date type but the arguments are empty')
             return announce_date, announce_date, announce_date
 
@@ -283,7 +283,7 @@ def get_date_range(date_type: str,
                       old_date_tmp,
                       new_date_tmp
                       )
-        return old_date_tmp, announce_date, new_date
+        return old_date_tmp, new_date_tmp, new_date
 
     # the last uncovered requiest type
     # otherwise log an error
