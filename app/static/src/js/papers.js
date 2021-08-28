@@ -8,6 +8,8 @@ var TAGSSHOW = [];
 var PAGE = 1;
 var VISIBLE = 0;
 
+var BOOK_BTN = -1;
+
 const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
   /** Check if the paper passes visibility rules.
    * Logic: if check-box is off --> cut all the affected papers
@@ -173,29 +175,68 @@ function addBookmark(event) {
   /** Listener for add bookmark button.
    */
 
-  // WARNING
-  // UB addBookmark listener is added to all the buttons, not the bookmark only one
-  // prevent the bookmark adding for other buttons
   if (!event.target.id.includes("btn-book") &&
       !event.target.id.includes("a-icon")) {
     return;
   }
-  let url = "add_bm";
-  let num = event.target.getAttribute("id").split("-")[2];
-  let paper = DATA.papers[parseInt(num, 10)];
-  // we take paper id w/o version --> do not overload paper DB
-  $.post(url, {"paper_id": paper.id.split("v")[0]})
-  .done(function(data, textStatus, jqXHR) {
-    let status = jqXHR.status;
-    if (status === 200) {
-      raiseAlert("Paper has been already saved", "success");
+
+   let target = event.target;
+   if (event.target.id.includes("a-icon")) {
+    target = target.parentElement;
+   }
+
+   let top = target.getBoundingClientRect().top;
+   let left = target.getBoundingClientRect().left;
+   let popup = document.getElementById("lists-popup-wrap");
+   let popupContent = document.getElementById("lists-popup");
+
+   let sleep = false
+   // if already visible around this button --> hide
+   if (popupContent.classList.contains("full-width")) {
+    popupContent.classList.remove("full-width");
+    sleep = true;
+    setTimeout(() => {
+      popupContent.style.borderStyle = "none";
+    }, 200);
+
+    // if the button is the same --> interupt
+    if (BOOK_BTN === target.id.split("-")[2]) {
+      return;
     }
-    if (status === 201) {
-      raiseAlert("Paper has been added", "success");
-    }
-  }).fail(function(){
-    raiseAlert("Paper is not saved due to server error", "danger");
-  });
+   }
+
+   setTimeout(() => {
+     // put on the left from button
+     popup.style.top = String(top + window.scrollY) + "px";
+     popup.style.left = String(left + 60 + window.scrollX) + "px";
+     popupContent.style.borderStyle = "solid";
+     popupContent.classList.add("full-width");
+     BOOK_BTN = target.id.split("-")[2];
+   }, sleep ? 200 : 0);
+
+  // // WARNING
+  // // UB addBookmark listener is added to all the buttons, not the bookmark only one
+  // // prevent the bookmark adding for other buttons
+  // if (!event.target.id.includes("btn-book") &&
+  //     !event.target.id.includes("a-icon")) {
+  //   return;
+  // }
+  // let url = "add_bm";
+  // let num = event.target.getAttribute("id").split("-")[2];
+  // let paper = DATA.papers[parseInt(num, 10)];
+  // // we take paper id w/o version --> do not overload paper DB
+  // $.post(url, {"paper_id": paper.id.split("v")[0]})
+  // .done(function(data, textStatus, jqXHR) {
+  //   let status = jqXHR.status;
+  //   if (status === 200) {
+  //     raiseAlert("Paper has been already saved", "success");
+  //   }
+  //   if (status === 201) {
+  //     raiseAlert("Paper has been added", "success");
+  //   }
+  // }).fail(function(){
+  //   raiseAlert("Paper is not saved due to server error", "danger");
+  // });
 }
 
 function renderPapers() {
@@ -547,6 +588,17 @@ document.getElementById("filter-button").onclick = function() {
   }
 };
 
+const renderLists = () => {
+ /** Render pop-up window with page lists
+  */
+  DATA.lists.forEach((list) => {
+    let listDom = document.createElement("div");
+    listDom.textContent = list.name;
+    listDom.classList = "list-name";
+    document.getElementById("lists-popup").appendChild(listDom);
+  });
+};
+
 window.onload = function() {
   // a fix that prevent browser scrolling on "back" button
   // essential for nice work of window.onpopstate
@@ -566,6 +618,7 @@ window.onload = function() {
     // update page title with detailed dates
     $("#paper-list-title").text($("#paper-list-title").text() + DATA.title);
     filterVisiblePapers();
+    renderLists();
   }).fail(function() {
     $("#loading-papers").text("Oooops, arxivtag experienced an internal error processing your papers. We are working on fixing that. Please, try later.");
   });
