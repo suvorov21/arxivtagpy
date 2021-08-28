@@ -286,7 +286,7 @@ function renderPref() {
 
 $("#add-book-btn").click(() => {
   let url = "add_list";
-  dataSet = {"name": document.forms["add-book-form"]["new-list"].value};
+  let dataSet = {"name": document.forms["add-book-form"]["new-list"].value};
   $.post(url, JSON.stringify(dataSet))
   .done(function() {
     reloadSettings();

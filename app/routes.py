@@ -20,7 +20,6 @@ from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, \
     get_annonce_date, get_axiv_announce_date, get_date_range
 from .utils import url, get_lists_for_user
 from .settings import load_prefs, default_data
-from .auth import DEFAULT_LIST
 
 PAPERS_PAGE = 25
 RECENT_PAPER_RANGE = 10

@@ -3,6 +3,8 @@
 from json import loads, dumps
 from typing import Dict
 
+import logging
+
 from flask import Blueprint, render_template, session, request, \
 current_app
 from flask_login import current_user, login_required
@@ -91,6 +93,7 @@ def mod_list():
 @settings_bp.route('/add_list', methods=['POST'])
 @login_required
 def add_list():
+    """Add a new paper list."""
     args = cast_args_to_dict(request.form.to_dict().keys())
 
     if args['name'] == '':

@@ -181,7 +181,7 @@ const hideListPopup = () => {
         popupContent.style.borderStyle = "none";
       }
     }, 200);
-}
+};
 
 const addBookmark = (event) => {
   /** Listener for add bookmark button.
@@ -202,7 +202,7 @@ const addBookmark = (event) => {
    let popup = document.getElementById("lists-popup-wrap");
    let popupContent = document.getElementById("lists-popup");
 
-   let sleep = false
+   let sleep = false;
    // if already visible around this button --> hide
    if (popupContent.classList.contains("full-width")) {
     hideListPopup();
