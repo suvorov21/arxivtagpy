@@ -382,8 +382,13 @@ def del_bm():
 def public_tags():
     """Get puclicly available tags as examples."""
     tags = Tag.query.filter_by(public=True).order_by(Tag.name)
+    tags = tag_name_and_rule(tags)
+    unique_tags = []
+    for tag in tags:
+        if tag not in unique_tags:
+            unique_tags.append(tag)
 
-    return jsonify(tag_name_and_rule(tags))
+    return jsonify(unique_tags)
 
 @main_bp.route('/feedback', methods=['POST'])
 @login_required
