@@ -55,6 +55,7 @@ def mod_cat():
     new_cats = cast_args_to_dict(request.form.to_dict().keys())
 
     if len(new_cats) == 0:
+        logging.error('Error during cats mod. Requiest %r', new_cats)
         return dumps({'success': False}), 422
     if new_cats == ["null"]:
         new_cats = []
@@ -87,6 +88,23 @@ def mod_list():
                            current_user.lists
                            )
 
+@settings_bp.route('/add_list', methods=['POST'])
+@login_required
+def add_list():
+    args = cast_args_to_dict(request.form.to_dict().keys())
+
+    if args['name'] == '':
+        logging.error('Error during list add. Requiest %r', args)
+        return dumps({'success': False}), 422
+
+    new_list = PaperList(name=args['name'],
+                         order=999,
+                         not_seen=0
+                         )
+
+    current_user.lists.append(new_list)
+    db.session.commit()
+    return dumps({'success':True}), 201
 
 @settings_bp.route('/mod_pref', methods=['POST'])
 @login_required
