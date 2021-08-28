@@ -4,14 +4,16 @@
 var unseenCurrentList = 0;
 
 function renderLists() {
+  // WARNING very inacurate parsing
+  // TODO replace with regex
   let hrefBase = document.location.href.split("=")[0];
   LISTS.forEach((listName) => {
     let listItem = document.createElement("li");
     listItem.className = "nav-item";
     let link = document.createElement("a");
-    link.href = hrefBase + "=" + listName.name;
+    link.href = hrefBase + "=" + listName.id;
     link.className = "nav-link";
-    if (listName.name === displayList) {
+    if (listName.id === displayList) {
       link.className += " active";
       unseenCurrentList = listName.not_seen;
     }
@@ -44,7 +46,7 @@ function deleteBookmark(event) {
   let paper = DATA.papers[parseInt(num, 10) - (page - 1) * paperPage];
   $.post(url, {
                "paper_id": paper.id.split("v")[0],
-               "list": displayList
+               "list_id": displayList
                })
   .done(function(data, textStatus, jqXHR) {
     let status = jqXHR.status;

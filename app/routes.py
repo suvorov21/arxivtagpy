@@ -255,13 +255,14 @@ def about():
 def bookshelf():
     """Bookshelf page."""
     # if list is not specified take the default one
-    if 'list' not in request.args:
-        return redirect(url('main_bp.bookshelf', list=DEFAULT_LIST))
-    display_list = request.args['list']
+    if 'list_id' not in request.args:
+        ll = PaperList.query.filter_by(user_id=current_user.id).first()
+        return redirect(url('main_bp.bookshelf', list_id=ll.id))
+    display_list = request.args['list_id']
 
     if 'page' not in request.args:
         return redirect(url('main_bp.bookshelf',
-                            list=display_list,
+                            list_id=display_list,
                             page=1))
 
     try:
@@ -275,17 +276,13 @@ def bookshelf():
     lists = get_lists_for_user()
 
     # get the particular paper list to access papers from one
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                           name=display_list
-                                           ).first()
+    paper_list = PaperList.query.filter_by(id=display_list).first()
 
     # reset number of unseen papers
     paper_list.not_seen = 0
     db.session.commit()
 
-    papers = {'list': lists[0],
-              'papers': []
-              }
+    papers = {'papers': []}
 
     # read the papers
     sorted_papers = sorted(paper_list.papers,
@@ -310,7 +307,7 @@ def bookshelf():
     tags_dict = render_tags_front(session['tags'])
 
     url_base = url('main_bp.bookshelf',
-                   list=display_list
+                   list_id=display_list
                    )
     url_base += '&page='
 
@@ -322,9 +319,7 @@ def bookshelf():
                            page=page,
                            paper_page=PAPERS_PAGE,
                            total_pages=total_pages,
-                           # escape backslash for proper transfer
-                           # TEX formulas
-                           displayList=display_list.replace('\\', '\\\\'),
+                           displayList=display_list,
                            tags=dumps(tags_dict),
                            data=default_data()
                            )
@@ -372,13 +367,11 @@ def add_bm():
 def del_bm():
     """Delete bookmark."""
     paper_id = request.form.get('paper_id')
-    list_name = request.form.get('list')
+    list_id = request.form.get('list_id')
     paper = Paper.query.filter_by(paper_id=paper_id).first()
     if not paper:
         return dumps({'success':False}), 204
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                           name=list_name
-                                           ).first()
+    paper_list = PaperList.query.filter_by(id=list_id).first()
 
     paper_list.papers.remove(paper)
     db.session.commit()
