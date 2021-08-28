@@ -56,7 +56,8 @@ def get_lists_for_user() -> list:
                       )
 
     lists = [{'name': paper_list.name,
-              'not_seen': paper_list.not_seen
+              'not_seen': paper_list.not_seen,
+              'id': paper_list.id
               } for paper_list in paper_lists]
 
     return lists

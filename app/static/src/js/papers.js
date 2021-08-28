@@ -171,7 +171,19 @@ const pageChange = (p="1", push=true) => {
   }
 };
 
-function addBookmark(event) {
+const hideListPopup = () => {
+  let popupContent = document.getElementById("lists-popup");
+  popupContent.classList.remove("full-width");
+    setTimeout(() => {
+      // check for the case of extremely fast clickes
+      // prevent hiding the border around new drawing of the popup
+      if (!popupContent.classList.contains("full-width")) {
+        popupContent.style.borderStyle = "none";
+      }
+    }, 200);
+}
+
+const addBookmark = (event) => {
   /** Listener for add bookmark button.
    */
 
@@ -193,12 +205,8 @@ function addBookmark(event) {
    let sleep = false
    // if already visible around this button --> hide
    if (popupContent.classList.contains("full-width")) {
-    popupContent.classList.remove("full-width");
+    hideListPopup();
     sleep = true;
-    setTimeout(() => {
-      popupContent.style.borderStyle = "none";
-    }, 200);
-
     // if the button is the same --> interupt
     if (BOOK_BTN === target.id.split("-")[2]) {
       return;
@@ -213,30 +221,6 @@ function addBookmark(event) {
      popupContent.classList.add("full-width");
      BOOK_BTN = target.id.split("-")[2];
    }, sleep ? 200 : 0);
-
-  // // WARNING
-  // // UB addBookmark listener is added to all the buttons, not the bookmark only one
-  // // prevent the bookmark adding for other buttons
-  // if (!event.target.id.includes("btn-book") &&
-  //     !event.target.id.includes("a-icon")) {
-  //   return;
-  // }
-  // let url = "add_bm";
-  // let num = event.target.getAttribute("id").split("-")[2];
-  // let paper = DATA.papers[parseInt(num, 10)];
-  // // we take paper id w/o version --> do not overload paper DB
-  // $.post(url, {"paper_id": paper.id.split("v")[0]})
-  // .done(function(data, textStatus, jqXHR) {
-  //   let status = jqXHR.status;
-  //   if (status === 200) {
-  //     raiseAlert("Paper has been already saved", "success");
-  //   }
-  //   if (status === 201) {
-  //     raiseAlert("Paper has been added", "success");
-  //   }
-  // }).fail(function(){
-  //   raiseAlert("Paper is not saved due to server error", "danger");
-  // });
 }
 
 function renderPapers() {
@@ -265,6 +249,7 @@ function renderPapers() {
     btnBook.id = "btn-book-"+pId;
     btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true' id='a-icon-" + pId + "'></i>";
     btnBook.onclick = addEventListener("click", addBookmark);
+    btnBook.onclick = addEventListener("focusout", hideListPopup);
 
     let btnGroup4 = document.createElement("div");
     btnGroup4.className = "btn-group mr-2";
@@ -588,6 +573,33 @@ document.getElementById("filter-button").onclick = function() {
   }
 };
 
+const listClick = (event) => {
+  let url = "add_bm";
+  let target = event.target;
+  while (!target.classList.contains("list-name")) {
+    target = target.parentElement;
+  }
+  let num = target.getAttribute("id");
+  let paper = DATA.papers[parseInt(BOOK_BTN, 10)];
+  // we take paper id w/o version --> do not overload paper DB
+  $.post(url, {"paper_id": paper.id.split("v")[0],
+               "list_id": num
+               })
+  .done(function(data, textStatus, jqXHR) {
+    let status = jqXHR.status;
+    if (status === 200) {
+      raiseAlert("Paper has been already saved", "success");
+    }
+    if (status === 201) {
+      raiseAlert("Paper has been added", "success");
+    }
+  }).fail(function(){
+    raiseAlert("Paper is not saved due to server error", "danger");
+  });
+
+  hideListPopup();
+};
+
 const renderLists = () => {
  /** Render pop-up window with page lists
   */
@@ -595,6 +607,8 @@ const renderLists = () => {
     let listDom = document.createElement("div");
     listDom.textContent = list.name;
     listDom.classList = "list-name";
+    listDom.id = String(list.id);
+    listDom.addEventListener("click", listClick);
     document.getElementById("lists-popup").appendChild(listDom);
   });
 };

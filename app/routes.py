@@ -346,22 +346,14 @@ def add_bm():
     # if paper is not in the paper table
     # cerate a new one
     if not paper:
+        logging.error('Paper is not in the paper table %r', paper_id)
         return dumps({'success':False}), 422
 
-    # in case no list is there
-    # create a new one
-    # WARNING work with one list for the time beeing
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                           name=DEFAULT_LIST
-                                           ).first()
+    list_id = request.form.get('list_id')
+    paper_list = PaperList.query.filter_by(id=list_id).first()
     if not paper_list:
-        # create a default list
-        from .auth import new_default_list
-        new_default_list(current_user.id)
-        paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
-        logging.error('Default list was not created for user %r',
-                      current_user.email
-                      )
+        logging.error('List is not in the DB %r', list_id)
+        return dumps({'success':False}), 422
 
     # check if paper is already in the given list of the current user
     result = db.session.query(paper_associate).filter_by(list_ref_id=paper_list.id,
