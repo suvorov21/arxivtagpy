@@ -7,8 +7,11 @@ import smtplib
 
 from flask import url_for
 from flask_mail import Message
+from flask_login import current_user
 
 from .import mail
+
+from .model import PaperList
 
 def fix_xml(xml: str) -> str:
     """
@@ -37,3 +40,24 @@ def mail_catch(msg: Message) -> bool:
         return False
 
     return True
+
+def get_lists_for_user() -> list:
+    """Get all paper lists for a given user."""
+    # get all lists for the menu (ordered)
+    paper_lists = PaperList.query.filter_by(user_id=current_user.id \
+                                            ).order_by(PaperList.order).all()
+    # if no, create the default list
+    if len(paper_lists) == 0:
+        from .auth import new_default_list
+        new_default_list(current_user.id)
+        paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
+        logging.error('Default list was not created for user %r',
+                      current_user.email
+                      )
+
+    lists = [{'name': paper_list.name,
+              'not_seen': paper_list.not_seen,
+              'id': paper_list.id
+              } for paper_list in paper_lists]
+
+    return lists

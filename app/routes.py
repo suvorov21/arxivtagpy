@@ -13,12 +13,12 @@ from .import mail
 from .model import db, Paper, PaperList, paper_associate, Tag
 from .render import render_papers, render_title, \
     render_tags_front, tag_name_and_rule, render_title_precise
-from .auth import new_default_list, DEFAULT_LIST
+
 from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers
 from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, \
     get_annonce_date, get_axiv_announce_date, get_date_range
-from .utils import url
+from .utils import url, get_lists_for_user
 from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
@@ -189,6 +189,7 @@ def data():
     it_end = (announce_date - \
              old_date_tmp.replace(tzinfo=timezone.utc)).days
 
+    #  mark all the papers as "seen"
     if request.args['date'] == 'unseen':
         it_start = 0
         it_end = RECENT_PAPER_RANGE
@@ -201,8 +202,8 @@ def data():
         current_user.recent_visit = current_user.recent_visit | 2**i
 
     # error hahdler
-    if len(papers['papers']) == 0 and request.args['date'] != 'last':
-        # TODO check the agreement with JS error handler
+    if len(papers['papers']) == 0 and \
+        request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
         return jsonify(papers)
 
@@ -225,6 +226,8 @@ def data():
                             )
     render_papers(papers, sort='tag')
 
+    lists = get_lists_for_user()
+
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
               'ntag': papers['n_tags'],
@@ -232,7 +235,8 @@ def data():
               'title': render_title_precise(request.args['date'],
                                             old_date_tmp,
                                             new_date_tmp
-                                            )
+                                            ),
+              'lists': lists
               }
     return jsonify(result)
 
@@ -250,41 +254,34 @@ def about():
 def bookshelf():
     """Bookshelf page."""
     # if list is not specified take the default one
-    if 'list' not in request.args:
-        return redirect(url('main_bp.bookshelf', list=DEFAULT_LIST))
-    display_list = request.args['list']
+    if 'list_id' not in request.args:
+        ll = PaperList.query.filter_by(user_id=current_user.id).first()
+        return redirect(url('main_bp.bookshelf', list_id=ll.id))
+    display_list = request.args['list_id']
 
     if 'page' not in request.args:
         return redirect(url('main_bp.bookshelf',
-                            list=display_list,
+                            list_id=display_list,
                             page=1))
 
-    page = int(request.args['page'])
+    try:
+        page = int(request.args['page'])
+    except ValueError:
+        logging.error('Page argument is not int but: %r',
+                      request.args['page']
+                      )
+        page = 1
 
-    # get all lists for the menu (ordered)
-    paper_lists = PaperList.query.filter_by(user_id=current_user.id \
-                                            ).order_by(PaperList.order).all()
-    # if no, create the default list
-    if len(paper_lists) == 0:
-        new_default_list(current_user.id)
-        paper_lists = PaperList.query.filter_by(user_id=current_user.id).all()
-
-    lists = [{'name': paper_list.name,
-              'not_seen': paper_list.not_seen
-              } for paper_list in paper_lists]
+    lists = get_lists_for_user()
 
     # get the particular paper list to access papers from one
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                           name=display_list
-                                           ).first()
+    paper_list = PaperList.query.filter_by(id=display_list).first()
 
     # reset number of unseen papers
     paper_list.not_seen = 0
     db.session.commit()
 
-    papers = {'list': lists[0],
-              'papers': []
-              }
+    papers = {'papers': []}
 
     # read the papers
     sorted_papers = sorted(paper_list.papers,
@@ -309,7 +306,7 @@ def bookshelf():
     tags_dict = render_tags_front(session['tags'])
 
     url_base = url('main_bp.bookshelf',
-                   list=display_list
+                   list_id=display_list
                    )
     url_base += '&page='
 
@@ -321,9 +318,7 @@ def bookshelf():
                            page=page,
                            paper_page=PAPERS_PAGE,
                            total_pages=total_pages,
-                           # escape backslash for proper transfer
-                           # TEX formulas
-                           displayList=display_list.replace('\\', '\\\\'),
+                           displayList=display_list,
                            tags=dumps(tags_dict),
                            data=default_data()
                            )
@@ -345,18 +340,14 @@ def add_bm():
     # if paper is not in the paper table
     # cerate a new one
     if not paper:
+        logging.error('Paper is not in the paper table %r', paper_id)
         return dumps({'success':False}), 422
 
-    # in case no list is there
-    # create a new one
-    # WARNING work with one list for the time beeing
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                           name=DEFAULT_LIST
-                                           ).first()
+    list_id = request.form.get('list_id')
+    paper_list = PaperList.query.filter_by(id=list_id).first()
     if not paper_list:
-        # create a default list
-        new_default_list(current_user.id)
-        paper_list = PaperList.query.filter_by(user_id=current_user.id).first()
+        logging.error('List is not in the DB %r', list_id)
+        return dumps({'success':False}), 422
 
     # check if paper is already in the given list of the current user
     result = db.session.query(paper_associate).filter_by(list_ref_id=paper_list.id,
@@ -375,13 +366,11 @@ def add_bm():
 def del_bm():
     """Delete bookmark."""
     paper_id = request.form.get('paper_id')
-    list_name = request.form.get('list')
+    list_id = request.form.get('list_id')
     paper = Paper.query.filter_by(paper_id=paper_id).first()
     if not paper:
         return dumps({'success':False}), 204
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
-                                           name=list_name
-                                           ).first()
+    paper_list = PaperList.query.filter_by(id=list_id).first()
 
     paper_list.papers.remove(paper)
     db.session.commit()
