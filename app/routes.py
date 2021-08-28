@@ -255,7 +255,8 @@ def bookshelf():
     """Bookshelf page."""
     # if list is not specified take the default one
     if 'list_id' not in request.args:
-        ll = PaperList.query.filter_by(user_id=current_user.id).first()
+        ll = PaperList.query.filter_by(user_id=current_user.id \
+                                       ).order_by(PaperList.order).first()
         return redirect(url('main_bp.bookshelf', list_id=ll.id))
     display_list = request.args['list_id']
 
