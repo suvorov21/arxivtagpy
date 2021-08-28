@@ -223,6 +223,21 @@ const addBookmark = (event) => {
    }, sleep ? 200 : 0);
 }
 
+document.onclick = (event) => {
+  /** Fix to hide popup when click outside the popup window
+   * Click on the button is handled by the button click event
+   * Could not use "focusout" listener as it prevents
+   * firing popup content click event.
+   */
+  let popupContent = document.getElementById("lists-popup");
+  if (!event.target.classList.contains("list-name") &&
+      !event.target.id.includes("btn-book") &&
+      !event.target.id.includes("a-icon") &&
+      popupContent.classList.contains("full-width")) {
+    hideListPopup();
+  }
+}
+
 function renderPapers() {
 
   let start = PAPERS_PER_PAGE * (PAGE - 1);
@@ -249,7 +264,7 @@ function renderPapers() {
     btnBook.id = "btn-book-"+pId;
     btnBook.innerHTML = "<i class='fa fa-bookmark' aria-hidden='true' id='a-icon-" + pId + "'></i>";
     btnBook.onclick = addEventListener("click", addBookmark);
-    btnBook.onclick = addEventListener("focusout", hideListPopup);
+    // btnBook.onclick = addEventListener("focusout", hideListPopup);
 
     let btnGroup4 = document.createElement("div");
     btnGroup4.className = "btn-group mr-2";
