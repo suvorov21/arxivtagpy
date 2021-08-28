@@ -100,12 +100,12 @@ def add_list():
         logging.error('Error during list add. Requiest %r', args)
         return dumps({'success': False}), 422
 
-    new_list = PaperList(name=args['name'],
-                         order=999,
-                         not_seen=0
-                         )
+    n_list = PaperList(name=args['name'],
+                       order=999,
+                       not_seen=0
+                       )
 
-    current_user.lists.append(new_list)
+    current_user.lists.append(n_list)
     db.session.commit()
     return dumps({'success':True}), 201
 
