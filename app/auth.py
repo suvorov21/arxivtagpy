@@ -43,7 +43,7 @@ def load_user(user_id):
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """User log-in logic."""
-    email = request.form.get('i_login')
+    email = request.form.get('i_login').lower()
     pasw = request.form.get('i_pass')
 
     usr = User.query.filter_by(email=email).first()
@@ -92,7 +92,7 @@ def new_default_list(usr_id):
 @auth_bp.route('/new_user', methods=["POST"])
 def new_user():
     """New user creation."""
-    email = request.form.get('email')
+    email = request.form.get('email').lower()
     pasw1 = request.form.get('pasw')
     pasw2 = request.form.get('pasw2')
 
@@ -182,7 +182,7 @@ def restore():
 def restore_pass():
     """Endpoint for password reset."""
     do_send = request.args.get('do_send')
-    email_in = request.form.get('email')
+    email_in = request.form.get('email').lower()
     user = User.query.filter_by(email=email_in).first()
     # Success will go to False ONLY if the user IS found
     # but the problem during email sending happens
