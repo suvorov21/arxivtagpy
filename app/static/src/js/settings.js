@@ -484,7 +484,6 @@ $("#tag-list").click((event) => {
     // -1 corresponds to new tag
     editTagId = -1;
 
-    $("#btn-reset").click();
     $("#add-tag").css("border-style", "solid");
     $("#add-tag").css("border-width", "4px");
     clearTagField();
