@@ -364,7 +364,7 @@ const changeBookBtnStatus = (val) => {
   } else {
     document.getElementById("btn-book").classList.add("disabled");
   }
-}
+};
 
 var editTagId = -2;
 
@@ -726,7 +726,7 @@ window.onload = function() {
     document.getElementById("btn-book").onclick = (event) => {
       event.preventDefault();
       let url = "/bookmark_papers_user";
-      data = {"name": document.forms["add-tag"]["tag_name"].value};
+      let data = {"name": document.forms["add-tag"]["tag_name"].value};
       raiseAlert("Requeest is submitted. Your bookshelf will be updated soon.",
                  "success"
                  );

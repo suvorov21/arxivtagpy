@@ -123,7 +123,7 @@ def test_bookshelf_page(client, login):
                           )
     assert response.status_code == 200
 
-def test_bookshelf_page(client, login):
+def test_bookshelf_page_wrongly(client, login):
     """Test bookmark page with a wrong argument."""
     response = client.get(url_for('main_bp.bookshelf'),
                           data={'page': 'abracadabra'},

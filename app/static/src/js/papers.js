@@ -221,7 +221,7 @@ const addBookmark = (event) => {
      popupContent.classList.add("full-width");
      BOOK_BTN = target.id.split("-")[2];
    }, sleep ? 200 : 0);
-}
+};
 
 document.onclick = (event) => {
   /** Fix to hide popup when click outside the popup window
