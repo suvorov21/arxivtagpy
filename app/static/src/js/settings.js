@@ -342,6 +342,7 @@ const clearTagField = () => {
   document.forms["add-tag"]["tag_rule"].value = "";
   document.forms["add-tag"]["tag_color"].value = "";
   document.forms["add-tag"]["book-check"].checked = false;
+  document.getElementById("btn-book").classList.add("disabled");
   document.forms["add-tag"]["email-check"].checked = false;
   document.forms["add-tag"]["public-check"].checked = false;
   $("#tag-color").css("background-color", $("#tag-color").val());
@@ -356,6 +357,14 @@ $("#show-rules").click(() => {
     $("#show-rules").text("Hide rules hints");
   }
 });
+
+const changeBookBtnStatus = (val) => {
+  if (val) {
+    document.getElementById("btn-book").classList.remove("disabled");
+  } else {
+    document.getElementById("btn-book").classList.add("disabled");
+  }
+}
 
 var editTagId = -2;
 
@@ -501,6 +510,7 @@ $("#tag-list").click((event) => {
     document.forms["add-tag"]["tag_rule"].value = tag.rule;
     document.forms["add-tag"]["tag_color"].value = tag.color;
     document.forms["add-tag"]["book-check"].checked = tag.bookmark;
+    changeBookBtnStatus(tag.bookmark);
     document.forms["add-tag"]["email-check"].checked = tag.email;
     document.forms["add-tag"]["public-check"].checked = tag.public;
     $("#tag-color").css("background-color", $("#tag-color").val());
@@ -707,6 +717,29 @@ window.onload = function() {
   $.each(allCatsArray, function(val, text) {
     $("#catsDataList").append($("<option>").attr("value", val).text(text));
   });
+
+  if (document.getElementById("book-check") !== null) {
+    document.getElementById("book-check").onchange = () => {
+      changeBookBtnStatus(document.forms["add-tag"]["book-check"].checked);
+    };
+
+    document.getElementById("btn-book").onclick = (event) => {
+      event.preventDefault();
+      let url = "/bookmark_papers_user";
+      data = {"name": document.forms["add-tag"]["tag_name"].value};
+      raiseAlert("Requeest is submitted. Your bookshelf will be updated soon.",
+                 "success"
+                 );
+      $.post(url, JSON.stringify(data))
+        .done(function() {
+          raiseAlert("Successfully updated bookshelf.", "success");
+          return false;
+        }).fail(function() {
+          raiseAlert("Bookmarking failed. Please try later", "danger");
+          return false;
+        });
+    };
+  }
 
   reloadSettings();
 };
