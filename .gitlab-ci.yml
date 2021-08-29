@@ -11,7 +11,7 @@ sast:
   stage: test
 
 code_quality:
-  stage: syntax
+  stage: test
   artifacts:
     paths: [gl-code-quality-report.json]
 
