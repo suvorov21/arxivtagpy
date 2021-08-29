@@ -310,11 +310,14 @@ def get_json_unseen_papers(cats: list,
     result = []
     for i in range(recent_range - 1):
         if not 2**i & recent_visit:
-            # current_user.recent_visit = current_user.recent_visit | 2**i
+            if (announce_date - timedelta(days=i)).weekday() > 4:
+                # no announcments on weekends
+                continue
             old_date_tmp, new_date_tmp, new_date = get_date_range(
                                 'today',
                                 announce_date - timedelta(days=i)
                                 )
+
             old_date = get_arxiv_sub_start(old_date_tmp.date())
             paper_query = Paper.query.filter(
                         Paper.cats.overlap(cats),
