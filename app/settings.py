@@ -1,7 +1,6 @@
 """Settings management: settings page and settings changes."""
 
 from json import loads, dumps
-from typing import Dict
 
 import logging
 
@@ -10,6 +9,7 @@ current_app
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
+from .utils import cast_args_to_dict
 
 settings_bp = Blueprint(
     'settings_bp',
@@ -137,23 +137,6 @@ def no_email():
     db.session.commit()
     return dumps({'success':True}), 201
 
-def cast_args_to_dict(args) -> Dict:
-    """Cast requests args to dictionary."""
-    prefs = []
-    # FIXME Fix key break with ampersand
-    for arg in args:
-        prefs.append(arg)
-
-    prefs = '&'.join(prefs)
-
-    if prefs == '':
-        return dict()
-
-    # convert to array of dict
-    prefs = loads(prefs)
-
-    return prefs
-
 def new_tag(tag, order):
     """Create new Tag object."""
     db_tag = Tag(name=tag['name'],
@@ -233,7 +216,7 @@ def update_list(old_list: PaperList, up_list: PaperList, order: int):
     old_list.name = up_list['name']
     old_list.order = order
 
-def tag_to_dict(tag: Tag) -> Dict:
+def tag_to_dict(tag: Tag) -> dict:
     """Transform Tag class object into dict."""
     tag_dict = {'id': tag.id,
                 'name': tag.name,

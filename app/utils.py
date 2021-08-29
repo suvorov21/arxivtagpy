@@ -2,6 +2,7 @@
 
 from os import linesep
 import logging
+from json import loads
 
 import smtplib
 
@@ -61,3 +62,20 @@ def get_lists_for_user() -> list:
               } for paper_list in paper_lists]
 
     return lists
+
+def cast_args_to_dict(args) -> dict:
+    """Cast requests args to dictionary."""
+    prefs = []
+    # FIXME Fix key break with ampersand
+    for arg in args:
+        prefs.append(arg)
+
+    prefs = '&'.join(prefs)
+
+    if prefs == '':
+        return dict()
+
+    # convert to array of dict
+    prefs = loads(prefs)
+
+    return prefs
