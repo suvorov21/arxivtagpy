@@ -12,15 +12,16 @@ from app.model import Paper
 
 def test_load_papers(client):
     """Test paper loading."""
-    response = client.get(url_for('auto_bp.load_papers', # nosec
-                                  token='test_token', # nosec
-                                  n_papers=500,
-                                  set='physics:hep-ex'
-                                  ))
+    response = client.post(url_for('auto_bp.load_papers', # nosec
+                                   token='test_token', # nosec
+                                   n_papers=500,
+                                   set='physics:hep-ex'
+                                   ))
     assert response.status_code == 201
 
 def test_paper_api(client, login):
     """Test paper API."""
+    response5 = client.get(url_for('main_bp.data', date='unseen'))
     response4 = client.get(url_for('main_bp.data', date='last'))
     response1 = client.get(url_for('main_bp.data', date='today'))
     response2 = client.get(url_for('main_bp.data', date='week'))
@@ -34,6 +35,7 @@ def test_paper_api(client, login):
     assert response2.status_code == 200
     assert response3.status_code == 200
     assert response4.status_code == 200
+    assert response5.status_code == 200
     assert data1.get('papers') is not None
     assert len(data1.get('papers')) > 0
     assert data2.get('papers') is not None
@@ -41,7 +43,7 @@ def test_paper_api(client, login):
     assert data3.get('papers') is not None
     assert len(data3.get('papers')) > 0
     assert data4.get('papers') is not None
-    assert len(data4.get('papers')) > 0
+    # assert len(data4.get('papers')) > 0
 
 def test_paper_dates(client, login):
     """Test dates of the papers in the API response."""
@@ -105,9 +107,26 @@ def test_del_bm(client, login):
                            )
     assert response.status_code == 201
 
+def test_del_wrong_bm(client, login):
+    """Test wrong bookmark delete."""
+    response = client.post(url_for('main_bp.del_bm'),
+                           data={'paper_id': 11,
+                                 'list_id': 1
+                                 }
+                           )
+    assert response.status_code == 204
+
 def test_bookshelf_page(client, login):
     """Test bookmark page load."""
     response = client.get(url_for('main_bp.bookshelf'),
+                          follow_redirects=True
+                          )
+    assert response.status_code == 200
+
+def test_bookshelf_page(client, login):
+    """Test bookmark page with a wrong argument."""
+    response = client.get(url_for('main_bp.bookshelf'),
+                          data={'page': 'abracadabra'},
                           follow_redirects=True
                           )
     assert response.status_code == 200
@@ -121,25 +140,25 @@ def test_settings_page(client, login):
 
 def test_wrong_token(client):
     """Test access of the auto functions with wrong token."""
-    response = client.get(url_for('auto_bp.load_papers', # nosec
-                              token='wrong_token', # nosec
-                              ))
+    response = client.post(url_for('auto_bp.load_papers', # nosec
+                                   token='wrong_token', # nosec
+                                   ))
     assert response.status_code == 422
 
 def test_paper_bookmark(client):
     """Test auto bookmark papers."""
-    response = client.get(url_for('auto_bp.bookmark_papers', # nosec
-                              token='test_token' # nosec
-                              ))
+    response = client.post(url_for('auto_bp.bookmark_papers', # nosec
+                                   token='test_token' # nosec
+                                   ))
     assert response.status_code == 201
 
 
 def test_paper_email(client):
     """Test auto email papers."""
-    response = client.get(url_for('auto_bp.email_papers', # nosec
-                              token='test_token', # nosec
-                              do_send=False
-                              ))
+    response = client.post(url_for('auto_bp.email_papers', # nosec
+                                   token='test_token', # nosec
+                                   do_send=False
+                                   ))
     assert response.status_code == 201
 
 def test_public_tags(client, login):
@@ -151,10 +170,10 @@ def test_public_tags(client, login):
 
 def test_paper_delete(client, login):
     """Test paper delete endpoint."""
-    response = client.get(url_for('auto_bp.delete_papers', # nosec
-                                  token='test_token', # nosec
-                                  week=1
-                                  ))
+    response = client.post(url_for('auto_bp.delete_papers', # nosec
+                                   token='test_token', # nosec
+                                   week=1
+                                   ))
     # download papers again for future tests
     client.get(url_for('auto_bp.load_papers', # nosec
                        token='test_token', # nosec
