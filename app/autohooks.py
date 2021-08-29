@@ -14,12 +14,13 @@ from functools import wraps
 
 from flask import Blueprint, current_app, request, render_template
 from flask_mail import Message
+from flask_login import current_user, login_required
 
 from .model import User, Tag, db, PaperList, Paper, UpdateDate, \
 paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from .utils import mail_catch
+from .utils import mail_catch, cast_args_to_dict
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -43,7 +44,7 @@ def check_token(funct):
 
     return my_wrapper
 
-@auto_bp.route('/load_papers', methods=['GET'])
+@auto_bp.route('/load_papers', methods=['POST'])
 @check_token
 def load_papers():
     """Load papers and store in the database."""
@@ -94,7 +95,7 @@ def load_papers():
 
     return dumps({'success': True}), 201
 
-@auto_bp.route('/delete_papers', methods=['GET'])
+@auto_bp.route('/delete_papers', methods=['POST'])
 @check_token
 def delete_papers():
     """Clean up paper table."""
@@ -121,7 +122,53 @@ def delete_papers():
     return dumps({'success':True}), 201
 
 
-@auto_bp.route('/bookmark_papers', methods=['GET'])
+@auto_bp.route('/bookmark_papers_user', methods=['POST'])
+@login_required
+def bookmark_user():
+    """Bookmarks papers for a given user for the last months."""
+    name = cast_args_to_dict(request.form.to_dict().keys()).get('name')
+    if not name:
+        logging.error('Tag name is not specified')
+        return dumps({'success': False}), 422
+
+    tag = Tag.query.filter_by(name=name,
+                              user_id=current_user.id
+                              ).first()
+
+    old_date = datetime.now() - timedelta(weeks=4)
+    papers = Paper.query.filter(Paper.cats.overlap(current_user.arxiv_cat),
+                                Paper.date_up > old_date
+                                ).order_by(Paper.date_up).all()
+
+
+    paper_list = PaperList.query.filter_by(user_id=current_user.id,
+                                           name=tag.name
+                                           ).first()
+
+    if not paper_list:
+        paper_list = PaperList(name=tag.name,
+                               user_id=current_user.id,
+                               not_seen=0
+                               )
+        db.session.add(paper_list)
+        db.session.commit()
+
+    for paper in papers:
+        if tag_suitable(render_paper_json(paper), tag.rule):
+            # check if paper is already there to prevent dublicatiopn
+            result = db.session.query(paper_associate
+                                      ).filter_by(list_ref_id=paper_list.id,
+                                                  paper_ref_id=paper.id
+                                                  ).first()
+            if not result:
+                paper_list.papers.append(paper)
+                paper_list.not_seen += 1
+
+    db.session.commit()
+    return dumps({'success':True}), 201
+
+
+@auto_bp.route('/bookmark_papers', methods=['POST'])
 @check_token
 def bookmark_papers():
     """
@@ -204,7 +251,7 @@ def bookmark_papers():
     return dumps({'success':True}), 201
 
 
-@auto_bp.route('/email_papers', methods=['GET'])
+@auto_bp.route('/email_papers', methods=['POST'])
 @check_token
 def email_papers():
     """

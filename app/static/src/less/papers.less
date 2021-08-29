@@ -166,6 +166,48 @@
   background-color: var(--pagination-na-bg) !important;
 }
 
+#lists-popup-wrap {
+  width: auto;
+  display: inline-block;
+  position: absolute;
+}
+
+#lists-popup {
+  // position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 999;
+  background-color: var(--popup-bg);
+  border-color: var(--popup-border);
+  color: var(--popup-font);
+  border-style: none;
+  border-width: 2px;
+  display: inline-block;
+  overflow: hidden;
+  // prevent new text line
+  white-space: nowrap;
+}
+
+.no-width {
+  width: 0%;
+  transition: width 0.2s ease-in-out;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.list-name {
+  font-size: 1rem;
+  padding: 0.2rem 2rem;
+  overflow: hidden;
+  cursor: pointer;
+
+  &:hover {
+    background-color: var(--unseen-hover-bg);
+  }
+}
+
 .pagination > li > a:focus,
 .pagination > li > a:hover,
 .pagination > li > span:focus,

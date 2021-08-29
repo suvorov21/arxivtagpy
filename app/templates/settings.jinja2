@@ -153,7 +153,8 @@
                       <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
                       <label class="form-check-label" for="book-check">Bookmark automatically</label>
                       <small class="form-text text-muted">
-                        Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later
+                        Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
+                        <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
                       </small>
                       <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
                       <label class="form-check-label" for="email-check">Email notification</label>
@@ -179,6 +180,17 @@
               </form>
               <h3>Your bookshelf</h3>
               <div id="book-list"></div>
+              <form class="mt-3" name="add-book-form" onsubmit="return false">
+                <div class="form-row align-items-center">
+                  <div class="col-auto">
+                    <input type="text" class="form-control" id="new-list" name='new-list' placeholder="New list" size=25 required="required">
+                  </div>
+                  <div class="col-auto">
+                    <button type="submit" class="btn btn-primary" id="add-book-btn">Add</button>
+                  </div>
+                </div>
+              </form>
+
             {% endif %}
             {% if data['page'] == 'pref' %}
               <div id="pref-set">

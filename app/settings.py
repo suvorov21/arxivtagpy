@@ -1,13 +1,15 @@
 """Settings management: settings page and settings changes."""
 
 from json import loads, dumps
-from typing import Dict
+
+import logging
 
 from flask import Blueprint, render_template, session, request, \
 current_app
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
+from .utils import cast_args_to_dict
 
 settings_bp = Blueprint(
     'settings_bp',
@@ -55,6 +57,7 @@ def mod_cat():
     new_cats = cast_args_to_dict(request.form.to_dict().keys())
 
     if len(new_cats) == 0:
+        logging.error('Error during cats mod. Requiest %r', new_cats)
         return dumps({'success': False}), 422
     if new_cats == ["null"]:
         new_cats = []
@@ -87,6 +90,24 @@ def mod_list():
                            current_user.lists
                            )
 
+@settings_bp.route('/add_list', methods=['POST'])
+@login_required
+def add_list():
+    """Add a new paper list."""
+    args = cast_args_to_dict(request.form.to_dict().keys())
+
+    if args['name'] == '':
+        logging.error('Error during list add. Requiest %r', args)
+        return dumps({'success': False}), 422
+
+    n_list = PaperList(name=args['name'],
+                       order=999,
+                       not_seen=0
+                       )
+
+    current_user.lists.append(n_list)
+    db.session.commit()
+    return dumps({'success':True}), 201
 
 @settings_bp.route('/mod_pref', methods=['POST'])
 @login_required
@@ -115,23 +136,6 @@ def no_email():
 
     db.session.commit()
     return dumps({'success':True}), 201
-
-def cast_args_to_dict(args) -> Dict:
-    """Cast requests args to dictionary."""
-    prefs = []
-    # FIXME Fix key break with ampersand
-    for arg in args:
-        prefs.append(arg)
-
-    prefs = '&'.join(prefs)
-
-    if prefs == '':
-        return dict()
-
-    # convert to array of dict
-    prefs = loads(prefs)
-
-    return prefs
 
 def new_tag(tag, order):
     """Create new Tag object."""
@@ -212,7 +216,7 @@ def update_list(old_list: PaperList, up_list: PaperList, order: int):
     old_list.name = up_list['name']
     old_list.order = order
 
-def tag_to_dict(tag: Tag) -> Dict:
+def tag_to_dict(tag: Tag) -> dict:
     """Transform Tag class object into dict."""
     tag_dict = {'id': tag.id,
                 'name': tag.name,
