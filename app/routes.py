@@ -16,7 +16,7 @@ from .render import render_papers, render_title, \
 
 from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers
-from .paper_api import get_arxiv_sub_start, get_arxiv_sub_end, \
+from .paper_api import get_arxiv_sub_start, \
     get_annonce_date, get_axiv_announce_date, get_date_range
 from .utils import url, get_lists_for_user
 from .settings import load_prefs, default_data
@@ -271,7 +271,9 @@ def bookshelf():
         logging.error('Page argument is not int but: %r',
                       request.args['page']
                       )
-        page = 1
+        return redirect(url('main_bp.bookshelf',
+                            list_id=display_list,
+                            page=1))
 
     lists = get_lists_for_user()
 
@@ -396,7 +398,6 @@ def collect_feedback():
     """Send feedback by email to the admin."""
     sender = current_user.email
     text = request.form.get('body')
-    print(text)
 
     body = f'Feedback from {sender}\n\n'
     body += text
