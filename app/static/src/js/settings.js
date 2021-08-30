@@ -730,7 +730,7 @@ window.onload = function() {
       raiseAlert("Requeest is submitted. Your bookshelf will be updated soon.",
                  "success"
                  );
-      $.post(url, JSON.stringify(data))
+      $.post(url, data)
         .done(function() {
           raiseAlert("Successfully updated bookshelf.", "success");
           return false;
