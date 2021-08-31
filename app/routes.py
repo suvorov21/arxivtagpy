@@ -306,6 +306,9 @@ def bookshelf():
                             )
 
     render_papers(papers)
+    # numerate paper for easier delete on the frontend
+    for num, paper in enumerate(papers['papers']):
+        paper['num'] = num
     tags_dict = render_tags_front(session['tags'])
 
     url_base = url_for('main_bp.bookshelf',
