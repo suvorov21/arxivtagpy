@@ -5,7 +5,7 @@ from json import dumps
 import logging
 
 from flask import Blueprint, render_template, session, redirect, \
-    request, jsonify
+    request, jsonify, url_for
 from flask_login import current_user, login_required
 from flask_mail import Message
 
@@ -18,7 +18,7 @@ from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers
 from .paper_api import get_arxiv_sub_start, \
     get_annonce_date, get_axiv_announce_date, get_date_range
-from .utils import url, get_lists_for_user
+from .utils import get_lists_for_user
 from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
@@ -39,7 +39,7 @@ def root():
     """Landing page."""
     load_prefs()
     if current_user.is_authenticated:
-        return redirect(url('main_bp.paper_land'))
+        return redirect(url_for('main_bp.paper_land'))
 
     return render_template('about.jinja2',
                            data=default_data()
@@ -52,17 +52,17 @@ def papers_list():
     date_type = request.args.get('date')
     # date is obligatory argument
     if date_type is None:
-        return redirect(url('main_bp.papers_list',
-                            date='today',
-                            *request.args
-                            ))
+        return redirect(url_for('main_bp.papers_list',
+                                date='today',
+                                *request.args
+                                ))
 
     # page is obligatory for front-end rendering
     if request.args.get('page') is None:
-        return redirect(url('main_bp.papers_list',
-                            **request.args,
-                            page='1'
-                            ))
+        return redirect(url_for('main_bp.papers_list',
+                                **request.args,
+                                page='1'
+                                ))
 
     # load preferences
     load_prefs()
@@ -107,15 +107,15 @@ def paper_land():
         visit = bool(current_user.recent_visit & (2 ** i))
         past_week.append({'day':datetime.strftime(day,
                                             '%A, %d %B'),
-                          'href': url('main_bp.papers_list') + \
-                                      '?date=range&from=' + \
-                                      datetime.strftime(day,
-                                                        '%d-%m-%Y'
-                                                        ) + \
-                                      '&until=' + \
-                                      datetime.strftime(day,
-                                                        '%d-%m-%Y'
-                                                        ),
+                          'href': url_for('main_bp.papers_list') + \
+                                          '?date=range&from=' + \
+                                          datetime.strftime(day,
+                                                            '%d-%m-%Y'
+                                                            ) + \
+                                          '&until=' + \
+                                          datetime.strftime(day,
+                                                            '%d-%m-%Y'
+                                                            ),
                           'visit': visit
                           })
         count += 1
@@ -257,13 +257,13 @@ def bookshelf():
     if 'list_id' not in request.args:
         ll = PaperList.query.filter_by(user_id=current_user.id \
                                        ).order_by(PaperList.order).first()
-        return redirect(url('main_bp.bookshelf', list_id=ll.id))
+        return redirect(url_for('main_bp.bookshelf', list_id=ll.id))
     display_list = request.args['list_id']
 
     if 'page' not in request.args:
-        return redirect(url('main_bp.bookshelf',
-                            list_id=display_list,
-                            page=1))
+        return redirect(url_for('main_bp.bookshelf',
+                                list_id=display_list,
+                                page=1))
 
     try:
         page = int(request.args['page'])
@@ -271,9 +271,9 @@ def bookshelf():
         logging.error('Page argument is not int but: %r',
                       request.args['page']
                       )
-        return redirect(url('main_bp.bookshelf',
-                            list_id=display_list,
-                            page=1))
+        return redirect(url_for('main_bp.bookshelf',
+                                list_id=display_list,
+                                page=1))
 
     lists = get_lists_for_user()
 
@@ -308,9 +308,9 @@ def bookshelf():
     render_papers(papers)
     tags_dict = render_tags_front(session['tags'])
 
-    url_base = url('main_bp.bookshelf',
-                   list_id=display_list
-                   )
+    url_base = url_for('main_bp.bookshelf',
+                       list_id=display_list
+                       )
     url_base += '&page='
 
     return render_template('bookshelf.jinja2',
