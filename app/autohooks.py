@@ -289,7 +289,9 @@ def email_papers():
     do_send = request.args.get('do_send')
     logging.info('Start paper email sending update do_send=%r', do_send)
 
-    tags = Tag.query.filter_by(email=True).order_by(Tag.user_id).all()
+    tags = Tag.query.filter_by(email=True).order_by(Tag.user_id,
+                                                    Tag.order
+                                                    ).all()
 
     # the date until one the papers will be processed
     old_date_record = get_old_update_date()
