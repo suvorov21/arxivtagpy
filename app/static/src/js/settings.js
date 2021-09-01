@@ -158,7 +158,12 @@ function renderTags() {
     };
 
     tagElement.ondragover = function(event) {
-      let target = event.target.getAttribute("id").split("-")[2];
+      let target = event.target;
+      // happens if drag over MATHJAX
+      while (target.getAttribute("id") === null) {
+        target = target.parentElement;
+      }
+      target = target.getAttribute("id").split("-")[2];
       dragTarget = findTagId(target, "id");
     };
   });

@@ -364,9 +364,10 @@ function filterVisiblePapers() {
                                                                )
   );
 
-  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE + 1);
-  let plural = nPages > 1 ? "s" : "";
-  $("#passed").text(VISIBLE + " results (" + nPages + " page" + plural + ")");
+  let text = String(VISIBLE) + " result";
+  text += VISIBLE > 1 ? "s" : "";
+  text += " over " + String(DATA.papers.length);
+  $("#passed").text(text);
 
   if (!VISIBLE) {
     $("#paper-list-content").empty();
@@ -409,13 +410,21 @@ const tagBorder = (num, border) => {
 const checkTag = (event) => {
   /** Click on tag.
    */
-  let number = event.target.getAttribute("id").split("-")[2];
+  let target = event.target;
+  while (target.getAttribute("id") === null) {
+    target = target.parentElement;
+  }
+  number = target.getAttribute("id").split("-")[2];
   let thisVisible = prefs.data.tagsArr[parseInt(number, 10)].vis;
   let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
+  console.log(number, thisVisible, allVisible, target.style.borderColor)
+
   // if this tag is selected
   if (thisVisible) {
-    if (allVisible) {
+    if (allVisible &&
+       (target.style.borderColor === "transparent" ||
+        target.style.borderColor === undefined)) {
       // select only this tag
       // make all others invisible
       prefs.data.tagsArr.forEach((tag) => {tag.vis = false;});
@@ -514,6 +523,7 @@ function renderTags() {
   TAGS.forEach((tag, num) => {
 
     if (!prefs.data.tagsArr.map((x) => x.name).includes(tag.name)) {
+      console.log('Add', tag.name)
       prefs.data.tagsArr.push({'name': tag.name,
                                'vis': true,
                                'color': tag.color,
@@ -531,9 +541,11 @@ function renderTags() {
 
   let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
-  for (let num = 0; num < prefs.data.tagsArr.length; num++) {
-    let tag = prefs.data.tagsArr[num];
-    if (!tag.name in tagNames) {
+  let num = 0;
+  for (let tagIter = 0; tagIter < prefs.data.tagsArr.length; tagIter++) {
+    let tag = prefs.data.tagsArr[tagIter];
+    if (!tagNames.includes(tag.name)) {
+      console.log('Delete', tag.name)
       unusedTags.push(num);
       continue;
     }
@@ -560,6 +572,8 @@ function renderTags() {
     document.getElementById("tags").appendChild(parent);
     parent.appendChild(tagElement);
     parent.appendChild(counter);
+
+    num++;
   };
 
   if (parseTex) {
