@@ -352,8 +352,8 @@ function filterVisiblePapers() {
 
   let tagsShow = [];
   prefs.data.tagsArr.forEach((tag) => {
-    tagsShow.push(tag.vis)
-  })
+    tagsShow.push(tag.vis);
+  });
 
   let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
@@ -414,11 +414,9 @@ const checkTag = (event) => {
   while (target.getAttribute("id") === null) {
     target = target.parentElement;
   }
-  number = target.getAttribute("id").split("-")[2];
+  let number = target.getAttribute("id").split("-")[2];
   let thisVisible = prefs.data.tagsArr[parseInt(number, 10)].vis;
   let allVisible = prefs.data.tagsArr.every((x) => x.vis);
-
-  console.log(number, thisVisible, allVisible, target.style.borderColor)
 
   // if this tag is selected
   if (thisVisible) {
@@ -517,35 +515,33 @@ function renderCats() {
 }
 
 function renderTags() {
-  let tagNames = TAGS.map((x) => x.name)
-  let unusedTags = []
+  let tagNames = TAGS.map((x) => x.name);
+  let unusedTags = [];
 
   TAGS.forEach((tag, num) => {
 
     if (!prefs.data.tagsArr.map((x) => x.name).includes(tag.name)) {
-      console.log('Add', tag.name)
-      prefs.data.tagsArr.push({'name': tag.name,
-                               'vis': true,
-                               'color': tag.color,
-                               'order': num
+      prefs.data.tagsArr.push({"name": tag.name,
+                               "vis": true,
+                               "color": tag.color,
+                               "order": num
                               })
     } else {
-      let cookTag = prefs.data.tagsArr.find((tagC) => tagC.name === tag.name)
+      let cookTag = prefs.data.tagsArr.find((tagC) => tagC.name === tag.name);
       if (cookTag.order !== num) {
         cookTag.order = num;
       }
     }
   });
 
-  prefs.data.tagsArr.sort((a, b) => {return a.order - b.order});
+  prefs.data.tagsArr.sort((a, b) => {return a.order - b.order;});
 
   let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
   let num = 0;
   for (let tagIter = 0; tagIter < prefs.data.tagsArr.length; tagIter++) {
-    let tag = prefs.data.tagsArr[tagIter];
+    let tag = prefs.data.tagsArr[parseInt(tagIter, 10)];
     if (!tagNames.includes(tag.name)) {
-      console.log('Delete', tag.name)
       unusedTags.push(num);
       continue;
     }
@@ -574,7 +570,7 @@ function renderTags() {
     parent.appendChild(counter);
 
     num++;
-  };
+  }
 
   if (parseTex) {
     MathJax.typesetPromise();
