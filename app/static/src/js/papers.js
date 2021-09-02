@@ -4,13 +4,12 @@
 
 let PAPERS_PER_PAGE = 40;
 
-var TAGSSHOW = [];
 var PAGE = 1;
 var VISIBLE = 0;
 
 var BOOK_BTN = -1;
 
-const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
+const checkPaperVis = (paper, catsShow, allVisible, tagsShow) => {
   /** Check if the paper passes visibility rules.
    * Logic: if check-box is off --> cut all the affected papers
    */
@@ -21,7 +20,7 @@ const checkPaperVis = (paper, catsShow, allVisible, TAGSSHOW) => {
       // filter on categories check boxes
       catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
       // filter on tags
-      (allVisible || (TAGSSHOW.filter((value, index) => value && paper.tags.includes(index)).length > 0))
+      (allVisible || (tagsShow.filter((value, index) => value && paper.tags.includes(index)).length > 0))
       ) {
     VISIBLE += 1;
     return true;
@@ -351,18 +350,24 @@ function filterVisiblePapers() {
     }
   }
 
-  let allVisible = TAGSSHOW.every((x) => x);
+  let tagsShow = [];
+  prefs.data.tagsArr.forEach((tag) => {
+    tagsShow.push(tag.vis);
+  });
+
+  let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
   DATA.papersVis = DATA.papers.filter((paper) => checkPaperVis(paper,
-                                                                 catsShow,
-                                                                 allVisible,
-                                                                 TAGSSHOW
-                                                                 )
+                                                               catsShow,
+                                                               allVisible,
+                                                               tagsShow
+                                                               )
   );
 
-  let nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE + 1);
-  let plural = nPages > 1 ? "s" : "";
-  $("#passed").text(VISIBLE + " results (" + nPages + " page" + plural + ")");
+  let text = String(VISIBLE) + " result";
+  text += VISIBLE > 1 ? "s" : "";
+  text += " over " + String(DATA.papers.length);
+  $("#passed").text(text);
 
   if (!VISIBLE) {
     $("#paper-list-content").empty();
@@ -395,7 +400,7 @@ function checkCat(event) {
 }
 
 const tagBorder = (num, border) => {
-  TAGSSHOW[parseInt(num, 10)] = border;
+  prefs.data.tagsArr[parseInt(num, 10)].vis = border;
 
   $("#tag-label-" + num).css("border-color",
                              border ? cssVar("--tag_border_color") : "transparent"
@@ -405,26 +410,32 @@ const tagBorder = (num, border) => {
 const checkTag = (event) => {
   /** Click on tag.
    */
-  let number = event.target.getAttribute("id").split("-")[2];
-  let thisVisible = TAGSSHOW[parseInt(number, 10)];
-  let allVisible = TAGSSHOW.every((x) => x);
+  let target = event.target;
+  while (target.getAttribute("id") === null) {
+    target = target.parentElement;
+  }
+  let number = target.getAttribute("id").split("-")[2];
+  let thisVisible = prefs.data.tagsArr[parseInt(number, 10)].vis;
+  let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
   // if this tag is selected
   if (thisVisible) {
-    if (allVisible) {
+    if (allVisible &&
+       (target.style.borderColor === "transparent" ||
+        target.style.borderColor === undefined)) {
       // select only this tag
       // make all others invisible
-      TAGSSHOW = TAGSSHOW.map(() => false);
+      prefs.data.tagsArr.forEach((tag) => {tag.vis = false;});
 
       // but this one visible
       tagBorder(number, true);
     } else {
       // hide this tag
-      TAGSSHOW[parseInt(number, 10)] = false;
+      prefs.data.tagsArr[parseInt(number, 10)].vis = false;
       // if this was the only left tag
-      if (TAGSSHOW.filter((value) => value).length === 0) {
+      if (prefs.data.tagsArr.filter((value) => value.vis).length === 0) {
         // make all tags visible
-        TAGSSHOW = TAGSSHOW.map(() => true);
+        prefs.data.tagsArr.forEach((tag) => {tag.vis = true;});
       }
       // remove border
       $("#tag-label-" + number).css("border-color", "transparent");
@@ -434,6 +445,7 @@ const checkTag = (event) => {
     // make this tag selected
     tagBorder(number, true);
   }
+  prefs.save();
   pageChange();
   setTimeout(function () {
     filterVisiblePapers();
@@ -503,13 +515,36 @@ function renderCats() {
 }
 
 function renderTags() {
-  TAGS.forEach((tag, num) => {
-    // store tag in settings for visibility control
-    // do NOT store this values in cookies
-    // keep it just for the current session
+  let tagNames = TAGS.map((x) => x.name);
+  let unusedTags = [];
 
-    // TODO think about storage in cookies?
-    TAGSSHOW.push(true);
+  TAGS.forEach((tag, num) => {
+
+    if (!prefs.data.tagsArr.map((x) => x.name).includes(tag.name)) {
+      prefs.data.tagsArr.push({"name": tag.name,
+                               "vis": true,
+                               "color": tag.color,
+                               "order": num
+                              })
+    } else {
+      let cookTag = prefs.data.tagsArr.find((tagC) => tagC.name === tag.name);
+      if (cookTag.order !== num) {
+        cookTag.order = num;
+      }
+    }
+  });
+
+  prefs.data.tagsArr.sort((a, b) => {return a.order - b.order;});
+
+  let allVisible = prefs.data.tagsArr.every((x) => x.vis);
+
+  let num = 0;
+  for (let tagIter = 0; tagIter < prefs.data.tagsArr.length; tagIter++) {
+    let tag = prefs.data.tagsArr[parseInt(tagIter, 10)];
+    if (!tagNames.includes(tag.name)) {
+      unusedTags.push(num);
+      continue;
+    }
 
     let parent = document.createElement("div");
     parent.className = "d-flex justify-content-between align-items-center";
@@ -522,6 +557,9 @@ function renderTags() {
 
     tagElement.addEventListener("click", checkTag);
 
+    tagElement.style.borderColor =
+                    tag.vis && !allVisible ? cssVar("--tag_border_color") : "transparent";
+
     let counter = document.createElement("div");
     counter.className = "counter";
     counter.id = "tag-count-"+num;
@@ -530,11 +568,15 @@ function renderTags() {
     document.getElementById("tags").appendChild(parent);
     parent.appendChild(tagElement);
     parent.appendChild(counter);
-  });
+
+    num++;
+  }
 
   if (parseTex) {
     MathJax.typesetPromise();
   }
+  unusedTags.forEach((num) => prefs.data.tagsArr.splice(num, 1));
+  prefs.save();
 }
 
 function renderNov() {

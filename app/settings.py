@@ -5,7 +5,7 @@ from json import loads, dumps
 import logging
 
 from flask import Blueprint, render_template, session, request, \
-current_app
+current_app, redirect, url_for
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
@@ -43,6 +43,10 @@ def settings_page():
         data['tags'] = dumps(session['tags'])
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
+    else:
+        return redirect(url_for('settings_bp.settings_page',
+                                page='cat'
+                                ))
 
     return render_template('settings.jinja2',
                            data=data

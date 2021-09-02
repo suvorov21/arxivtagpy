@@ -35,6 +35,10 @@ if (!prefs.data.hasOwnProperty("catsArr")) {
   prefs.data.catsArr = {};
 }
 
+if (!prefs.data.hasOwnProperty("tagsArr")) {
+  prefs.data.tagsArr = [];
+}
+
 if (!prefs.data.hasOwnProperty("showNov")) {
   prefs.data.showNov = [true, true, true];
 }

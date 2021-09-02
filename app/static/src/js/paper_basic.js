@@ -6,8 +6,6 @@ function renderOcoins(paper) {
   let ocoins = {
     "ctx_ver": "Z39.88-2004",
     "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
-    "rft_id": encodeURIComponent(paper.ref_web),
-    "rft_id": encodeURIComponent(paper.ref_doi),
     "rft.atitle": encodeURIComponent(paper.title),
     "rft.jtitle": encodeURIComponent("arXiv:" + paper.id + " [" + paper.cats[0] + "]"),
     "rft.date": encodeURIComponent(paper.date_up),
@@ -16,13 +14,16 @@ function renderOcoins(paper) {
     "rft.description": encodeURIComponent(paper.abstract),
   };
 
+  ocoins["aulast"] = encodeURIComponent(paper.author);
+  ocoins["rft_id"] = paper.ref_doi === undefined ? encodeURIComponent(paper.ref_web): encodeURIComponent(paper.ref_doi);
+
   ocoins = JSON.stringify(ocoins);
   ocoins = ocoins.replace(/\"/g, "");
   ocoins = ocoins.replace(/,/g, "&");
   ocoins = ocoins.replace(/:/g, "=");
   ocoins = ocoins.slice(1, ocoins.length - 1);
 
-  ocoins += paper.author;
+
 
   return ocoins;
 }

@@ -158,7 +158,12 @@ function renderTags() {
     };
 
     tagElement.ondragover = function(event) {
-      let target = event.target.getAttribute("id").split("-")[2];
+      let target = event.target;
+      // happens if drag over MATHJAX
+      while (target.getAttribute("id") === null) {
+        target = target.parentElement;
+      }
+      target = target.getAttribute("id").split("-")[2];
       dragTarget = findTagId(target, "id");
     };
   });
@@ -730,7 +735,7 @@ window.onload = function() {
       raiseAlert("Requeest is submitted. Your bookshelf will be updated soon.",
                  "success"
                  );
-      $.post(url, JSON.stringify(data))
+      $.post(url, data)
         .done(function() {
           raiseAlert("Successfully updated bookshelf.", "success");
           return false;

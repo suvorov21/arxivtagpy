@@ -54,6 +54,11 @@ function deleteBookmark(event) {
       raiseAlert("Paper has been deleted", "success");
     }
     $("#paper-"+num).css("display", "none");
+    DATA.papers.splice(num, 1);
+    DATA.papers.forEach((paper, iter) => {
+      let numEl = document.getElementById("paper-num-" + parseInt(paper.num, 10));
+      numEl.textContent = String(iter + 1);
+    });
   }).fail(function(){
     raiseAlert("Paper is not deleted due to server error", "danger");
   });

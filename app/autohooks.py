@@ -123,31 +123,49 @@ def delete_papers():
 
 
 @auto_bp.route('/bookmark_papers_user', methods=['POST'])
-@login_required
+# @login_required
 def bookmark_user():
     """Bookmarks papers for a given user for the last months."""
-    name = cast_args_to_dict(request.form.to_dict().keys()).get('name')
+    name = request.form.to_dict().get('name')
+
+    # by default work with current user
+    # but in principle any user could be triggered, but token is required
+    email = request.form.to_dict().get('email')
+    if email and \
+        request.form.to_dict().get('token') == current_app.config['TOKEN']:
+        usr = User.query.filter_by(email=email).first()
+    elif current_user.is_authenticated:
+        usr = current_user
+    else:
+        logging.error('Bad bookmark request %r', request.form)
+
+
+    try:
+        weeks = int(request.form.to_dict().get('weeks'))
+    except (TypeError, ValueError):
+        weeks = 4
+
     if not name:
         logging.error('Tag name is not specified')
         return dumps({'success': False}), 422
 
     tag = Tag.query.filter_by(name=name,
-                              user_id=current_user.id
+                              user_id=usr.id
                               ).first()
 
-    old_date = datetime.now() - timedelta(weeks=4)
-    papers = Paper.query.filter(Paper.cats.overlap(current_user.arxiv_cat),
+    old_date = datetime.now() - timedelta(weeks=weeks)
+    papers = Paper.query.filter(Paper.cats.overlap(usr.arxiv_cat),
                                 Paper.date_up > old_date
                                 ).order_by(Paper.date_up).all()
 
 
-    paper_list = PaperList.query.filter_by(user_id=current_user.id,
+    paper_list = PaperList.query.filter_by(user_id=usr.id,
                                            name=tag.name
                                            ).first()
 
     if not paper_list:
         paper_list = PaperList(name=tag.name,
-                               user_id=current_user.id,
+                               user_id=usr.id,
                                not_seen=0
                                )
         db.session.add(paper_list)
@@ -271,7 +289,9 @@ def email_papers():
     do_send = request.args.get('do_send')
     logging.info('Start paper email sending update do_send=%r', do_send)
 
-    tags = Tag.query.filter_by(email=True).order_by(Tag.user_id).all()
+    tags = Tag.query.filter_by(email=True).order_by(Tag.user_id,
+                                                    Tag.order
+                                                    ).all()
 
     # the date until one the papers will be processed
     old_date_record = get_old_update_date()
