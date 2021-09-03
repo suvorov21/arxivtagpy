@@ -1,7 +1,7 @@
 """Test papers functionality."""
 # pylint: disable=redefined-outer-name, unused-argument
 
-from json import loads
+from json import loads, dumps
 from datetime import datetime
 
 from test.conftest import DEFAULT_LIST
@@ -75,6 +75,40 @@ def test_paper_page(client, login):
                           )
     assert response.status_code == 200
 
+def test_paper_page_args(client, login):
+    """Test paper page load with different date types."""
+    response1 = client.get(url_for('main_bp.papers_list',
+                                   date='today'
+                                   ),
+                           follow_redirects=True
+                           )
+    response2 = client.get(url_for('main_bp.papers_list',
+                                   date='week'
+                                   ),
+                           follow_redirects=True
+                           )
+    response3 = client.get(url_for('main_bp.papers_list',
+                                   date='month'
+                                   ),
+                           follow_redirects=True
+                           )
+    response4 = client.get(url_for('main_bp.papers_list',
+                                   date='last'
+                                   ),
+                           follow_redirects=True
+                           )
+    response5 = client.get(url_for('main_bp.papers_list',
+                                   date='unseen'
+                                   ),
+                           follow_redirects=True
+                           )
+
+    assert response1.status_code == 200
+    assert response2.status_code == 200
+    assert response3.status_code == 200
+    assert response4.status_code == 200
+    assert response5.status_code == 200
+
 def test_signup_page(client):
     """Test sign up page."""
     response = client.get(url_for('auth_bp.signup'))
@@ -138,6 +172,7 @@ def test_settings_page(client, login):
                           )
     assert response.status_code == 200
 
+
 def test_wrong_token(client):
     """Test access of the auto functions with wrong token."""
     response = client.post(url_for('auto_bp.load_papers', # nosec
@@ -185,4 +220,23 @@ def test_paper_delete(client, login):
 def test_unsubscribe(client, login):
     """Test unsubscribe from all emails."""
     response = client.post(url_for('settings_bp.no_email'))
+    assert response.status_code == 201
+
+def test_bookmark_user(client, login):
+    """Test the bookmarking for the past month."""
+    data = {'name':'test'}
+    response = client.post(url_for('auto_bp.bookmark_user'),
+                           data=data
+                           )
+    assert response.status_code == 201
+
+def test_bookmark_user_token(client):
+    """Сheck the bookmarking triggered remotely with a token."""
+    data  = {'name': 'test',
+             'token': 'test_token',
+             'email': 'tester@gmail.com'
+             }
+    response = client.post(url_for('auto_bp.bookmark_user'),
+                           data=data
+                           )
     assert response.status_code == 201
