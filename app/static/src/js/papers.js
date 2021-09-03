@@ -228,8 +228,16 @@ const addBookmark = (event) => {
 
    setTimeout(() => {
      // put on the left from button
-     popup.style.top = String(top + window.scrollY) + "px";
-     popup.style.left = String(left + 60 + window.scrollX) + "px";
+
+     if (window.innerWidth - 60 - window.scrollX - left < 200) {
+      // on small screen put popup on the left bottom
+      popup.style.top = String(top + window.scrollY + 50) + "px";
+      popup.style.left = String(left - 100 + window.scrollX) + "px";
+     } else {
+      // im the other case put popup on the right
+      popup.style.top = String(top + window.scrollY) + "px";
+      popup.style.left = String(left + 60 + window.scrollX) + "px";
+     }
      popupContent.style.borderStyle = "solid";
      popupContent.classList.add("full-width");
      BOOK_BTN = target.id.split("-")[2];
