@@ -138,6 +138,7 @@ def bookmark_user():
         usr = current_user
     else:
         logging.error('Bad bookmark request %r', request.form)
+        return dumps({'success': False}), 422
 
 
     try:
@@ -153,6 +154,15 @@ def bookmark_user():
                               user_id=usr.id
                               ).first()
 
+    rule = request.form.to_dict().get('rule')
+
+    if not rule:
+        if tag:
+            rule = tag.rule
+        else:
+            logging.error('Bad bookmark request %r', request.form)
+            return dumps({'success': False}), 422
+
     old_date = datetime.now() - timedelta(weeks=weeks)
     papers = Paper.query.filter(Paper.cats.overlap(usr.arxiv_cat),
                                 Paper.date_up > old_date
@@ -160,11 +170,11 @@ def bookmark_user():
 
 
     paper_list = PaperList.query.filter_by(user_id=usr.id,
-                                           name=tag.name
+                                           name=name
                                            ).first()
 
     if not paper_list:
-        paper_list = PaperList(name=tag.name,
+        paper_list = PaperList(name=name,
                                user_id=usr.id,
                                not_seen=0
                                )
@@ -172,7 +182,7 @@ def bookmark_user():
         db.session.commit()
 
     for paper in papers:
-        if tag_suitable(render_paper_json(paper), tag.rule):
+        if tag_suitable(render_paper_json(paper), rule):
             # check if paper is already there to prevent dublicatiopn
             result = db.session.query(paper_associate
                                       ).filter_by(list_ref_id=paper_list.id,

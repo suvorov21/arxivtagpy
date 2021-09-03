@@ -9,13 +9,17 @@ var tableFilled = false;
 var loadingTags = false;
 
 // API call for settings modifications
-const submitSetting = (url, set) => {
+const submitSetting = (url, set, reload=false) => {
   if (set.length === 0) {
     set = ["null"];
   }
   $.post(url, JSON.stringify(set))
   .done(function() {
-    reloadSettings();
+    if (reload) {
+      window.location.reload()
+    } else {
+      reloadSettings();
+    }
     $(".btn-save").addClass("disabled");
     if ($("#btn-del").length > 0) {
       $("#btn-del").addClass("disabled");
@@ -600,7 +604,8 @@ function checkTag() {
     TAGS.push(TagDict);
   }
 
-  submitSetting("mod_tag", TAGS);
+  submitSetting("mod_tag", TAGS, true);
+  // window.location.reload();
 }
 
 function fillTagForm() {
@@ -731,7 +736,9 @@ window.onload = function() {
     document.getElementById("btn-book").onclick = (event) => {
       event.preventDefault();
       let url = "/bookmark_papers_user";
-      let data = {"name": document.forms["add-tag"]["tag_name"].value};
+      let data = {"name": document.forms["add-tag"]["tag_name"].value,
+                  "rule": document.forms["add-tag"]["tag_rule"].value,
+                };
       raiseAlert("Requeest is submitted. Your bookshelf will be updated soon.",
                  "success"
                  );
