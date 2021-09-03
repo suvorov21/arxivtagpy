@@ -16,7 +16,7 @@ const submitSetting = (url, set, reload=false) => {
   $.post(url, JSON.stringify(set))
   .done(function() {
     if (reload) {
-      window.location.reload()
+      window.location.reload();
     } else {
       reloadSettings();
     }

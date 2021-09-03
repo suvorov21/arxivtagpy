@@ -54,10 +54,10 @@ function deleteBookmark(event) {
       raiseAlert("Paper has been deleted", "success");
     }
     $("#paper-"+num).css("display", "none");
-    DATA.papers[num]['hide'] = true;
+    DATA.papers[parseInt(num, 10)]["hide"] = true;
     let visible = 1;
     DATA.papers.forEach((paper, iter) => {
-      if (!paper['hide']) {
+      if (!paper["hide"]) {
         let numEl = document.getElementById("paper-num-" + parseInt(paper.num, 10));
         numEl.textContent = String(visible);
         visible += 1;

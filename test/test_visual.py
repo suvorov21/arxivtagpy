@@ -108,7 +108,7 @@ class TestLiveServer():
         sleep(2)
         driver.find_element_by_id('tag-label-1').click()
         sleep(1)
-        new_val =  driver.find_element_by_id('tag-name').get_attribute("value")
+        new_val = driver.find_element_by_id('tag-name').get_attribute("value")
         assert new_val == 'testtest_test'
 
     def test_del_tag(self, driver):

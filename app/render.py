@@ -98,6 +98,7 @@ def key_tag(paper):
            paper['date_up']
 
 def key_date_up(paper):
+    """Sorting with date."""
     return paper['date_up']
 
 def render_papers(papers: Dict, **kwargs) -> Dict:
