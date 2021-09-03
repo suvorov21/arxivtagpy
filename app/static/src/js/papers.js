@@ -30,8 +30,12 @@ const checkPaperVis = (paper, catsShow, allVisible, tagsShow) => {
   }
 };
 
-function sortFunction(a, b, order=true) {
-  return order? a - b : b - a;
+function sortFunction(a, b, order=true, aDate=null, bDate=null) {
+  if (a !== b) {
+    return order? a - b : b - a;
+  }
+  // secondary sort always for date_up
+  return bDate - aDate;
 }
 
 function sortPapers() {
@@ -53,7 +57,10 @@ function sortPapers() {
         return -1;
       }
       return sortFunction(a.tags[0], b.tags[0],
-                          sortMethod === "tag-as"? true : false);
+                          sortMethod === "tag-as"? true : false,
+                          new Date(a.date_up),
+                          new Date(b.date_up)
+                          );
     });
   }
   // dates
@@ -62,16 +69,20 @@ function sortPapers() {
       let aDate = new Date(a.date_up);
       let bDate = new Date(b.date_up);
       return sortFunction(aDate, bDate,
-                          sortMethod === "date-up_des"? true : false);
+                          sortMethod === "date-up_des"? true : false,
+                          aDate, bDate);
     });
   }
 
   if (sortMethod.includes("date-sub")) {
     DATA.papersVis.sort((a, b) => {
-      let aDate = new Date(a.date_sub);
-      let bDate = new Date(b.date_sub);
-      return sortFunction(aDate, bDate,
-                          sortMethod === "date-sub_des"? true : false);
+      let aDateSub = new Date(a.date_sub);
+      let bDateSub = new Date(b.date_sub);
+      return sortFunction(aDateSub, bDateSub,
+                          sortMethod === "date-sub_des"? true : false,
+                          new Date(a.date_up),
+                          new Date(b.date_up)
+                          );
     });
   }
 
@@ -93,7 +104,10 @@ function sortPapers() {
         }
       }
       return sortFunction(CATS.indexOf(catA), CATS.indexOf(catB),
-                          sortMethod === "cat-as"? true : false);
+                          sortMethod === "cat-as"? true : false,
+                          new Date(a.date_up),
+                          new Date(b.date_up)
+                          );
     });
   }
 }
@@ -214,8 +228,16 @@ const addBookmark = (event) => {
 
    setTimeout(() => {
      // put on the left from button
-     popup.style.top = String(top + window.scrollY) + "px";
-     popup.style.left = String(left + 60 + window.scrollX) + "px";
+
+     if (window.innerWidth - 60 - window.scrollX - left < 200) {
+      // on small screen put popup on the left bottom
+      popup.style.top = String(top + window.scrollY + 50) + "px";
+      popup.style.left = String(left - 100 + window.scrollX) + "px";
+     } else {
+      // im the other case put popup on the right
+      popup.style.top = String(top + window.scrollY) + "px";
+      popup.style.left = String(left + 60 + window.scrollX) + "px";
+     }
      popupContent.style.borderStyle = "solid";
      popupContent.classList.add("full-width");
      BOOK_BTN = target.id.split("-")[2];

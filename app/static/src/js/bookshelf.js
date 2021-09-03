@@ -54,11 +54,18 @@ function deleteBookmark(event) {
       raiseAlert("Paper has been deleted", "success");
     }
     $("#paper-"+num).css("display", "none");
-    DATA.papers.splice(num, 1);
+    DATA.papers[parseInt(num, 10)]["hide"] = true;
+    let visible = 1;
     DATA.papers.forEach((paper, iter) => {
-      let numEl = document.getElementById("paper-num-" + parseInt(paper.num, 10));
-      numEl.textContent = String(iter + 1);
+      if (!paper["hide"]) {
+        let numEl = document.getElementById("paper-num-" + parseInt(paper.num, 10));
+        numEl.textContent = String(visible);
+        visible += 1;
+      }
     });
+    if (visible === 1) {
+      document.getElementById("no-paper").style.display = "block";
+    }
   }).fail(function(){
     raiseAlert("Paper is not deleted due to server error", "danger");
   });
@@ -92,6 +99,10 @@ function renderPapers() {
     btnGroup4.appendChild(btnDel);
 
   });
+
+  if (DATA.papers.length === 0) {
+    document.getElementById("no-paper").style.display = "block";
+  }
 
   if (parseTex) {
     MathJax.typesetPromise();

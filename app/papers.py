@@ -180,6 +180,7 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     :returns:   if the paper suits the tag
     :rtype:     bool
     """
+    logging.debug('Start tag parse with rule %r', rule)
     # remove parentheses if the whole rule is inside
     if rule[0] == '(' and rule[-1] == ')':
         rule = rule[1:-1]
@@ -246,6 +247,8 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
     if prefix not in rule_dict:
         logging.error('Prefix is unknown %r', prefix)
 
+    logging.debug('Initial simple rule %r', condition)
+
     search_target = paper[rule_dict[prefix]]
     # in case of
     # 1. author
@@ -258,10 +261,21 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
 
     # cast logic AND to proper REGEX
     if '&' in condition:
-        cond_list = condition.split('&')
-        condition = '(' + condition.replace('&', '.*')
-        condition += ')|('
-        condition += '.*'.join(cond_list[::-1]) + ')'
+        # split the condition with logic OR to cast the parts individually
+        split_wit_or = condition.split('|')
+        new_rule = []
+        for or_subpart in split_wit_or:
+            if '&' in or_subpart:
+                # use non-consuming as logic AND
+                cond_list = or_subpart.split('&')
+                new_rule.append('(?=.*')
+                new_rule[-1] += ')(?=.*'.join(cond_list)
+                new_rule[-1] += ')'
+            else:
+                new_rule.append(or_subpart)
+
+        # merge rule back together
+        condition = '|'.join(new_rule)
 
     # escape backslash for proper treatment of TeX expressions
     # in the DB TeX formulas are stored with one slash
@@ -278,7 +292,8 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
         condition = condition.replace('!', '')
         inversion = True
 
-    
+    logging.debug('Processing parse_simple_rule %r %r', prefix, condition)
+
     re_cond = compile(condition,
                       flags=IGNORECASE
                       )
@@ -326,3 +341,17 @@ def get_json_unseen_papers(cats: list,
                         ).order_by(Paper.date_up.desc()).all()
             result.extend([render_paper_json(paper) for paper in paper_query])
     return result
+
+def tag_test(paper: dict, tag_rule: str) -> bool:
+    """Function for tag rule testing."""
+    # Fill the paper keys if no
+    if 'title' not in paper.keys():
+        paper['title'] = ''
+
+    if 'author' not in paper.keys():
+        paper['author'] = ''
+
+    if 'abstract' not in paper.keys():
+        paper['abstract'] = ''
+
+    return tag_suitable(paper, tag_rule)

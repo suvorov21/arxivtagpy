@@ -105,9 +105,11 @@ class TestLiveServer():
         sleep(1)
         driver.find_element_by_id('tag-name').send_keys('test_test')
         driver.find_element_by_class_name('btn-success').click()
+        sleep(2)
+        driver.find_element_by_id('tag-label-1').click()
         sleep(1)
-        element = driver.find_element_by_class_name('alert-dismissible')
-        assert 'success' in element.get_attribute('class')
+        new_val = driver.find_element_by_id('tag-name').get_attribute("value")
+        assert new_val == 'testtest_test'
 
     def test_del_tag(self, driver):
         """Test tag modifications."""
