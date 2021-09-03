@@ -63,6 +63,9 @@ function deleteBookmark(event) {
         visible += 1;
       }
     });
+    if (visible === 1) {
+      document.getElementById("no-paper").style.display = "block";
+    }
   }).fail(function(){
     raiseAlert("Paper is not deleted due to server error", "danger");
   });
@@ -96,6 +99,10 @@ function renderPapers() {
     btnGroup4.appendChild(btnDel);
 
   });
+
+  if (DATA.papers.length === 0) {
+    document.getElementById("no-paper").style.display = "block";
+  }
 
   if (parseTex) {
     MathJax.typesetPromise();
