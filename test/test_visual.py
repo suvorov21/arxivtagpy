@@ -154,3 +154,16 @@ class TestLiveServer():
         sleep(1)
         element = driver.find_element_by_class_name('alert-dismissible')
         assert 'success' in element.get_attribute('class')
+
+    def test_add_book(self, driver):
+        """Test add bookmarks."""
+        driver.get(url_for('settings_bp.settings_page',
+                           page='bookshelf',
+                           _external=True
+                           ))
+        sleep(3)
+        driver.find_element_by_id('new-list').send_keys('new_list')
+        sleep(1)
+        driver.find_element_by_id('add-book-btn').click()
+        sleep(2)
+        assert 'new_list' in driver.page_source
