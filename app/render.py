@@ -83,17 +83,31 @@ def render_title_precise(date: str, old: datetime, new: datetime) -> str:
 
     return 'Papers'
 
+def key_tag(paper):
+    """Key for sorting with tags."""
+    # Primary key is the 1st tag
+    # secondary key is for date
+
+    # to make the secondary key working in the right way
+    # the sorting is reversed
+    # for consistancy the tag index is inversed too
+
+    # WARNING cross-fingered nobody will use 1000 tags
+    # otherwise I'm in trouble
+    return -paper['tags'][0] if len(paper['tags']) > 0 else -1000, \
+           paper['date_up']
+
+def key_date_up(paper):
+    return paper['date_up']
+
 def render_papers(papers: Dict, **kwargs) -> Dict:
     """Convert papers dict to minimize info."""
     if kwargs.get('sort'):
-        reverse = False
+        reverse = True
         if  kwargs['sort'] == 'tag':
-            # WARNING cross-fingered nobody will use 1000 tags
-            # otherwise I'm in trouble
-            key = lambda t: t['tags'] if len(t['tags']) > 0 else [1000]
+            key = key_tag
         elif kwargs['sort'] == 'date_up':
-            key = lambda t: t['date_up']
-            reverse = True
+            key = key_date_up
         papers['papers'] = sorted(papers['papers'],
                                   key=key,
                                   reverse=reverse
