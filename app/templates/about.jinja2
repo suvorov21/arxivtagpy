@@ -62,11 +62,12 @@
             <p>Define simple rules with keywords for the paper title, abstract and author list. <br>
             ArXiv tag assigns topic tags for each paper automatically. </p>
             <p>The tag order defines papers on top of your feed.</p>
-            <p>Tag rules suppots logical "and", "or" and "negation", thus precise fine tuning for any topic is possible.<br>
+            <p>Tag rules suppots logical "and", "or" and "negation", <br>RegExp is availible for advanced users.<br></p>
+              <p>Precise fine tuning for any topic is possible.<br>
             Some hints and examples will help with rule creation.</p>
           </div>
         </div>
-        <div class="row pl-4">
+        <div class="row pl-4 pt-3">
           <div class="col-sm-12 col-md-12">
             <p style="font-style: italic; font-size: 1rem">Use case 1:<br>
               In high energy physics there are ~1500 submissions per month. The experiment is titled "T2K". <br>
@@ -83,7 +84,7 @@
           <div class="col-sm-12 col-md-6">
             <h4><i class="fa fa-rss-square pr-3" aria-hidden="true"></i>Paper feed</h4>
             <p>Easy control of the: <br>category, novelty, cross-category papers, tags.</p>
-            <p>Setup visibility once and it will be saved</p>
+            <p>Visibility settings are saved for the session.</p>
           </div>
           <div class="col-sm-12 col-md-6">
             <img class="" src="{{ url_for('static', filename='dist/img/feed.png') }}" width="100%">
