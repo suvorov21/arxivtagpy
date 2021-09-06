@@ -572,7 +572,7 @@ function checkTag() {
 
   // check rule
   let rule = document.forms["add-tag"]["tag_rule"].value;
-  if (!/^(\(|)(ti|au|abs)({[a-zA-Z\|\&\\\s[0-9]]*?})((\||\&)(\(|)((ti|au|abs){[a-zA-Z\|\&\\\s[0-9]]*?})(\)|))*$/i.test(rule)) {
+  if (!/^(\(|)(ti|au|abs)({[a-zA-Z\|\&\\\s0-9\!\$]*?})((\||\&)(\(|)((ti|au|abs){[a-zA-Z\|\&\\\s0-9\!\$]*?})(\)|))*$/i.test(rule)) {
     $(".sub-alert").html("Check the rule syntax!");
     return false;
   }
