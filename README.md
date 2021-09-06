@@ -6,13 +6,17 @@
 # arXiv tag
 A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv](https://arxiv.org/).
 
-Main features:
-1. Select a date range of submissions: today/this week/this month/**since your last visit**. Check easily what submissions you have been already overviewed. 
-2. Add any number of arXiv sections and further toggle them easily with check boxes.
-3. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and), regular expressions, and TeX formulas. View the most interesting papers on top!
-4. Papers suitable with a given tag are **bookmarked automatically**.
-5. Email notifications are send when the paper suitable with a given tag is submitted.
+![Framework flow](app/static/dist/img/scheme_small.png)
+
+### Main features:
+1. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and/negation), regular expressions, and TeX formulas. The paper feed is sorted based on your preferences. View the most interesting papers on top!
+2. Papers suitable with a given tag are **bookmarked automatically**.
+3. Email notifications are send when the paper suitable with a given tag is submitted.
+4. Add any number of arXiv sections and further toggle them easily with check boxes. Control paper novelty (new/updated) and papers from the cross-categories with the check boxes as well.
+5. Select a date range of submissions: today/this week/this month/**since your last visit**. Check easily what submissions you have been already overviewed.
 6. Dark and light theme of the website.
+
+Detailed features description and screenshot gallery at [arxivtag.tk](https://arxivtag.tk)
 
 ## Development
 
@@ -27,18 +31,24 @@ docker-compose build && docker-compose up
 The website is accesible with a browser at `http://0.0.0.0:8000/`
 
 The bulk paper download for the last month could be triggered with 
-`http://0.0.0.0:8000/load_papers?token=test_token`
+`curl -L -X POST "http://0.0.0.0:8000/load_papers?token=test_token"`
 
 
 ### Python venv
 
-Server can be run without Docker, just with a system python. The python3 >= 3.6 is required.
+Server can be run without Docker, just with a system python and postgres. The python3 >= 3.6 is required.
 
 To do so, create the virtual environment
 ```bash
 python3 -m venv varxiv
 . varxiv/bin/activate
 pip install -r requirements.txt
+```
+
+The Postgres DB should be installed. The DB can be created with
+
+```bash
+flask db init; flask db migrate; flask db upgrade
 ```
 
 The server can be run in the dev mode with
