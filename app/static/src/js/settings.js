@@ -801,14 +801,25 @@ window.onload = function() {
 
   if (document.getElementById("book-check") !== null) {
     document.getElementById("book-check").onchange = () => {
-      changeBookBtnStatus(document.forms["add-tag"]["book-check"].checked);
+      changeBookBtnStatus(document.forms["add-tag2"]["book-check"].checked);
     };
 
     document.getElementById("btn-book").onclick = (event) => {
       event.preventDefault();
+      let rule = document.forms["add-tag"]["tag_rule"].value;
+      const name = document.forms["add-tag"]["tag_name"].value
+
+      if (name === "") {
+        raiseAlert("Enter a name for a tag", "danger");
+        return;
+      }
+      if (!checkTagRule(rule)) {
+        raiseAlert("Check the rule syntax", "danger");
+        return;
+      }
       let url = "/bookmark_papers_user";
-      let data = {"name": document.forms["add-tag"]["tag_name"].value,
-                  "rule": document.forms["add-tag"]["tag_rule"].value,
+      let data = {"name": name,
+                  "rule": rule,
                 };
       raiseAlert("Requeest is submitted. Your bookshelf will be updated soon.",
                  "success"
