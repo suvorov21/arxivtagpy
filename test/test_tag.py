@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name, unused-argument
 
 import pytest
+from flask import url_for
 
 from app.papers import tag_test
 
@@ -43,3 +44,11 @@ def test_tricky_logic_and():
     rule = 'abs{heavy neutrino|HNL}|ti{heavy neutrino|HNL}'
 
     assert not tag_test(paper, rule)
+
+def test_tag_endpoint(client, login):
+    """Test the tag test endpoint."""
+    response = client.get(url_for('main_bp.test_tag',
+                                  title='Awesome title',
+                                  rule='ti{awesome}')
+                          )
+    assert 'true' in response.get_data(as_text=True)
