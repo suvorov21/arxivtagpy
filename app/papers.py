@@ -277,15 +277,6 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
         # merge rule back together
         condition = '|'.join(new_rule)
 
-    # escape backslash for proper treatment of TeX expressions
-    # in the DB TeX formulas are stored with one slash
-    # wile re requires escape \ before the TeX one
-    condition = condition.replace('\\', '\\\\')
-
-    # do search among separate words only. 
-    # But ignore this for TeX
-    condition = sub(r'(^\b|\|\b|\(\b)', r'\1\\b', condition)
-
     # inversion of the rule
     inversion = False
     if '!' in condition:
@@ -294,9 +285,13 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
 
     logging.debug('Processing parse_simple_rule %r %r', prefix, condition)
 
-    re_cond = compile(condition,
-                      flags=IGNORECASE
-                      )
+    try:
+        re_cond = compile(condition,
+                          flags=IGNORECASE
+                          )
+    except re.error:
+        logging.error('Error in RegExp: %r', condition)
+        return False
 
     found = re_cond.search(search_target) is not None
 
@@ -345,13 +340,13 @@ def get_json_unseen_papers(cats: list,
 def tag_test(paper: dict, tag_rule: str) -> bool:
     """Function for tag rule testing."""
     # Fill the paper keys if no
-    if 'title' not in paper.keys():
+    if not paper.get('title'):
         paper['title'] = ''
 
-    if 'author' not in paper.keys():
+    if not paper.get('author'):
         paper['author'] = ''
 
-    if 'abstract' not in paper.keys():
+    if not paper.get('abstract'):
         paper['abstract'] = ''
 
     return tag_suitable(paper, tag_rule)
