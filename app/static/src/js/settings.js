@@ -4,6 +4,7 @@
 
 var dragTarget;
 var tagEdited = false;
+var editTagId = -2;
 var tableFilled = false;
 
 var loadingTags = false;
@@ -15,7 +16,7 @@ const submitSetting = (url, set, reload=false) => {
   }
   $.post(url, JSON.stringify(set))
   .done(function() {
-    if (reload) {
+    if (editTagId === -1 || reload) {
       window.location.reload();
     } else {
       reloadSettings();
@@ -346,16 +347,85 @@ $(".btn-cancel").click(() => {
 
 // ****************** TAGS *****************************************************
 
+const checkMath = (a, b, rule) => {
+  const openMatch = (rule.match(a) || []).length;
+  const closeMatch = (rule.match(b) || []).length;
+
+  return openMatch === closeMatch;
+};
+
+const checkTagRule = (rule) => {
+  const openP = /\(/g;
+  const closeP = /\)/g;
+
+  const openC = /\{/g;
+  const closeC = /\}/g;
+
+  if (!checkMath(openP, closeP, rule) || !checkMath(openC, closeC, rule)) {
+    return false;
+  }
+
+  // https://regex101.com/r/BbdDgl/1
+  const generalCheck = /^(\(|)(ti|au|abs)({.+})((\||\&)(\(|)((ti|au|abs){.+})(\)|))*$/i;
+
+  if (!generalCheck.test(rule)) {
+    return false;
+  }
+  return true;
+};
+
 const clearTagField = () => {
   document.forms["add-tag"]["tag_name"].value = "";
   document.forms["add-tag"]["tag_rule"].value = "";
-  document.forms["add-tag"]["tag_color"].value = "";
-  document.forms["add-tag"]["book-check"].checked = false;
+  document.forms["add-tag2"]["tag_color"].value = "";
+  document.forms["add-tag2"]["book-check"].checked = false;
   document.getElementById("btn-book").classList.add("disabled");
-  document.forms["add-tag"]["email-check"].checked = false;
-  document.forms["add-tag"]["public-check"].checked = false;
+  document.forms["add-tag2"]["email-check"].checked = false;
+  document.forms["add-tag2"]["public-check"].checked = false;
   $("#tag-color").css("background-color", $("#tag-color").val());
 };
+
+$("#test-rule").click(() => {
+  if ($("#tag-test").css("display") === "block") {
+    $("#tag-test").css("display", "none");
+  } else {
+    $("#tag-test").css("display", "block");
+  }
+});
+
+$("#test-btn").click((event) => {
+  event.preventDefault();
+
+  let rule = document.forms["add-tag"]["tag_rule"].value;
+
+  if (rule === "") {
+    document.getElementById("test-result").textContent = "Rule is empty! Click on tag you want to test";
+    return;
+  }
+
+  if (!checkTagRule(rule)) {
+    document.getElementById("test-result").textContent = "Check rule syntax!";
+    return;
+  }
+
+  let data = {"title": document.forms["tag-test-form"]["paper_title"].value,
+              "author": document.forms["tag-test-form"]["paper_author"].value,
+              "abs": document.forms["tag-test-form"]["paper_abs"].value,
+              "rule": rule
+              };
+  let url = "/test_tag";
+  $.get(url, data)
+  .done(function(data) {
+    if (data.includes("true")) {
+      // not a doog practice, but ok for the time being
+      document.getElementById("test-result").innerHTML = "<i class='fa fa-check' aria-hidden='true' style='color: #1a941a'></i>&nbsp;Paper suits the tag!";
+    } else {
+      document.getElementById("test-result").innerHTML = "<i class='fa fa-times' aria-hidden='true' style='color: #941a1a'></i>&nbsp;Paper does NOT suit the tag!";
+    }
+  }).fail(function() {
+    raiseAlert("Server expirienced an internal error. We are working on that.", "danger");
+  });
+});
 
 $("#show-rules").click(() => {
   if ($("#tag-help").css("display") === "block") {
@@ -374,8 +444,6 @@ const changeBookBtnStatus = (val) => {
     document.getElementById("btn-book").classList.add("disabled");
   }
 };
-
-var editTagId = -2;
 
 const makeTagEdited = () => {
   $(".btn-save").removeClass("disabled");
@@ -471,9 +539,9 @@ $("#show-pubtags").click(() => {
 // click on tag label
 $("#tag-list").click((event) => {
   // consider only tag labels click
-  if (typeof($(event.target).attr("class")) === "undefined" ||
-      !$(event.target).attr("class").includes("tag-label")) {
-    return;
+  let target = event.target;
+  while(!target.classList.contains("tag-label") && target.id !== "tags-list") {
+    target = target.parentElement;
   }
 
   // check if settings were modified
@@ -496,9 +564,9 @@ $("#tag-list").click((event) => {
   }
 
   // highlight the editable tag
-  $(event.target).css("border-color", cssVar("--tag_border_color"));
+  $(target).css("border-color", cssVar("--tag_border_color"));
 
-  if ($(event.target).attr("id") === "add-tag") {
+  if (target.id === "add-tag") {
     // -1 corresponds to new tag
     editTagId = -1;
 
@@ -508,26 +576,28 @@ $("#tag-list").click((event) => {
     // make delete NOT possible
     $("#btn-del").addClass("disabled");
   } else {
-    let editTagName = $(event.target).attr("id").split("-")[2];
+    let editTagName = target.id.split("-")[2];
     editTagName = parseInt(editTagName, 10);
     editTagId = findTagId(editTagName, "id");
     let tag = TAGS[parseInt(editTagId, 10)];
 
 
     $("#tag-fields").prop("disabled", false);
+    $("#tag-fields2").prop("disabled", false);
     document.forms["add-tag"]["tag_name"].value = tag.name;
     document.forms["add-tag"]["tag_rule"].value = tag.rule;
-    document.forms["add-tag"]["tag_color"].value = tag.color;
-    document.forms["add-tag"]["book-check"].checked = tag.bookmark;
+    document.forms["add-tag2"]["tag_color"].value = tag.color;
+    document.forms["add-tag2"]["book-check"].checked = tag.bookmark;
     changeBookBtnStatus(tag.bookmark);
-    document.forms["add-tag"]["email-check"].checked = tag.email;
-    document.forms["add-tag"]["public-check"].checked = tag.public;
+    document.forms["add-tag2"]["email-check"].checked = tag.email;
+    document.forms["add-tag2"]["public-check"].checked = tag.public;
     $("#tag-color").css("background-color", $("#tag-color").val());
 
     // make delete possible
     $("#btn-del").removeClass("disabled");
   }
   $("#tag-fields").prop("disabled", false);
+  $("#tag-fields2").prop("disabled", false);
 });
 
 $(".tag-field").on("input", function() {
@@ -557,7 +627,7 @@ function checkTag() {
   // check all fields are filled
   if (document.forms["add-tag"]["tag_name"].value === "" ||
       document.forms["add-tag"]["tag_rule"].value === "" ||
-      document.forms["add-tag"]["tag_color"].value === "") {
+      document.forms["add-tag2"]["tag_color"].value === "") {
     $(".sub-alert").html("Fill all the fields in the form!");
     return false;
   }
@@ -572,13 +642,13 @@ function checkTag() {
 
   // check rule
   let rule = document.forms["add-tag"]["tag_rule"].value;
-  if (!/^(\(|)(ti|au|abs)({[a-zA-Z\|\&\\\s0-9\!\$]*?})((\||\&)(\(|)((ti|au|abs){[a-zA-Z\|\&\\\s0-9\!\$]*?})(\)|))*$/i.test(rule)) {
+  if (!checkTagRule(rule)) {
     $(".sub-alert").html("Check the rule syntax!");
     return false;
   }
 
   // check color
-  if (!/^#[0-9A-F]{6}$/i.test(document.forms["add-tag"]["tag_color"].value)) {
+  if (!/^#[0-9A-F]{6}$/i.test(document.forms["add-tag2"]["tag_color"].value)) {
     $(".sub-alert").html("Color should be in hex format: e.g. #aaaaaa");
     return false;
   }
@@ -586,10 +656,10 @@ function checkTag() {
   // tag rules are checked
   let TagDict = {"name": document.forms["add-tag"]["tag_name"].value,
                  "rule": document.forms["add-tag"]["tag_rule"].value,
-                 "color": document.forms["add-tag"]["tag_color"].value,
-                 "bookmark": document.forms["add-tag"]["book-check"].checked,
-                 "email": document.forms["add-tag"]["email-check"].checked,
-                 "public": document.forms["add-tag"]["public-check"].checked
+                 "color": document.forms["add-tag2"]["tag_color"].value,
+                 "bookmark": document.forms["add-tag2"]["book-check"].checked,
+                 "email": document.forms["add-tag2"]["email-check"].checked,
+                 "public": document.forms["add-tag2"]["public-check"].checked
                  };
   if (editTagId > -1) {
     TAGS[parseInt(editTagId, 10)]["name"] = TagDict["name"];
@@ -604,7 +674,7 @@ function checkTag() {
     TAGS.push(TagDict);
   }
 
-  submitSetting("mod_tag", TAGS, true);
+  submitSetting("mod_tag", TAGS);
   // window.location.reload();
 }
 
@@ -714,6 +784,7 @@ const reloadSettings = () => {
     renderTags();
     editTagId = -2;
     $("#tag-fields").prop("disabled", true);
+    $("#tag-fields2").prop("disabled", true);
     clearTagField();
   } else if ($("#bookshelf-link").hasClass("active")) {
     renderBookshelf();

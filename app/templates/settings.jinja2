@@ -104,71 +104,90 @@
                     <input type="text" class="form-control tag-field" id="tag-name" name="tag_name" placeholder="LHC"><br/>
                     <label for="tag-rule">Tag rule</label><br/>
                     <input type="text" class="form-control tag-field" id="tag-rule" name='tag_rule' placeholder="abs{LHC}&au{ATLAS|LHCb|ALICE|CMS}" size=50>
-                    <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></small>
-                    <div id="tag-help">
-                      <p>
-                        Syntaxis:<br/>
-                        <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
-                        <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
-                        <code>cat{hep-ex}</code> - for papers with category "hep-ex" <br/>
-                        <code>au{John Doe}</code> - for papers with "John Doe" in author list
-                      </p>
-                      <p>
-                        Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. <br/>
-                        Parentheses can be placed ONLY outside curly brackets.<br>
-                        <code>!</code> sign can be placed inside curly brackets to invert the whole rule. <br />
-                        Regular expressions can be used inside curly brackets. <br/>
-                        $\\LaTeX$ is supported.<br/>
-                        Rules are case insensitive.
-                      </p>
-                      <p>
-                        Examples:<br />
-                        <code>ti{Breakthrough}|au{Nobel Winner} </code><br />
-                        <code>ti{quantum}&abs{\Delta x\Delta p>\hbar} </code><br />
-                        <code>ti{cellular}&ti{!biology}</code><br />
-                        <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
-                      </p>
-                    </div>
-                    <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></small>
-                    {# Table with tags of other users #}
-
-                    <div id="loading-tags"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading tags...</div>
-                    <div class="table-responsive" style="height: 400;" id="table-wrapper">
-                      <small class="form-text text-muted">Click on the row to fill the fields above</small>
-                      <table class="table table-hover {% if data['theme'] == 'dark' %}table-dark{% endif %}" cellspacing="0" width="100%" id="tag-table">
-                        <thead>
-                          <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">name</th>
-                            <th scope="col">rule</th>
-                          </tr>
-                        </thead>
-                        <tbody id="table-body">
-                        </tbody>
-                      </table>
-                    </div>
-                    <br/>
-                    <label for="tag-color" >Tag color</label><br/>
-                    <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
-                    <div class="form-check">
-                      <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
-                      <label class="form-check-label" for="book-check">Bookmark automatically</label>
-                      <small class="form-text text-muted">
-                        Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
-                        <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
-                      </small>
-                      <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
-                      <label class="form-check-label" for="email-check">Email notification</label>
-                      <small class="form-text text-muted">
-                        Recieve email notifications when new papers suitable with this tag are submitted
-                      </small>
-                      <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
-                      <label class="form-check-label" for="public-check">Publicly available</label>
-                      <small class="form-text text-muted">
-                        Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible and could be used by others.
-                      </small>
-                    </div>
                   </fieldset>
+                </form>
+                  <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="test-rule">Test the rule</span></small>
+                  <div id="tag-test" style="display: none">
+                    <div>Enter imaginary paper details</div>
+                    <form name="tag-test-form" class="form-group">
+                      <fieldset id="tag-test">
+                        <input type="text" class="form-control mt-2" name="paper_title" placeholder="Paper title">
+                        <input type="text" class="form-control mt-2" name="paper_author" placeholder="Authors">
+                        <input type="text" class="form-control mt-2" name="paper_abs" placeholder="Abstract">
+                        <button class="btn btn-primary mt-2" id="test-btn">Test</button>
+                        <div id="test-result" class="mt-2"></div>
+                      </fieldset>
+                    </form>
+                  </div>
+                  <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></small>
+                  <div id="tag-help">
+                    <p>
+                      Syntaxis:<br/>
+                      <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
+                      <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
+                      <code>cat{hep-ex}</code> - for papers with category "hep-ex" <br/>
+                      <code>au{John Doe}</code> - for papers with "John Doe" in author list
+                    </p>
+                    <p>
+                      Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. Parentheses (if any) will be taken into account.<br/>
+                      <code>!</code> sign can be placed inside curly brackets to invert the whole rule. <br /><br />
+                      Parentheses INSIDE curly brackets will be treated in the RegExp way. If you don't know what it is, please refrain from using ones. <br />
+
+                      Regular expressions can be used inside curly brackets. <br/>
+                      $\\LaTeX$ is supported starting with \\\\. E.g. "\\\\chi".<br/>
+                      Rules are case insensitive.
+                    </p>
+                    <p>
+                      Examples:<br />
+                      <code>ti{Breakthrough}|au{Nobel Winner} </code><br />
+                      <code>ti{quantum}&abs{\\Delta x\\Delta p>\\hbar} </code><br />
+                      <code>ti{cellular}&ti{!biology}</code><br />
+                      <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
+                    </p>
+                  </div>
+                  <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></small>
+                  {# Table with tags of other users #}
+
+                  <div id="loading-tags"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading tags...</div>
+                  <div class="table-responsive" style="height: 400;" id="table-wrapper">
+                    <small class="form-text text-muted">Click on the row to fill the fields above</small>
+                    <table class="table table-hover {% if data['theme'] == 'dark' %}table-dark{% endif %}" cellspacing="0" width="100%" id="tag-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">name</th>
+                          <th scope="col">rule</th>
+                        </tr>
+                      </thead>
+                      <tbody id="table-body">
+                      </tbody>
+                    </table>
+                  </div>
+                  <br/>
+                  <form name="add-tag2" class="form-group">
+                    <fieldset id="tag-fields2">
+                      <label for="tag-color" >Tag color</label><br/>
+                      <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
+                      <div class="form-check">
+                        <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
+                        <label class="form-check-label" for="book-check">Bookmark automatically</label>
+                        <small class="form-text text-muted">
+                          Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
+                          <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
+                        </small>
+                        <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
+                        <label class="form-check-label" for="email-check">Email notification</label>
+                        <small class="form-text text-muted">
+                          Recieve email notifications when new papers suitable with this tag are submitted
+                        </small>
+                        <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
+                        <label class="form-check-label" for="public-check">Publicly available</label>
+                        <small class="form-text text-muted">
+                          Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible and could be used by others.
+                        </small>
+                      </div>
+                    </fieldset>
+                  </form>
                 </form>
 
               </div>
