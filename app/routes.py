@@ -15,7 +15,7 @@ from .render import render_papers, render_title, \
     render_tags_front, tag_name_and_rule, render_title_precise
 
 from .papers import process_papers, render_paper_json, \
-    get_json_papers, get_json_unseen_papers
+    get_json_papers, get_json_unseen_papers, tag_test
 from .paper_api import get_arxiv_sub_start, \
     get_annonce_date, get_axiv_announce_date, get_date_range
 from .utils import get_lists_for_user
@@ -414,6 +414,24 @@ def collect_feedback():
     mail.send(msg)
 
     return dumps({'success':True}), 200
+
+@main_bp.route('/test_tag', methods=['GET'])
+@login_required
+def test_tag():
+    """Test the tag rule for some paper data."""
+    paper = {'title': request.args.get('title'),
+             'author': request.args.get('author'),
+             'abstract': request.args.get('abs')
+             }
+
+    if not request.args.get('rule'):
+        logging.error('Test tag request w/o rule')
+        return dumps({'success':False}), 422
+
+    if (tag_test(paper, request.args.get('rule'))):
+        return dumps({'result':True}), 200
+
+    return dumps({'result':False}), 200
 
 def update_recent_papers(announce_date: datetime):
     """
