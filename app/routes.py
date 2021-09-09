@@ -428,7 +428,7 @@ def test_tag():
         logging.error('Test tag request w/o rule')
         return dumps({'success':False}), 422
 
-    if (tag_test(paper, request.args.get('rule'))):
+    if tag_test(paper, request.args.get('rule')):
         return dumps({'result':True}), 200
 
     return dumps({'result':False}), 200

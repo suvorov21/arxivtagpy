@@ -6,7 +6,7 @@ Tag processor checks if a given paper is suitable with the tag
 """
 
 from typing import Dict, Tuple
-from re import search, compile, sub, IGNORECASE
+from re import search, compile, sub, IGNORECASE, error
 from datetime import datetime, timedelta
 import logging
 
@@ -289,7 +289,7 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
         re_cond = compile(condition,
                           flags=IGNORECASE
                           )
-    except re.error:
+    except error:
         logging.error('Error in RegExp: %r', condition)
         return False
 

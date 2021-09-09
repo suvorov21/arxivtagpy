@@ -412,8 +412,8 @@ $("#test-btn").click((event) => {
               "author": document.forms["tag-test-form"]["paper_author"].value,
               "abs": document.forms["tag-test-form"]["paper_abs"].value,
               "rule": rule
-              }
-  let url = "/test_tag"
+              };
+  let url = "/test_tag";
   $.get(url, data)
   .done(function(data) {
     if (data.includes("true")) {

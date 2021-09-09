@@ -1,8 +1,8 @@
 """Test paper tagging feature."""
 # pylint: disable=redefined-outer-name, unused-argument
 
-import pytest
 from flask import url_for
+import pytest
 
 from app.papers import tag_test
 
