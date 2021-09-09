@@ -539,9 +539,9 @@ $("#show-pubtags").click(() => {
 // click on tag label
 $("#tag-list").click((event) => {
   // consider only tag labels click
-  if (typeof($(event.target).attr("class")) === "undefined" ||
-      !$(event.target).attr("class").includes("tag-label")) {
-    return;
+  let target = event.target;
+  while(!target.classList.contains("tag-label") && target.id !== "tags-list") {
+    target = target.parentElement;
   }
 
   // check if settings were modified
@@ -564,9 +564,9 @@ $("#tag-list").click((event) => {
   }
 
   // highlight the editable tag
-  $(event.target).css("border-color", cssVar("--tag_border_color"));
+  $(target).css("border-color", cssVar("--tag_border_color"));
 
-  if ($(event.target).attr("id") === "add-tag") {
+  if (target.id === "add-tag") {
     // -1 corresponds to new tag
     editTagId = -1;
 
@@ -576,7 +576,7 @@ $("#tag-list").click((event) => {
     // make delete NOT possible
     $("#btn-del").addClass("disabled");
   } else {
-    let editTagName = $(event.target).attr("id").split("-")[2];
+    let editTagName = target.id.split("-")[2];
     editTagName = parseInt(editTagName, 10);
     editTagId = findTagId(editTagName, "id");
     let tag = TAGS[parseInt(editTagId, 10)];
