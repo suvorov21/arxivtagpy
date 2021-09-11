@@ -1,10 +1,10 @@
 /*global MathJax, parseTex, DATA, LISTS, raiseAlert, renderPapersBase, displayList, page, paperPage, cssVar */
 /*eslint no-undef: "error"*/
 
-var unseenCurrentList = 0;
+let unseenCurrentList = 0;
 
 function renderLists() {
-  // WARNING very inacurate parsing
+  // WARNING very inaccurate parsing
   // TODO replace with regex
   let hrefBase = document.location.href.split("=")[0];
   LISTS.forEach((listName) => {
@@ -15,14 +15,14 @@ function renderLists() {
     link.className = "nav-link";
     if (listName.id === displayList) {
       link.className += " active";
-      unseenCurrentList = listName.not_seen;
+      unseenCurrentList = listName["not_seen"];
     }
     link.textContent = listName.name;
-    if (listName.not_seen !== 0) {
+    if (listName["not_seen"] !== 0) {
       link.textContent += " ";
       let badge = document.createElement("span");
       badge.className = "badge badge-light";
-      badge.textContent = listName.not_seen;
+      badge.textContent = listName["not_seen"];
       link.appendChild(badge);
     }
     listItem.appendChild(link);
@@ -36,14 +36,14 @@ function renderLists() {
 function deleteBookmark(event) {
   // WARNING
   // UB addBookmark listener is added to all the buttons, not the bookmark only one
-  // prevent the bookmark addinf for other buttons
+  // prevent the bookmark adding for other buttons
   if (!event.target.id.includes("btn-del") &&
       !event.target.id.includes("a-icon")) {
     return;
   }
   let url = "del_bm";
   let num = event.target.getAttribute("id").split("-")[2];
-  let paper = DATA.papers[parseInt(num, 10) - (page - 1) * paperPage];
+  let paper = DATA["papers"][parseInt(num, 10) - (page - 1) * paperPage];
   $.post(url, {
                "paper_id": paper.id.split("v")[0],
                "list_id": displayList
@@ -54,11 +54,11 @@ function deleteBookmark(event) {
       raiseAlert("Paper has been deleted", "success");
     }
     $("#paper-"+num).css("display", "none");
-    DATA.papers[parseInt(num, 10)]["hide"] = true;
+    DATA["papers"][parseInt(num, 10)]["hide"] = true;
     let visible = 1;
-    DATA.papers.forEach((paper, iter) => {
+    DATA["papers"].forEach((paper) => {
       if (!paper["hide"]) {
-        let numEl = document.getElementById("paper-num-" + parseInt(paper.num, 10));
+        let numEl = document.getElementById("paper-num-" + parseInt(paper["num"], 10));
         numEl.textContent = String(visible);
         visible += 1;
       }
@@ -72,7 +72,7 @@ function deleteBookmark(event) {
 }
 
 function renderPapers() {
-  DATA.papers.forEach((paper, num) => {
+  DATA["papers"].forEach((paper, num) => {
     num += paperPage * (page - 1);
     let paperBase = renderPapersBase(paper, num);
 
@@ -100,14 +100,14 @@ function renderPapers() {
 
   });
 
-  if (DATA.papers.length === 0) {
+  if (DATA["papers"].length === 0) {
     document.getElementById("no-paper").style.display = "block";
   }
 
   if (parseTex) {
     MathJax.typesetPromise();
   }
-  $("#loading-papers").css("display", "none");
+  document.getElementById("loading-papers").style.display = "none";
 }
 
 window.onload = function() {

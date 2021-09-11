@@ -6,6 +6,7 @@ from sqlalchemy.dialects import postgresql as pg
 
 from . import db
 
+
 class User(UserMixin, db.Model):
     """User table description."""
     __tablename__ = 'users'
@@ -14,11 +15,12 @@ class User(UserMixin, db.Model):
                    primary_key=True
                    )
     pasw = db.Column(db.String(),
-                     nullable=False,
-                    )
+                     nullable=False
+                     )
     email = db.Column(db.String(),
                       nullable=False,
-                      unique=True)
+                      unique=True
+                      )
     created = db.Column(db.DateTime(),
                         nullable=False
                         )
@@ -27,7 +29,7 @@ class User(UserMixin, db.Model):
                       nullable=False,
                       )
     last_paper = db.Column(db.DateTime(),
-                           nullable=True,
+                           nullable=True
                            )
 
     arxiv_cat = db.Column(pg.ARRAY(db.Text, dimensions=1),
@@ -52,11 +54,11 @@ class User(UserMixin, db.Model):
                              )
 
     lists = db.relationship('PaperList',
-                             backref='user',
-                             cascade='all,delete',
-                             passive_deletes=True,
-                             lazy=True
-                             )
+                            backref='user',
+                            cascade='all,delete',
+                            passive_deletes=True,
+                            lazy=True
+                            )
 
     def __repr__(self):
         """Print user."""
@@ -138,21 +140,22 @@ class UpdateDate(db.Model):
 # lists --> papers
 # return papers by paperlist Paper.query.with_parent(some_list)
 paper_associate = db.Table('paper_associate',
-                            db.Column('list_ref_id',
-                                      db.Integer,
-                                      db.ForeignKey('lists.id',
-                                                    ondelete='CASCADE'
-                                                    ),
-                                      primary_key=True
-                                      ),
-                            db.Column('paper_ref_id',
-                                      db.Integer,
-                                      db.ForeignKey('papers.id',
-                                                    ondelete='CASCADE'
-                                                    ),
-                                      primary_key=True
-                                      )
-                            )
+                           db.Column('list_ref_id',
+                                     db.Integer,
+                                     db.ForeignKey('lists.id',
+                                                   ondelete='CASCADE'
+                                                   ),
+                                     primary_key=True
+                                     ),
+                           db.Column('paper_ref_id',
+                                     db.Integer,
+                                     db.ForeignKey('papers.id',
+                                                   ondelete='CASCADE'
+                                                   ),
+                                     primary_key=True
+                                     )
+                           )
+
 
 class Paper(db.Model):
     """Paper table description."""
@@ -168,8 +171,8 @@ class Paper(db.Model):
                          )
 
     title = db.Column(db.String(),
-                     nullable=False
-                     )
+                      nullable=False
+                      )
 
     author = db.Column(pg.ARRAY(db.Text, dimensions=1),
                        nullable=False
@@ -210,6 +213,7 @@ class Paper(db.Model):
     def __repr__(self):
         """Print paper."""
         return f'<Paper id: {self.id} title: {self.title}>'
+
 
 class PaperList(db.Model):
     """Paper list table description."""

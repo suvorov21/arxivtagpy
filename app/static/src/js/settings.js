@@ -2,12 +2,12 @@
 /*exported fillCatForm, fillTagForm, fillSetForm, changePasw, delAcc, fillListForm, noEmail */
 /*eslint no-undef: "error"*/
 
-var dragTarget;
-var tagEdited = false;
-var editTagId = -2;
-var tableFilled = false;
+let dragTarget;
+let tagEdited = false;
+let editTagId = -2;
+let tableFilled = false;
 
-var loadingTags = false;
+let loadingTags = false;
 
 // API call for settings modifications
 const submitSetting = (url, set, reload=false) => {
@@ -45,14 +45,14 @@ const submitSetting = (url, set, reload=false) => {
 const dropElement = (event, arrayToSwap) => {
   event.preventDefault();
   let moved = parseInt(event.dataTransfer.getData("Text"), 10);
-  // insert transfered element at new place
+  // insert transferred element at new place
   arrayToSwap.splice(dragTarget, 0, arrayToSwap[parseInt(moved, 10)]);
 
   if (moved > dragTarget) {
     moved += 1;
   }
 
-  // delete transfered element at old place
+  // delete transferred element at old place
   arrayToSwap.splice(moved, 1);
 
   $(".btn").removeClass("disabled");
@@ -61,8 +61,9 @@ const dropElement = (event, arrayToSwap) => {
 
 const delCatClick = (event) => {
   let name = event.target.getAttribute("id").split("_")[1];
-  $("#par-cat-" + name).removeClass("d-flex");
-  $("#par-cat-" + name).fadeOut();
+  let element = $("#par-cat-" + name);
+  element.removeClass("d-flex");
+  element.fadeOut();
   $(".btn").removeClass("disabled");
   const catId = CATS.indexOf(name.replace("111", "."));
   if (catId > -1) {
@@ -286,7 +287,6 @@ function renderPref() {
   } else {
     document.getElementById("radio-light").checked = true;
   }
-  return;
 }
 
 // *****************************************************************************
@@ -368,10 +368,7 @@ const checkTagRule = (rule) => {
   // https://regex101.com/r/BbdDgl/1
   const generalCheck = /^(\(|)(ti|au|abs)({.+})((\||\&)(\(|)((ti|au|abs){.+})(\)|))*$/i;
 
-  if (!generalCheck.test(rule)) {
-    return false;
-  }
-  return true;
+  return generalCheck.test(rule);
 };
 
 const clearTagField = () => {
@@ -417,7 +414,7 @@ $("#test-btn").click((event) => {
   $.get(url, data)
   .done(function(data) {
     if (data.includes("true")) {
-      // not a doog practice, but ok for the time being
+      // not a good practice, but ok for the time being
       document.getElementById("test-result").innerHTML = "<i class='fa fa-check' aria-hidden='true' style='color: #1a941a'></i>&nbsp;Paper suits the tag!";
     } else {
       document.getElementById("test-result").innerHTML = "<i class='fa fa-times' aria-hidden='true' style='color: #941a1a'></i>&nbsp;Paper does NOT suit the tag!";
@@ -448,7 +445,7 @@ const changeBookBtnStatus = (val) => {
 const makeTagEdited = () => {
   $(".btn-save").removeClass("disabled");
   tagEdited = true;
-  var doms = document.getElementsByClassName("tag-label");
+  let doms = document.getElementsByClassName("tag-label");
   for(let i = 0; i < doms.length; i++) {
     doms[parseInt(i, 10)].style.cursor = "not-allowed";
   }
@@ -722,9 +719,9 @@ function fillSetForm() {
     $(".btn-save").addClass("disabled");
     raiseAlert("Settings are saved", "success");
     // update the stylesheets. Just in case theme was changed
-    var links = document.getElementsByTagName("link");
-    for (var i = 0; i < links.length; i++) {
-      var link = links[parseInt(i, 10)];
+    let links = document.getElementsByTagName("link");
+    for (let i = 0; i < links.length; i++) {
+      let link = links[parseInt(i, 10)];
       if (link.rel === "stylesheet") {
         link.href += "?";
       }}
@@ -740,11 +737,7 @@ function fillSetForm() {
 }
 
 function delAcc() {
-  if (confirm("Do you want to delete account completely? This action could not be undone!")) {
-    return true;
-  } else {
-    return false;
-  }
+  return confirm("Do you want to delete account completely? This action could not be undone!");
 }
 
 function noEmail() {
@@ -766,11 +759,8 @@ function noEmail() {
 // ************** NAVIGATION ***************************************************
 $(".nav-link").click((event) => {
   if ($(".btn-cancel").length && !$(".btn-cancel").hasClass("disabled")) {
-    if (confirm("Settings will not be saved. Continue?")) {
-      return;
-    } else {
+    if (!confirm("Settings will not be saved. Continue?")) {
       event.preventDefault();
-      return;
     }
   }
 });

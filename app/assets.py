@@ -2,6 +2,7 @@
 
 from flask_assets import Environment, Bundle
 
+
 def compile_assets(app):
     """Compile asssets."""
     assets = Environment(app)
@@ -56,7 +57,6 @@ def compile_assets(app):
     )
     assets.register('layout_js', layout_js_bundle)
     layout_js_bundle.build()
-
 
     # JavaScript Bundle
     paper_js_bundle = Bundle(

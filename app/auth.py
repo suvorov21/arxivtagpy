@@ -7,12 +7,12 @@ import logging
 import re
 
 from werkzeug.security import check_password_hash, \
-generate_password_hash
+    generate_password_hash
 
 from flask import Blueprint, render_template, flash, redirect, \
-request, current_app, url_for
+    request, current_app, url_for
 from flask_login import login_user, logout_user, \
-current_user, login_required
+    current_user, login_required
 from flask_mail import Message
 
 from .import login_manager
@@ -41,6 +41,7 @@ def load_user(user_id):
         return usr
     return None
 
+
 @auth_bp.route('/login', methods=['POST'])
 def login():
     """User log-in logic."""
@@ -60,6 +61,7 @@ def login():
               <a href="/restore" class="alert-link">Reset password?</a>')
     return redirect(url_for('main_bp.root'))
 
+
 @auth_bp.route('/signup')
 def signup():
     """Signup page."""
@@ -67,12 +69,14 @@ def signup():
                            data=default_data()
                            )
 
+
 @auth_bp.route('/logout')
 @login_required
 def logout():
     """User log-out logic."""
     logout_user()
     return redirect(url_for('main_bp.root'))
+
 
 def new_default_list(usr_id):
     """Create default paper list for a given user."""
@@ -89,6 +93,7 @@ def new_default_list(usr_id):
     db.session.add(paper_list)
 
     db.session.commit()
+
 
 @auth_bp.route('/new_user', methods=["POST"])
 def new_user():
@@ -144,6 +149,7 @@ def new_user():
     flash(message)
     return redirect(url_for('settings_bp.settings_page', page='tag'), code=303)
 
+
 @auth_bp.route('/change_pasw', methods=["POST"])
 @login_required
 def change_pasw():
@@ -164,6 +170,7 @@ def change_pasw():
     flash('Password successfully changed!')
     return redirect(url_for('settings_bp.settings_page'), code=303)
 
+
 @auth_bp.route('/delAcc', methods=["POST"])
 @login_required
 def del_acc():
@@ -175,11 +182,13 @@ def del_acc():
 
     return redirect(url_for('main_bp.root'), code=303)
 
+
 @login_manager.unauthorized_handler
 def unauthorized():
     """Redirect unauthorized users to Login page."""
     flash('ERROR! You must be logged in to view this page.')
     return redirect(url_for('main_bp.about'))
+
 
 @auth_bp.route('/restore', methods=['GET'])
 def restore():
@@ -187,6 +196,7 @@ def restore():
     return render_template('restore.jinja2',
                            data=default_data()
                            )
+
 
 @auth_bp.route('/restore_pass', methods=['POST'])
 def restore_pass():
@@ -200,7 +210,7 @@ def restore_pass():
     if user:
         # generate new pass
         letters = string.ascii_letters + string.digits
-        new_pass = ''.join(secrets.choice(letters) for i in range(15)) # nosec
+        new_pass = ''.join(secrets.choice(letters) for _ in range(15))  # nosec
         user.pasw = generate_password_hash(new_pass)
         db.session.commit()
 
@@ -229,7 +239,7 @@ def restore_pass():
         flash(f'The email with a new password was sent to your email from \
               <span class="font-weight-bold"> \
               {current_app.config["MAIL_DEFAULT_SENDER"]} \
-              </span>. <br /> Check spam folder in case no email is recieved.')
+              </span>. <br /> Check spam folder in case no email is received.')
         logging.info('Successful password recovery.')
     else:
         logging.error('Error sending email with pass recovery')

@@ -6,16 +6,16 @@ function renderOcoins(paper) {
   let ocoins = {
     "ctx_ver": "Z39.88-2004",
     "rft_val_fmt": encodeURIComponent("info:ofi/fmt:kev:mtx:journal"),
-    "rft.atitle": encodeURIComponent(paper.title),
-    "rft.jtitle": encodeURIComponent("arXiv:" + paper.id + " [" + paper.cats[0] + "]"),
-    "rft.date": encodeURIComponent(paper.date_up),
-    "rft.artnum": encodeURIComponent(paper.id),
+    "rft.atitle": encodeURIComponent(paper["title"]),
+    "rft.jtitle": encodeURIComponent("arXiv:" + paper.id + " [" + paper["cats"][0] + "]"),
+    "rft.date": encodeURIComponent(paper["date_up"]),
+    "rft.artnum": encodeURIComponent(paper["id"]),
     "rft.genre": encodeURIComponent("preprint"),
-    "rft.description": encodeURIComponent(paper.abstract),
+    "rft.description": encodeURIComponent(paper["abstract"]),
   };
 
   ocoins["aulast"] = encodeURIComponent(paper.author);
-  ocoins["rft_id"] = paper.ref_doi === undefined ? encodeURIComponent(paper.ref_web): encodeURIComponent(paper.ref_doi);
+  ocoins["rft_id"] = paper["ref_doi"] === undefined ? encodeURIComponent(paper["ref_web"]): encodeURIComponent(paper["ref_doi"]);
 
   ocoins = JSON.stringify(ocoins);
   ocoins = ocoins.replace(/\"/g, "");
@@ -23,12 +23,10 @@ function renderOcoins(paper) {
   ocoins = ocoins.replace(/:/g, "=");
   ocoins = ocoins.slice(1, ocoins.length - 1);
 
-
-
   return ocoins;
 }
 
-function rebderButtonsBase(content, pId) {
+function renderButtonsBase(content, pId) {
   let btnPanel = document.createElement("div");
   btnPanel.className = "btn-toolbar";
   btnPanel.id = "btn-toolbar-"+pId;
@@ -49,7 +47,7 @@ function rebderButtonsBase(content, pId) {
   let btnPdf = document.createElement("a");
   btnPdf.className = "btn btn-primary";
   btnPdf.id = "btn-pdf-"+pId;
-  btnPdf.href = content.ref_pdf;
+  btnPdf.href = content["ref_pdf"];
   btnPdf.target = "_blank";
   btnPdf.innerHTML = "<i class='fa fa-file-pdf-o' aria-hidden='true' style='font-weight:600'></i>&nbsp; PDF";
 
@@ -62,7 +60,7 @@ function rebderButtonsBase(content, pId) {
   let btnArxiv = document.createElement("a");
   btnArxiv.className = "btn btn-primary";
   btnArxiv.id = "btn-arxiv-"+pId;
-  btnArxiv.href = content.ref_web;
+  btnArxiv.href = content["ref_web"];
   btnArxiv.target = "_blank";
   btnArxiv.textContent = "arXiv";
 
@@ -101,40 +99,40 @@ function renderPapersBase(content, pId) {
   title.appendChild(number);
   title.appendChild(titleText);
 
-  var tagPanel = document.createElement("div");
+  let tagPanel = document.createElement("div");
   tagPanel.className = "tag-panel";
   tagPanel.id = "tag-panel-"+pId;
   paper.appendChild(tagPanel);
 
   if ("tags" in content && content.tags.length > 0) {
     content.tags.forEach(function(tag) {
-      var tagDiv = document.createElement("div");
+      let tagDiv = document.createElement("div");
       tagDiv.className = "tag-panel-item";
-      tagDiv.style = "background-color:" + TAGS[parseInt(tag, 10)].color;
+      tagDiv.style.backgroundColor = TAGS[parseInt(tag, 10)].color;
       tagDiv.textContent = TAGS[parseInt(tag, 10)].name;
       tagPanel.appendChild(tagDiv);
     });
   } else {
-    tagPanel.style = "display: none";
+    tagPanel.style.display = "none";
   }
 
   let au = document.createElement("div");
   au.className = "paper-au";
-  // unsafe but required to aprse unicode accents
+  // unsafe but required to parse unicode accents
   au.innerHTML = content.author;
   paper.appendChild(au);
 
   let date = document.createElement("div");
   date.id = "paper-date-"+pId;
   date.className = "paper-date";
-  date.textContent = content.date_up;
+  date.textContent = content["date_up"];
 
-  if ("date_sub" in content && content.date_sub !== content.date_up) {
+  if ("date_sub" in content && content["date_sub"] !== content["date_up"]) {
     date.textContent += " (v1: " + content.date_sub + ")";
   }
   paper.appendChild(date);
 
-  if (content.ref_doi) {
+  if (content["ref_doi"]) {
     let ref = document.createElement("div");
     ref.className = "ref";
 
@@ -146,9 +144,9 @@ function renderPapersBase(content, pId) {
     light.className = "light paper-doi";
 
     let link = document.createElement("a");
-    link.href = content.ref_doi;
+    link.href = content["ref_doi"];
     link.target = "_blank";
-    link.textContent = content.ref_doi.split(".org/")[1];
+    link.textContent = content["ref_doi"].split(".org/")[1];
 
     paper.appendChild(ref);
     ref.appendChild(dark);
@@ -158,21 +156,21 @@ function renderPapersBase(content, pId) {
 
   let cat = document.createElement("div");
   cat.className = "paper-cat";
-  cat.innerHTML = "[<strong>" + content.cats[0] + "</strong>";
-  if (content.cats.length > 1) {
+  cat.innerHTML = "[<strong>" + content["cats"][0] + "</strong>";
+  if (content["cats"].length > 1) {
     cat.innerHTML += ", ";
   }
-  cat.innerHTML += content.cats.slice(1).join(", ");
+  cat.innerHTML += content["cats"].slice(1).join(", ");
   cat.innerHTML += "]";
   paper.appendChild(cat);
 
-  let btnPanel = rebderButtonsBase(content, pId);
+  let btnPanel = renderButtonsBase(content, pId);
   paper.appendChild(btnPanel);
 
   let abs = document.createElement("div");
   abs.className = "collapse paper-abs";
   abs.id = "abs-"+pId;
-  abs.textContent = content.abstract;
+  abs.textContent = content["abstract"];
   paper.appendChild(abs);
 
   return [paper, btnPanel];
