@@ -1,9 +1,8 @@
 """Render utils."""
 
 from datetime import datetime
-from .model import Tag
 
-# dictionary for acccents
+# dictionary for accents
 accents = {"\\'a": '&aacute;',
            "\\'A": '&Aacute;',
            "\\'e": '&eacute;',
@@ -94,7 +93,7 @@ def key_tag(paper):
 
     # to make the secondary key working in the right way
     # the sorting is reversed
-    # for consistancy the tag index is inversed too
+    # for consistency the tag index is inverse too
 
     # WARNING cross-fingered nobody will use 1000 tags
     # otherwise I'm in trouble
@@ -147,7 +146,7 @@ def render_tags_front(tags: list) -> list:
     return tags_dict
 
 
-def tag_name_and_rule(tags: list[Tag]) -> list:
+def tag_name_and_rule(tags: list) -> list:
     """Return only tag name and rule in JSON."""
     json = []
     for tag in tags:
