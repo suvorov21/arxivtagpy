@@ -4,23 +4,23 @@
 
 let PAPERS_PER_PAGE = 40;
 
-var PAGE = 1;
-var VISIBLE = 0;
+let PAGE = 1;
+let VISIBLE = 0;
 
-var BOOK_BTN = -1;
+let BOOK_BTN = -1;
 
 const checkPaperVis = (paper, catsShow, allVisible, tagsShow) => {
   /** Check if the paper passes visibility rules.
    * Logic: if check-box is off --> cut all the affected papers
    */
 
-  if ((prefs.data.showNov[0] === true || !(paper.nov & 1)) &&
-      (prefs.data.showNov[1] === true || !(paper.nov & 2)) &&
-      (prefs.data.showNov[2] === true || !(paper.nov & 4)) &&
+  if ((prefs.data.showNov[0] === true || !(paper["nov"] & 1)) &&
+      (prefs.data.showNov[1] === true || !(paper["nov"] & 2)) &&
+      (prefs.data.showNov[2] === true || !(paper["nov"] & 4)) &&
       // filter on categories check boxes
-      catsShow.filter((value) => paper.cats.includes(value)).length > 0 &&
+      catsShow.filter((value) => paper["cats"].includes(value)).length > 0 &&
       // filter on tags
-      (allVisible || (tagsShow.filter((value, index) => value && paper.tags.includes(index)).length > 0))
+      (allVisible || (tagsShow.filter((value, index) => value && paper["tags"].includes(index)).length > 0))
       ) {
     VISIBLE += 1;
     return true;
@@ -47,73 +47,73 @@ function sortPapers() {
   if (sortMethod.includes("tag")) {
 
     DATA.papersVis.sort((a, b) => {
-      if (b.tags.length === 0 && a.tags.length !== 0) {
+      if (b["tags"].length === 0 && a["tags"].length !== 0) {
         return sortMethod === "tag-as" ? -1 : 1;
       }
-      if (b.tags.length !== 0 && a.tags.length === 0) {
+      if (b["tags"].length !== 0 && a["tags"].length === 0) {
         return sortMethod === "tag-as" ? 1 : -1;
       }
-      if (b.tags.length === 0 && a.tags.length === 0) {
+      if (b["tags"].length === 0 && a["tags"].length === 0) {
         return -1;
       }
-      return sortFunction(a.tags[0], b.tags[0],
-                          sortMethod === "tag-as"? true : false,
-                          new Date(a.date_up),
-                          new Date(b.date_up)
+      return sortFunction(a["tags"][0], b["tags"][0],
+                          sortMethod === "tag-as",
+                          new Date(a["date_up"]),
+                          new Date(b["date_up"])
                           );
     });
   }
   // dates
   if (sortMethod.includes("date-up")) {
     DATA.papersVis.sort((a, b) => {
-      let aDate = new Date(a.date_up);
-      let bDate = new Date(b.date_up);
+      let aDate = new Date(a["date_up"]);
+      let bDate = new Date(b["date_up"]);
       return sortFunction(aDate, bDate,
-                          sortMethod === "date-up_des"? true : false,
+                          sortMethod === "date-up_des",
                           aDate, bDate);
     });
   }
 
   if (sortMethod.includes("date-sub")) {
     DATA.papersVis.sort((a, b) => {
-      let aDateSub = new Date(a.date_sub);
-      let bDateSub = new Date(b.date_sub);
+      let aDateSub = new Date(a["date_sub"]);
+      let bDateSub = new Date(b["date_sub"]);
       return sortFunction(aDateSub, bDateSub,
-                          sortMethod === "date-sub_des"? true : false,
-                          new Date(a.date_up),
-                          new Date(b.date_up)
+                          sortMethod === "date-sub_des",
+                          aDateSub,
+                          bDateSub
                           );
     });
   }
 
-  // caregories
+  // categories
   if (sortMethod.includes("cat")) {
     DATA.papersVis.sort((a, b) => {
       let catA = "";
       let catB = "";
-      for (let id = 0; id < a.cats.length; id++) {
-        if (CATS.includes(a.cats[parseInt(id, 10)])) {
-          catA = a.cats[parseInt(id, 10)];
+      for (let id = 0; id < a["cats"].length; id++) {
+        if (CATS.includes(a["cats"][parseInt(id, 10)])) {
+          catA = a["cats"][parseInt(id, 10)];
           break;
         }
       }
-      for (let id = 0; id < b.cats.length; id++) {
-        if (CATS.includes(b.cats[parseInt(id, 10)])) {
-          catB = b.cats[parseInt(id, 10)];
+      for (let id = 0; id < b["cats"].length; id++) {
+        if (CATS.includes(b["cats"][parseInt(id, 10)])) {
+          catB = b["cats"][parseInt(id, 10)];
           break;
         }
       }
       return sortFunction(CATS.indexOf(catA), CATS.indexOf(catB),
-                          sortMethod === "cat-as"? true : false,
-                          new Date(a.date_up),
-                          new Date(b.date_up)
+                          sortMethod === "cat-as",
+                          new Date(a["date_up"]),
+                          new Date(b["date_up"])
                           );
     });
   }
 }
 
 const cleanPageList = () => {
-  /** Clean the displayd papers. Display "loading" wheel
+  /** Clean the displayed papers. Display "loading" wheel
    */
   $("#paper-list-content").empty();
   document.getElementById("loading-papers").style["display"] = "block";
@@ -379,7 +379,7 @@ function filterVisiblePapers() {
 
   let allVisible = prefs.data.tagsArr.every((x) => x.vis);
 
-  DATA.papersVis = DATA.papers.filter((paper) => checkPaperVis(paper,
+  DATA.papersVis = DATA["papers"].filter((paper) => checkPaperVis(paper,
                                                                catsShow,
                                                                allVisible,
                                                                tagsShow
@@ -423,10 +423,7 @@ function checkCat(event) {
 
 const tagBorder = (num, border) => {
   prefs.data.tagsArr[parseInt(num, 10)].vis = border;
-
-  $("#tag-label-" + num).css("border-color",
-                             border ? cssVar("--tag_border_color") : "transparent"
-                             );
+  document.getElementById("tag-label-" + num).style.borderColor = border ? cssVar("--tag_border_color") : "transparent";
 };
 
 const checkTag = (event) => {
@@ -504,7 +501,7 @@ function renderCats() {
     let form = document.createElement("div");
     form.className = "form-check";
 
-    var check = document.createElement("input");
+    let check = document.createElement("input");
     check.setAttribute("type", "checkbox");
     check.id = "check-cat-"+num;
     check.className = "form-check-input check-cat";
@@ -574,7 +571,7 @@ function renderTags() {
     let tagElement = document.createElement("div");
     tagElement.className = "tag-label";
     tagElement.id = "tag-label-"+num;
-    tagElement.style = "background-color: " + tag.color;
+    tagElement.style.backgroundColor = tag.color;
     tagElement.textContent = tag.name;
 
     tagElement.addEventListener("click", checkTag);
@@ -609,7 +606,7 @@ function renderNov() {
 
 function renderCounters() {
   let nCats = CATS.length;
-  if (typeof(DATA.ncat) === "undefined") {
+  if (typeof(DATA["ncat"]) === "undefined") {
     return;
   }
   for(let catId = 0; catId < nCats; catId++) {
@@ -621,10 +618,9 @@ function renderCounters() {
   }
 
  let nTags = TAGS.length;
- for(let tagId = 0; tagId < nTags; tagId++) {
+ for (let tagId = 0; tagId < nTags; tagId++) {
     document.getElementById("tag-count-"+tagId).textContent = DATA.ntag[parseInt(tagId, 10)];
   }
-  return;
 }
 
 // change sort selector
@@ -659,7 +655,7 @@ const listClick = (event) => {
     target = target.parentElement;
   }
   let num = target.getAttribute("id");
-  let paper = DATA.papers[parseInt(BOOK_BTN, 10)];
+  let paper = DATA["papers"][parseInt(BOOK_BTN, 10)];
   // we take paper id w/o version --> do not overload paper DB
   $.post(url, {"paper_id": paper.id.split("v")[0],
                "list_id": num
@@ -682,10 +678,10 @@ const listClick = (event) => {
 const renderLists = () => {
  /** Render pop-up window with page lists
   */
-  DATA.lists.forEach((list) => {
+  DATA["lists"].forEach((list) => {
     let listDom = document.createElement("div");
     listDom.textContent = list.name;
-    listDom.classList = "list-name";
+    listDom.className = "list-name";
     listDom.id = String(list.id);
     listDom.addEventListener("click", listClick);
     document.getElementById("lists-popup").appendChild(listDom);
@@ -709,7 +705,8 @@ window.onload = function() {
     DATA = data;
     renderCounters();
     // update page title with detailed dates
-    $("#paper-list-title").text($("#paper-list-title").text() + DATA.title);
+    let element = $("#paper-list-title");
+    element.text(element.text() + DATA.title);
     filterVisiblePapers();
     renderLists();
   }).fail(function() {

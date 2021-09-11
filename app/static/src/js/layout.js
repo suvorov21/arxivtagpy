@@ -1,6 +1,6 @@
 /*exported  raiseAlert, cssVar */
 
-var prefs = {
+let prefs = {
 
   data: {},
 
@@ -21,8 +21,8 @@ var prefs = {
   },
 
   save(expires, path) {
-    var d = expires || new Date(2100, 2, 2);
-    var p = path || "/";
+    const d = expires || new Date(2100, 2, 2);
+    const p = path || "/";
     document.cookie = "prefs=" + encodeURIComponent(JSON.stringify(this.data))
               + ";expires=" + d.toUTCString()
               + ";path=" + p;
@@ -78,7 +78,7 @@ $(function() {
   });
 
   $("#feedback-form form").on("submit", function(event) {
-    var $form = $(this);
+    let $form = $(this);
     $.ajax({
       type: $form.attr("method"),
       url: $form.attr("action"),
@@ -92,7 +92,7 @@ $(function() {
   });
 });
 
-// untility function to access css var
+// utility function to access css var
 function cssVar(name, value) {
   if (name[0] !=="-") {
     name = "--" + name; //allow passing with or without --

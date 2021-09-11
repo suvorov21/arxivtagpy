@@ -1,7 +1,7 @@
 """Application initialiser."""
 # pylint: disable=import-outside-toplevel
 
-from  os import environ
+from os import environ
 import sys
 
 import logging
@@ -31,12 +31,14 @@ migrate = Migrate()
 
 app = Flask(__name__, instance_relative_config=True)
 
+
 @app.cli.command("create-db")
 def create_db():
     """CLI for database creation."""
     db.init_app(app)
     db.create_all()
     db.session.commit()
+
 
 def app_init():
     """Initialise app."""
@@ -69,9 +71,9 @@ def app_init():
     # fix a syntax for database
     if 'postgres://' in app.config['SQLALCHEMY_DATABASE_URI']:
         app.config['SQLALCHEMY_DATABASE_URI'] = \
-        app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://',
-                                                      'postgresql://'
-                                                      )
+            app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://',
+                                                          'postgresql://'
+                                                          )
 
     db.init_app(app)
     login_manager.init_app(app)

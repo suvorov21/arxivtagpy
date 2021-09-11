@@ -1,4 +1,4 @@
-"""API for papr downloading."""
+"""API for paper downloading."""
 
 from time import sleep
 import xml.etree.ElementTree as ET
@@ -11,6 +11,7 @@ from requests import get
 
 from .model import Paper
 from .utils import fix_xml
+
 
 class ArxivOaiApi:
     """
@@ -29,7 +30,7 @@ class ArxivOaiApi:
     BATCH_SIZE = 1000
     COMMIT_PERIOD = 1000
 
-    DEF_PARAMS = {'metadataPrefix' : 'arXivRaw'}
+    DEF_PARAMS = {'metadataPrefix': 'arXivRaw'}
 
     OAI = "{http://www.openarchives.org/OAI/2.0/}"
     ARXIV = "{http://arxiv.org/OAI/arXivRaw/}"
@@ -55,7 +56,7 @@ class ArxivOaiApi:
         return self.BASE_URL + '/pdf/' + pid + version + '.pdf'
 
     def get_ref_web(self, pid: str, version: str):
-        """Forrmat ref for webpage with summary."""
+        """Format ref for webpage with summary."""
         return self.BASE_URL + '/abs/' + pid + version
 
     def download_papers(self):
@@ -120,7 +121,7 @@ class ArxivOaiApi:
                     doi = doi.text.split()[0]
 
                 author = info.find(self.ARXIV + 'authors').text
-                # explicitly for peopple who put affillation in author list
+                # explicitly for people who put affiliation in author list
                 author = split(r', | \(.*?\),| and ', author)
                 author[-1] = split(r' \(.*?\)(,| )', author[-1])[0]
 
@@ -152,16 +153,17 @@ class ArxivOaiApi:
 
         return
 
+
 def get_arxiv_sub_start(announce_date: date,
                         offset=0
                         ) -> datetime:
-    """Get arxiv submission start time for a given announcment date."""
+    """Get arxiv submission start time for a given announcement date."""
     sub_date_begin = announce_date
     # papers announced on day N are submitted between day N-2 and N-1
     sub_date_begin -= timedelta(days=2 + offset)
     # over weekend cross
     # if the announce date is on weekend
-    # the situation is equivavlent to Friday announcments
+    # the situation is equivalent to Friday announcements
     # From Wednesday to Thursday
     if announce_date.weekday() > 4:
         sub_date_begin -= timedelta(days=sub_date_begin.weekday()-2)
@@ -176,13 +178,14 @@ def get_arxiv_sub_start(announce_date: date,
 
     # arxiv submission deadline is at 17:59
     sub_date_begin = datetime.combine(sub_date_begin,
-                                     time(hour=17, minute=59, second=59)
-                                     )
+                                      time(hour=17, minute=59, second=59)
+                                      )
 
     return sub_date_begin
 
+
 def get_arxiv_sub_end(announce_date: date) -> datetime:
-    """Get arxiv submission end time for a given announcment date."""
+    """Get arxiv submission end time for a given announcement date."""
     sub_date_end = announce_date
 
     # papers announced on day N are submitted between day N-2 and N-1
@@ -190,7 +193,7 @@ def get_arxiv_sub_end(announce_date: date) -> datetime:
 
     # over weekend cross
     # if the announce date is on weekend
-    # the situation is equivavlent to Friday announcments
+    # the situation is equivalent to Friday announcements
     # From Wednesday to Thursday
     if announce_date.weekday() > 4:
         sub_date_end -= timedelta(days=sub_date_end.weekday()-3)
@@ -205,23 +208,25 @@ def get_arxiv_sub_end(announce_date: date) -> datetime:
 
     return sub_date_end
 
+
 def get_axiv_announce_date(paper_sub: datetime) -> datetime:
     """Get the announce date for a given paper."""
     announce_date = paper_sub
     announce_date = announce_date \
         + timedelta(days=1 if paper_sub.hour < 18 else 2)
-    if (announce_date.weekday() > 4):
+    if announce_date.weekday() > 4:
         announce_date = announce_date \
             + timedelta(days=7-announce_date.weekday())
 
     return announce_date
 
+
 def get_annonce_date() -> datetime:
     """
-    Compare the current time to the new paper announcment.
+    Compare the current time to the new paper announcement.
 
-    If new papers are nor announced yet, switch annoncment date to yesterday
-    the announcment time is parametrized in UTC in .env file.
+    If new papers are nor announced yet, switch announcement date to yesterday
+    the announcement time is parametrized in UTC in .env file.
     """
     announce_date = datetime.now(timezone.utc)
     sub_update_time = current_app.config['UPDATE_TIME']
@@ -230,18 +235,19 @@ def get_annonce_date() -> datetime:
                                             minute=sub_update_time.minute,
                                             tzinfo=timezone.utc
                                             )
-                                        )
+                                       )
     if announce_date < sub_update_time:
         announce_date -= timedelta(days=1)
 
     return announce_date
+
 
 def get_date_range(date_type: str,
                    announce_date: datetime,
                    **kwargs
                    ) -> tuple:
     """Return start and end for the submission range."""
-    # tmp value stores the annonced date of the paper
+    # tmp value stores the announced date of the paper
     new_date_tmp = announce_date
     # the real submission end period
     new_date = get_arxiv_sub_end(new_date_tmp.date())
@@ -285,7 +291,7 @@ def get_date_range(date_type: str,
                       )
         return old_date_tmp, new_date_tmp, new_date
 
-    # the last uncovered requiest type
+    # the last uncovered request type
     # otherwise log an error
     if date_type != 'unseen':
         logging.error('Unsupported date type %r', date_type)
