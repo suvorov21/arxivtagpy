@@ -105,7 +105,7 @@ def paper_land():
             continue
 
         visit = bool(current_user.recent_visit & (2 ** i))
-        href = '{url}?date=range?from={fr}&until={until}'
+        href = '{url}?date=range&from={fr}&until={until}'
         from_str = datetime.strftime(day, '%d-%m-%Y')
         until_str = datetime.strftime(day, '%d-%m-%Y')
         past_week.append({'day': datetime.strftime(day, '%A, %d %B'),
