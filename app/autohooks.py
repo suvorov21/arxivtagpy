@@ -286,7 +286,7 @@ def email_papers():
     """
     Email notifications about new submissions.
 
-    1. Start with quering all the tags with email==True
+    1. Start with querying all the tags with email==True
         sort by user id
     2. User by user:
         2.1 Get a user that owns this tag
@@ -313,6 +313,7 @@ def email_papers():
     n_user = 0
     n_papers = 0
     user = None
+    papers = []
     for tag in tags:
         # 2
         if tag.user_id != prev_user:

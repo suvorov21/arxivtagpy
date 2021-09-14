@@ -170,3 +170,24 @@ class TestLiveServer:
         driver.find_element_by_id('add-book-btn').click()
         sleep(2)
         assert 'new_list' in driver.page_source
+
+    def test_btn_save(self, driver):
+        """Test if save button become active on change on settings page."""
+        driver.get(url_for('settings_bp.settings_page',
+                           page='pref',
+                           _external=True
+                           ))
+        sleep(2)
+        element1 = driver.find_element_by_class_name('btn-success')
+        element2 = driver.find_element_by_class_name('btn-secondary')
+
+        assert 'disabled' in element1.get_attribute('class')
+        assert 'disabled' in element2.get_attribute('class')
+
+        driver.find_element_by_id('tex-check').click()
+        sleep(1)
+        element1 = driver.find_element_by_class_name('btn-success')
+        element2 = driver.find_element_by_class_name('btn-secondary')
+
+        assert 'disabled' not in element1.get_attribute('class')
+        assert 'disabled' not in element2.get_attribute('class')
