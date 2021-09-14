@@ -51,6 +51,14 @@ The Postgres DB should be installed. The DB can be created with
 flask db init; flask db migrate; flask db upgrade
 ```
 
+The front-end is build with npm
+
+```bash
+cd app/static/src/
+npm install
+npm run build
+```
+
 The server can be run in the dev mode with
 
 ```bash
