@@ -53,14 +53,14 @@ def render_title(date_type: str, last_visit: datetime = 0) -> str:
     """Put the date type in the title text."""
     if date_type == 'today':
         return 'Papers for today'
-    elif date_type == 'week':
+    if date_type == 'week':
         return 'Papers for this week'
-    elif date_type == 'month':
+    if date_type == 'month':
         return 'Papers for this month'
-    elif date_type == 'last':
+    if date_type == 'last':
         return 'Papers since your last visit on ' + \
                last_visit.strftime('%d %b %Y')
-    elif date_type == 'unseen':
+    if date_type == 'unseen':
         return 'Unseen papers during the past week'
 
     return 'Papers'

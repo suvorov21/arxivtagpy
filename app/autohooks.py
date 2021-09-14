@@ -230,6 +230,7 @@ def bookmark_papers():
 
     n_user = 0
     n_papers = 0
+    papers = []
     for tag in tags:
         # 2
         if tag.user_id != prev_user:

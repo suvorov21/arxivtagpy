@@ -17,3 +17,5 @@ coverage.xml
 .vscode/*
 data/*
 HELP/*
+app/static/src/node_modules/*
+/app/static/dist/*

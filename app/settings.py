@@ -59,12 +59,6 @@ def settings_page():
 def mod_cat():
     """Apply category changes."""
     new_cats = cast_args_to_dict(request.form.to_dict().keys())
-
-    if len(new_cats) == 0:
-        logging.error('Error during cats mod. Request %r', new_cats)
-        return dumps({'success': False}), 422
-    if new_cats == ["null"]:
-        new_cats = []
     current_user.arxiv_cat = new_cats
     db.session.commit()
     session['cats'] = current_user.arxiv_cat
@@ -101,7 +95,7 @@ def mod_list():
 @login_required
 def add_list():
     """Add a new paper list."""
-    args = cast_args_to_dict(request.form.to_dict().keys())
+    args = cast_args_to_dict(request.form.to_dict().keys())[0]
 
     if args['name'] == '':
         logging.error('Error during list add. Request %r', args)
@@ -181,11 +175,8 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
     """
     new_settings = cast_args_to_dict(args)
 
-    if len(new_settings) == 0:
-        return dumps({'success': False}), 422
-
-    if new_settings == ["null"]:
-        new_settings = []
+    # if len(new_settings) == 0:
+    #     new_settings = []
 
     settings = db_class.query.filter_by(user_id=current_user.id
                                         ).order_by(db_class.order).all()

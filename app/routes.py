@@ -13,6 +13,7 @@ from . import mail
 from .model import db, Paper, PaperList, paper_associate, Tag
 from .render import render_papers, render_title, \
     render_tags_front, tag_name_and_rule, render_title_precise
+from .auth import new_default_list
 
 from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers, tag_test
@@ -255,6 +256,10 @@ def bookshelf():
     if 'list_id' not in request.args:
         fst_list = PaperList.query.filter_by(user_id=current_user.id
                                              ).order_by(PaperList.order).first()
+        if not fst_list:
+            new_default_list(current_user.id)
+            fst_list = PaperList.query.filter_by(user_id=current_user.id
+                                                 ).order_by(PaperList.order).first()
         return redirect(url_for('main_bp.bookshelf', list_id=fst_list.id))
     display_list = request.args['list_id']
 

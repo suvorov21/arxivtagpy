@@ -2,8 +2,7 @@
 
 {% block head_scripts %}
   <title>arXiv tag. Daily paper submissions</title>
-
-  <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.css"/>
 
 {% endblock %}
@@ -75,8 +74,7 @@
 {% endblock %}
 
 {% block script_footer %}
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='dist/js/layout.min.js') }}"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
   <script type="text/javascript">
     document.getElementById("papers-nav").classList.add("active");
   </script>
@@ -98,13 +96,13 @@
       });
     });
 
-    $("#range").click(() => {
-      if ($("#from").val() === "" || $("#until").val() === "") {
-        $(".sub-alert").text("Please, insert the date range");
+    document.getElementById("range").onclick = () => {
+      if (document.getElementById("from").value === "" || document.getElementById("until").value === "") {
+        document.getElementsByClassName("sub-alert")[0].textContent = "Please, insert the date range";
         return;
       }
-      location.href = "/papers?date=range&from=" + $("#from").val() + "&until=" + $("#until").val()
-    });
+      location.href = "/papers?date=range&from=" + document.getElementById("from").value + "&until=" + document.getElementById("until").value
+    };
 
   </script>
 

@@ -123,7 +123,7 @@ class ArxivOaiApi:
                 author = info.find(self.ARXIV + 'authors').text
                 # explicitly for people who put affiliation in author list
                 author = split(r', | \(.*?\),| and ', author)
-                author[-1] = split(r' \(.*?\)(,| )', author[-1])[0]
+                author[-1] = split(r' \(.*?\)(,|\s)', author[-1])[0]
 
                 paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
                               title=fix_xml(info.find(self.ARXIV + 'title').text),
