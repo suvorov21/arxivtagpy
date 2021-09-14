@@ -29,7 +29,10 @@ const fillSetForm = (): boolean => {
     $.post(url, JSON.stringify(dataSet))
         .done(function() {
             renderPref();
-            $(".btn-save").addClass("disabled");
+            const btnCollection = document.getElementsByClassName("btn-save");
+            for (let i = 0; i < btnCollection.length; i++) {
+                btnCollection[`${i}`].classList.add("disabled");
+            }
             raiseAlert("Settings are saved", "success");
             // update the stylesheets. Just in case theme was changed
             const links = document.getElementsByTagName("link");

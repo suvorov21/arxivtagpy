@@ -16,8 +16,7 @@ const findListNumById = (id: string) => {
 };
 
 const delListClick = (event: MouseEvent): void => {
-    const
-        name = (event.target as HTMLElement).getAttribute("id").split("_")[1];
+    const name = (event.target as HTMLElement).getAttribute("id").split("_")[1];
     document.getElementById("par-list-" + name).classList.remove("d-flex");
     $("#par-list-" + name).fadeOut();
     $(".btn").removeClass("disabled");
@@ -106,7 +105,10 @@ window.onload = () => {
         }
         const url = "mod_lists";
         submitSetting(url, window["LISTS"]).then(() => {
-            document.getElementsByClassName("btn-save")[0].classList.add("disabled");
+            const btnCollection = document.getElementsByClassName("btn-save");
+            for (let i = 0; i < btnCollection.length; i++) {
+                btnCollection[`${i}`].classList.add("disabled");
+            }
         });
         return false;
     });

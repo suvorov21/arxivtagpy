@@ -16,8 +16,7 @@ export const submitSetting = (url: string, set: JSON): Promise<boolean> => {
 };
 
 export const setDefaultListeners = (): void => {
-    setTimeout(() => {
-    const btnCollection = document.getElementsByClassName("btn-cancel");
+    let btnCollection = document.getElementsByClassName("btn-cancel");
     for (let i = 0; i < btnCollection.length; i++) {
         btnCollection[`${i}`].addEventListener("click", () => {
             const target = document.getElementsByClassName(
@@ -27,8 +26,8 @@ export const setDefaultListeners = (): void => {
             }
         });
     }
-    }, 1000)
-    const btnCollection = document.getElementsByClassName("nav-link");
+
+    btnCollection = document.getElementsByClassName("nav-link");
     for (let i = 0; i < btnCollection.length; i++) {
         btnCollection[`${i}`].addEventListener("click", (event: MouseEvent) => {
             const target = document.getElementsByClassName("btn-cancel")[0] as HTMLElement;
@@ -44,7 +43,10 @@ export const setDefaultListeners = (): void => {
     const formCollection = document.getElementsByClassName("form-check-input");
     for (let i = 0; i < formCollection.length; i++) {
         formCollection[`${i}`].addEventListener("change", () => {
-            document.getElementsByClassName("btn-cancel")[0].classList.remove("disabled");
+            const btnCollection2 = document.getElementsByClassName("btn-save");
+            for (let j = 0; j < btnCollection2.length; j++) {
+                btnCollection2[`${j}`].classList.remove("disabled");
+            }
         });
     }
 };
