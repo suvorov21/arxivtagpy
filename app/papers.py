@@ -5,7 +5,6 @@ Paper downloader function update the paper DB.
 Tag processor checks if a given paper is suitable with the tag
 """
 
-from typing import Dict, Tuple
 from re import search, compile, IGNORECASE, error
 from datetime import datetime, timedelta
 import logging
@@ -85,7 +84,7 @@ def resolve_doi(doi: str) -> str:
     return 'https://www.doi.org/' + doi
 
 
-def render_paper_json(paper: Paper) -> Dict:
+def render_paper_json(paper: Paper) -> dict:
     """Render Paper class object into JSON for front-end."""
     result = {'id': paper.paper_id,
               'title': paper.title,
@@ -112,12 +111,12 @@ def render_paper_json(paper: Paper) -> Dict:
     return result
 
 
-def process_papers(papers: Dict,
-                   tags: Dict,
-                   cats: Tuple[str],
+def process_papers(papers: dict,
+                   tags: dict,
+                   cats: list,
                    do_nov: bool,
                    do_tag: bool
-                   ) -> Dict:
+                   ) -> dict:
     """
     Papers processing.
 
@@ -161,7 +160,7 @@ def process_papers(papers: Dict,
     return papers
 
 
-def tag_suitable(paper: Dict, rule: str) -> bool:
+def tag_suitable(paper: dict, rule: str) -> bool:
     """
     Simple rules are expected in the most of th cases.
 
@@ -238,9 +237,9 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     return False
 
 
-def parse_simple_rule(paper: Dict, condition: str) -> bool:
+def parse_simple_rule(paper: dict, condition: str) -> bool:
     """Parse simple rules as ti/au/abs."""
-    prefix_re = search(r'^(ti|abs|au|cat)\{(.*?)\}', condition)
+    prefix_re = search(r'^(ti|abs|au|cat){(.*?)}', condition)
     if not prefix_re:
         return False
 

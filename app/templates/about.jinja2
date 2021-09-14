@@ -3,7 +3,7 @@
 {% block head_scripts %}
   <title>arXiv tag. Paper submission monitor</title>
   <meta name="description" content="Monitoring submissions at arXiv in a friendly way based on the automatical classification. Setup rules for the papers topics and never miss an important paper." />
-  <link href="{{ url_for('static', filename='dist/css/about.css') }}" rel="stylesheet" type="text/css">
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/about.bundle.js') }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -179,15 +179,10 @@
   // jumbotron animation
   $(function() {
     $('a[href*="#"]').on('click', function(e) {
-      if (event.target.getAttribute("id") === "feature-ref") {
-        $("#features").css("display", "block");
-      }
       e.preventDefault();
       $('html, body').animate({ scrollTop: $($(this).attr('href')).offset().top}, 500, 'linear');
-
     });
   });
 
   </script>
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/layout.min.js') }}"></script>
 {% endblock %}

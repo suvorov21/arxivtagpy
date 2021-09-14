@@ -3,7 +3,8 @@
 from os import environ
 from datetime import datetime
 
-class Config():
+
+class Config:
     """Default config."""
     DEBUG = False
     TESTING = False
@@ -50,12 +51,14 @@ class ProductionConfig(Config):
     """Prod config."""
     PROD = True
 
+
 class DevelopmentConfig(Config):
     """Dev config."""
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_DEBUG')
     SQLALCHEMY_ECHO = True
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+
 
 class TestingConfig(Config):
     """Testing (staging) config."""

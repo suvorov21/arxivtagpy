@@ -42,7 +42,6 @@ def create_db():
 
 def app_init():
     """Initialise app."""
-
     if 'SERVER_CONF' in environ:
         cfg = import_string(environ['SERVER_CONF'])()
     else:
@@ -66,7 +65,7 @@ def app_init():
 
     if app.config.get('SQLALCHEMY_DATABASE_URI') is None:
         logging.error("Database URL is not specified.")
-        return
+        return app
 
     # fix a syntax for database
     if 'postgres://' in app.config['SQLALCHEMY_DATABASE_URI']:
@@ -107,9 +106,5 @@ def app_init():
         app.register_blueprint(auth.auth_bp)
         app.register_blueprint(settings.settings_bp)
         app.register_blueprint(autohooks.auto_bp)
-
-        if app.config['BUILD_ASSETS']:
-            from .assets import compile_assets
-            compile_assets(app)
 
         return app

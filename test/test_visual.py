@@ -5,11 +5,13 @@ from time import sleep
 
 from test.conftest import EMAIL, PASS
 
+from flask import url_for
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from flask import url_for
 import pytest
+
 
 @pytest.fixture(scope='session')
 def driver():
@@ -20,8 +22,9 @@ def driver():
     driver = webdriver.Chrome(options=options)
     yield driver
 
+
 @pytest.mark.usefixtures('live_server')
-class TestLiveServer():
+class TestLiveServer:
     """Class for tests with visual driver."""
     def test_server_is_up_and_running(self, driver):
         """Test server is up and driver is working."""

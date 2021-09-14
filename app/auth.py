@@ -30,8 +30,6 @@ auth_bp = Blueprint(
     static_folder='static'
 )
 
-######### LOGIN TOOLS ##################################################
-
 
 @login_manager.user_loader
 def load_user(user_id):

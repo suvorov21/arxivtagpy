@@ -56,7 +56,7 @@ def get_lists_for_user() -> list:
     return lists
 
 
-def cast_args_to_dict(args) -> dict:
+def cast_args_to_dict(args) -> list:
     """Cast requests args to dictionary."""
     prefs = []
     # FIXME Fix key break with ampersand
@@ -66,9 +66,12 @@ def cast_args_to_dict(args) -> dict:
     prefs = '&'.join(prefs)
 
     if prefs == '':
-        return dict()
+        return list()
 
     # convert to array of dict
     prefs = loads(prefs)
+
+    if isinstance(prefs, dict):
+        prefs = [prefs]
 
     return prefs

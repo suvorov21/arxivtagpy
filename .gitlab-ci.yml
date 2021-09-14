@@ -1,5 +1,5 @@
 stages:
-  - syntax
+  - build
   - test
   - deploy
 
@@ -16,13 +16,25 @@ code_quality:
     paths: [gl-code-quality-report.json]
 
 syntax_test:
-  stage: syntax
+  stage: build
   image:
     python:3.9.5-slim-buster
   before_script:
     - python3 -m pip install --ignore-installed -r requirements.txt
   script:
     - python3 -m py_compile app/*.py
+
+assets_build:
+    stage: build
+    image: node:16.9.0-alpine3.14
+    before_script:
+      - cd app/static/src/
+      - npm install
+    script:
+        - npm run build
+    artifacts:
+      paths:
+        - app/static/dist/js/*
 
 integration_test:
   stage: test
@@ -38,8 +50,7 @@ integration_test:
   before_script:
     - python3 -m pip install --ignore-installed -r requirements.txt
     - apt update
-    - apt install -y chromium chromium-driver wget nodejs npm
-    - npm install -g less
+    - apt install -y chromium chromium-driver wget
     - mv .env_example .env
   script:
     - pytest --cov=app --junitxml=report.xml test/
@@ -65,7 +76,6 @@ stage_to_beta:
     - develop
 
 prod:
-  type: deploy
   stage: deploy
   tags:
     - deploy
