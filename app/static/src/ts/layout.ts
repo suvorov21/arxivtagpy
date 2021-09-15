@@ -16,18 +16,18 @@ export const prefs = {
             }
         }
 
-        // initialize defaults
-        if (!Object.prototype.hasOwnProperty.call(prefs.data.hasOwnProperty, "catsArr")) {
+        if (!prefs.data.hasOwnProperty("catsArr")) {
             prefs.data["catsArr"] = {};
         }
 
-        if (!Object.prototype.hasOwnProperty.call(prefs.data.hasOwnProperty, "tagsArr")) {
+        if (!prefs.data.hasOwnProperty("tagsArr")) {
             prefs.data["tagsArr"] = [];
         }
 
-        if (!Object.prototype.hasOwnProperty.call(prefs.data.hasOwnProperty, "showNov")) {
+        if (!prefs.data.hasOwnProperty("showNov")) {
             prefs.data["showNov"] = [true, true, true];
         }
+
 
         return this.data;
     },
