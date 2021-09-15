@@ -126,7 +126,7 @@ export const renderPapersBase = (content: Paper, pId: number): Array<HTMLElement
     const au = document.createElement("div");
     au.className = "paper-au";
     // unsafe but required to parse unicode accents
-    au.textContent = content.author;
+    au.innerHTML = content.author;
     paper.appendChild(au);
 
     const date = document.createElement("div");
