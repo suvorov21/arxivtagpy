@@ -192,10 +192,11 @@ class TestLiveServer:
         assert 'disabled' not in element1.get_attribute('class')
         assert 'disabled' not in element2.get_attribute('class')
 
-    def test_cookies(selfself, driver):
+    def test_cookies(self, driver):
         """Test cookies."""
         driver.get(url_for('main_bp.root', _external=True) + '/papers')
         sleep(3)
+        assert driver.find_element_by_id('check-nov-1').is_selected()
         driver.find_element_by_id('check-nov-1').click()
         driver.get(url_for('main_bp.root', _external=True) + '/papers')
         sleep(3)
