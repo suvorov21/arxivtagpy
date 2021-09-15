@@ -3,7 +3,7 @@
 {% block head_scripts %}
   <title>arXiv tag. Paper submission monitor</title>
   <meta name="description" content="Monitoring submissions at arXiv in a friendly way based on the automatical classification. Setup rules for the papers topics and never miss an important paper." />
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/about.bundle.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/about.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}
 
 {% block content %}

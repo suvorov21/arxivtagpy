@@ -2,7 +2,7 @@
 
 {% block head_scripts %}
   <title>arXiv tag. Daily paper submissions</title>
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.css"/>
 
 {% endblock %}

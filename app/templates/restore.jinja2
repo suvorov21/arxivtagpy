@@ -3,7 +3,7 @@
 {% block head_scripts %}
   <title>arXiv tag. Restore password</title>
 
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}
 
 {% block content %}

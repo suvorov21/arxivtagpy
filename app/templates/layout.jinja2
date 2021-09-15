@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 
   {% if data['theme'] == 'dark' %}
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/vars_dark.bundle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/vars_dark.bundle.js') }}?{{ data['version'] }}"></script>
   {% else %}
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/vars.bundle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/vars.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
 
   {% if data['sentry'] == 'short' %}

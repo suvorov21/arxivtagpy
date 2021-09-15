@@ -2,7 +2,7 @@
 
 {% block head_scripts %}
   <title>arXiv tag. Settings</title>
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_style.bundle.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_style.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -264,20 +264,20 @@
 {% block script_footer %}
   {% if 'tags' in data %}
     <script type="text/javascript">window["TAGS"] = {{ data['tags'] }};</script>
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_tag.bundle.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_tag.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
 
   {% if 'cats' in data %}
       <script type="text/javascript">window["CATS"] = {{ data['cats'] }};</script>
-      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_cat.bundle.js') }}"></script>
+      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'lists' in data %}
       <script type="text/javascript">window["LISTS"] = {{ data['lists'] }};</script>
-      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_book.bundle.js') }}"></script>
+      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'pref' in data %}
       <script type="text/javascript">window["PREF"] = {{ data['pref'] }};</script>
-      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_pref.bundle.js') }}"></script>
+      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   <script type="text/javascript">
     document.getElementById("set-nav").classList.add("active");

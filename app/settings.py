@@ -256,12 +256,12 @@ def load_prefs():
 def default_data():
     """Get default template render params."""
     data = dict()
+    data['version'] = current_app.config['VERSION']
     data['sentry'] = ''
     if current_app.config['SENTRY_HOOK']:
         data['sentry'] = 'long'
         data['sentry_dsn'] = current_app.config['SENTRY_HOOK']
         data['sentry_key'] = current_app.config['SENTRY_HOOK'].split('//')[1].split('@')[0]
-        data['version'] = current_app.config['VERSION']
     if 'pref' in session:
         data['theme'] = session['pref'].get('theme')
         data['math_jax'] = session['pref'].get('tex')
