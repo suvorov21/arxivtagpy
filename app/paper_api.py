@@ -293,6 +293,6 @@ def get_date_range(date_type: str,
 
     # the last uncovered request type
     # otherwise log an error
-    if date_type != 'unseen':
+    if date_type != 'unseen' and date_type != 'last':
         logging.error('Unsupported date type %r', date_type)
     return announce_date, announce_date, announce_date
