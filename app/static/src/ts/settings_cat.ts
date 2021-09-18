@@ -3,6 +3,8 @@ import {allCatsArray} from "./allCatsArray";
 import {setDefaultListeners, submitSetting, dropElement} from "./settings";
 import {raiseAlert} from "./layout";
 
+declare const __CATS__: Array<string>
+
 let dragTarget;
 
 const delCatClick = (event) => {
@@ -11,9 +13,9 @@ const delCatClick = (event) => {
     element.removeClass("d-flex");
     element.fadeOut();
     $(".btn").removeClass("disabled");
-    const catId = window["CATS"].indexOf(name.replace("111", "."));
+    const catId = __CATS__.indexOf(name.replace("111", "."));
     if (catId > -1) {
-        window["CATS"].splice(catId, 1);
+        __CATS__.splice(catId, 1);
     }
 };
 
@@ -26,17 +28,17 @@ const addCat = (cat) => {
     parent.id = "par-cat-"+cat.replaceAll(".", "111");
     parent.draggable = true;
 
-    parent.ondragstart = function(event) {
+    parent.ondragstart = function(event: DragEvent) {
         const movedArr = (event.target as HTMLElement).id.split("-").slice(2);
         let moved = movedArr.join("-").split("111").join(".");
-        moved = window["CATS"].indexOf(moved);
+        moved = String(__CATS__.indexOf(moved));
         event.dataTransfer.setData("Text", moved);
     };
 
     parent.ondragover = (event: DragEvent) => {
         const targetArr = (event.target as HTMLElement).id.split("-").slice(2);
         const target = targetArr.join("-").split("111").join(".");
-        dragTarget = window["CATS"].indexOf(target);
+        dragTarget = __CATS__.indexOf(target);
     };
 
     const close = document.createElement("button");
@@ -57,13 +59,13 @@ const addCat = (cat) => {
 };
 
 const dropCat = (event: DragEvent): void => {
-    dropElement(event, window["CATS"], dragTarget);
+    dropElement(event, __CATS__, dragTarget);
     renderCats();
 };
 
 const renderCats = () => {
     $("#cats-list").empty();
-    window["CATS"].forEach((cat) => {
+    __CATS__.forEach((cat) => {
         addCat(cat);
     });
 
@@ -77,7 +79,7 @@ const renderCats = () => {
 document.getElementById("add-cat-btn").onclick = () => {
     const cat = document.forms["add-cat"]["cat_name"].value;
     // check if already there
-    if (window["CATS"].includes(cat)) {
+    if (__CATS__.includes(cat)) {
         raiseAlert("Category already added!", "danger");
         return;
     }
@@ -90,11 +92,11 @@ document.getElementById("add-cat-btn").onclick = () => {
     addCat(document.forms["add-cat"]["cat_name"].value);
     document.forms["add-cat"]["cat_name"].value = "";
     // add to array
-    window["CATS"].push(cat);
+    __CATS__.push(cat);
 };
 
 window.onload = () => {
-    $.each(allCatsArray, function(val, text) {
+    $.each(allCatsArray, (val: string, text: string) => {
         $("#catsDataList").append($("<option>").attr("value", val).text(text));
     });
     (document.getElementById("mod-cat") as HTMLFormElement).addEventListener("submit", (event) => {
@@ -102,7 +104,7 @@ window.onload = () => {
         if ($(".btn-cancel").hasClass("disabled")) {
             return false;
         }
-        submitSetting("mod_cat", window["CATS"]).then(() => {
+        submitSetting("mod_cat", __CATS__).then(() => {
             $(".btn-save").addClass("disabled");
         });
         return false;

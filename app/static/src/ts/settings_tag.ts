@@ -2,7 +2,7 @@
 import "../css/wheelcolorpicker.css";
 import "../js/jquery.wheelcolorpicker";
 import {submitSetting, setDefaultListeners, dropElement} from "./settings";
-import {cssVar, raiseAlert} from "./layout";
+import {cssVar, raiseAlert, Tag} from "./layout";
 
 let tagEdited = false;
 let editTagId = -2;
@@ -12,13 +12,17 @@ let loadingTags = false;
 
 let dragTarget;
 
+declare const __TAGS__: Array<Tag>;
+declare const MathJax;
+declare const __parseTex__: boolean;
+
 export const findTagId = (param: string, paramName: string): string => {
-    if (window["TAGS"].lengt > 0 && !Object.prototype.hasOwnProperty.call(window["TAGS"][0], paramName)) {
+    if (__TAGS__.length > 0 && !Object.prototype.hasOwnProperty.call(__TAGS__[0], paramName)) {
         console.error("Wrong tag param request " + paramName);
         return "-2";
     }
-    for (let tagId = 0; tagId < window["TAGS"].length; tagId++) {
-        if (String(window["TAGS"][`${tagId}`][`${paramName}`]) === param) {
+    for (let tagId = 0; tagId < __TAGS__.length; tagId++) {
+        if (String(__TAGS__[`${tagId}`][`${paramName}`]) === param) {
             return String(tagId);
         }
     }
@@ -26,13 +30,13 @@ export const findTagId = (param: string, paramName: string): string => {
 };
 
 const dropTag = (event: DragEvent): void => {
-    dropElement(event, window["TAGS"], dragTarget);
+    dropElement(event, __TAGS__, dragTarget);
     renderTags();
 };
 
 function renderTags() {
     $("#tag-list").empty();
-    window["TAGS"].forEach((tag) => {
+    __TAGS__.forEach((tag: Tag) => {
         const tagElement = document.createElement("div");
         tagElement.className = "tag-label";
         tagElement.id = "tag-label-" + tag.id;
@@ -70,8 +74,8 @@ function renderTags() {
     document.getElementById("tag-list").removeEventListener("drop", dropTag);
     document.getElementById("tag-list").addEventListener("drop", dropTag);
 
-    if (window["parseTex"]) {
-        window["MathJax"].typesetPromise();
+    if (__parseTex__) {
+        MathJax.typesetPromise();
     }
     // new tag button
     const tagElement = document.createElement("div");
@@ -82,6 +86,11 @@ function renderTags() {
     document.getElementById("tag-list").appendChild(tagElement);
 }
 
+const updateColorField = () => {
+    const colorEl = document.getElementById("tag-color") as HTMLInputElement;
+    colorEl.style.backgroundColor =  colorEl.value;
+};
+
 const clearTagField = (): void => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
@@ -90,7 +99,7 @@ const clearTagField = (): void => {
     document.getElementById("btn-book").classList.add("disabled");
     document.forms["add-tag2"]["email-check"].checked = false;
     document.forms["add-tag2"]["public-check"].checked = false;
-    $("#tag-color").css("background-color", (document.getElementById("tag-color") as HTMLInputElement).value);
+    updateColorField();
 };
 
 const reloadTags = (hardReload = false): void => {
@@ -137,7 +146,7 @@ const checkTag = (): boolean => {
     document.getElementsByClassName(("sub-alert"))[0].innerHTML = "";
     // in case of simple replacement no check required
     if (!tagEdited) {
-        submitSetting("mod_tag", window["TAGS"]).then(() => {
+        submitSetting("mod_tag", __TAGS__).then(() => {
             reloadTags(false);
         });
         return true;
@@ -180,20 +189,20 @@ const checkTag = (): boolean => {
         "email": document.forms["add-tag2"]["email-check"].checked,
         "public": document.forms["add-tag2"]["public-check"].checked
     };
-    if (editTagId > -1 && editTagId < window["TAGS"].length) {
-        window["TAGS"][`${editTagId}`]["name"] = TagDict["name"];
-        window["TAGS"][`${editTagId}`]["rule"] = TagDict["rule"];
-        window["TAGS"][`${editTagId}`]["color"] = TagDict["color"];
-        window["TAGS"][`${editTagId}`]["bookmark"] = TagDict["bookmark"];
-        window["TAGS"][`${editTagId}`]["email"] = TagDict["email"];
-        window["TAGS"][`${editTagId}`]["public"] = TagDict["public"];
+    if (editTagId > -1 && editTagId < __TAGS__.length) {
+        __TAGS__[`${editTagId}`]["name"] = TagDict["name"];
+        __TAGS__[`${editTagId}`]["rule"] = TagDict["rule"];
+        __TAGS__[`${editTagId}`]["color"] = TagDict["color"];
+        __TAGS__[`${editTagId}`]["bookmark"] = TagDict["bookmark"];
+        __TAGS__[`${editTagId}`]["email"] = TagDict["email"];
+        __TAGS__[`${editTagId}`]["public"] = TagDict["public"];
     } else {
         // new tag no id
         TagDict["id"] = -1;
-        window["TAGS"].push(TagDict);
+        __TAGS__.push(TagDict);
     }
 
-    submitSetting("mod_tag", window["TAGS"]).then(() => {
+    submitSetting("mod_tag", __TAGS__).then(() => {
         // reload the page in case of new tag in order to grab the tag id from backend
         reloadTags(editTagId === -1);
     });
@@ -208,12 +217,12 @@ document.getElementById("btn-del").onclick = (event: MouseEvent) => {
         event.preventDefault();
         return;
     }
-    if (editTagId > window["TAGS"].length) {
-        console.error("Tag edit id larger then the tag list " + editTagId + " " + window["TAGS"].length);
+    if (editTagId > __TAGS__.length) {
+        console.error("Tag edit id larger then the tag list " + editTagId + " " + __TAGS__.length);
         return;
     }
-    $("#tag-label-" + window["TAGS"][`${editTagId}`]["id"]).fadeOut();
-    window["TAGS"].splice(editTagId, 1);
+    $("#tag-label-" + __TAGS__[`${editTagId}`]["id"]).fadeOut();
+    __TAGS__.splice(editTagId, 1);
     $(".btn-save").removeClass("disabled");
 };
 
@@ -392,12 +401,12 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
     const tagCol = document.getElementsByClassName("tag-label");
     for (let id = 0; id < tagCol.length; id++) {
         // new tag box
-        if ($(tagCol[id]).attr("id") === "add-tag") {
-            $("#add-tag").css("border-style", "dashed");
-            $("#add-tag").css("border-width", "2px");
+        if (tagCol[id].id === "add-tag") {
+            document.getElementById("add-tag").style.borderStyle = "dashed";
+            document.getElementById("add-tag").style.borderWidth = "2px";
         } else {
             // existing tags
-            (tagCol.item(id) as HTMLElement).style.borderColor =  "transparent";
+            (tagCol[id] as HTMLElement).style.borderColor =  "transparent";
         }
     }
 
@@ -408,19 +417,16 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
         // -1 corresponds to new tag
         editTagId = -1;
 
-        $("#add-tag").css("border-style", "solid");
-        $("#add-tag").css("border-width", "4px");
+        document.getElementById("add-tag").style.borderStyle = "solid";
+        document.getElementById("add-tag").style.borderWidth = "4px";
         clearTagField();
         // make delete NOT possible
-        $("#btn-del").addClass("disabled");
+        document.getElementById("btn-del").classList.add("disabled");
     } else {
         const editTagName = target.id.split("-")[2];
         editTagId = parseInt(findTagId(editTagName, "id"), 10);
-        const tag = window["TAGS"][`${editTagId}`];
+        const tag = __TAGS__[`${editTagId}`];
 
-
-        $("#tag-fields").prop("disabled", false);
-        $("#tag-fields2").prop("disabled", false);
         document.forms["add-tag"]["tag_name"].value = tag.name;
         document.forms["add-tag"]["tag_rule"].value = tag.rule;
         document.forms["add-tag2"]["tag_color"].value = tag.color;
@@ -428,13 +434,13 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
         changeBookBtnStatus(tag.bookmark);
         document.forms["add-tag2"]["email-check"].checked = tag.email;
         document.forms["add-tag2"]["public-check"].checked = tag.public;
-        $("#tag-color").css("background-color", (document.getElementById("tag-color") as HTMLInputElement).value);
+        updateColorField();
 
         // make delete possible
-        $("#btn-del").removeClass("disabled");
+        document.getElementById("btn-del").classList.remove("disabled");
     }
-    $("#tag-fields").prop("disabled", false);
-    $("#tag-fields2").prop("disabled", false);
+    (document.getElementById("tag-fields") as HTMLFieldSetElement).disabled = false;
+    (document.getElementById("tag-fields2") as HTMLFieldSetElement).disabled = false;
 };
 
 $(".tag-field").on("input", function() {
@@ -447,7 +453,7 @@ $(".tag-field").on("change", function() {
 });
 
 document.getElementById("tag-color").onchange = () => {
-    $("#tag-color").css("background-color", (document.getElementById("tag-color") as HTMLInputElement).value);
+    updateColorField();
     $(".btn-save").removeClass("disabled");
 };
 
@@ -489,7 +495,7 @@ document.getElementById("btn-book").onclick = (event: MouseEvent) => {
 window.onload = () => {
     reloadTags();
     setDefaultListeners();
-    (document.getElementById("mod-tag") as HTMLFormElement).addEventListener("submit",  (event) => {
+    (document.getElementById("mod-tag") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
         event.preventDefault();
         if ($(".btn-cancel").hasClass("disabled")) {
             // TODO remove return?

@@ -6,9 +6,8 @@
   <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
 
   <script type="text/javascript">
-    window["DATA"] = {};
-    window["TAGS"] = {{ tags }};
-    window["CATS"] = {{ cats }};
+    __TAGS__ = {{ tags }};
+    __CATS__ = {{ cats }};
   </script>
 {% endblock %}
 

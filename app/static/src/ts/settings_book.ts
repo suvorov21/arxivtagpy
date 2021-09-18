@@ -1,14 +1,18 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
 import {setDefaultListeners, submitSetting, dropElement} from "./settings";
 import {raiseAlert} from "./layout";
+import {List} from "./paper_basic";
 
-import "../less/settings.less";
+declare const __LISTS__: Array<List>;
+
+declare const MathJax;
+declare const __parseTex__: boolean;
 
 let dragTarget;
 
-const findListNumById = (id: string) => {
-    for (let listId = 0; listId < window["LISTS"].length; listId++) {
-        if (window["LISTS"][`${listId}`]["id"] === parseInt(id, 10)) {
+const findListNumById = (id: string): string => {
+    for (let listId = 0; listId < __LISTS__.length; listId++) {
+        if (__LISTS__[`${listId}`]["id"] === parseInt(id, 10)) {
             return String(listId);
         }
     }
@@ -20,20 +24,20 @@ const delListClick = (event: MouseEvent): void => {
     document.getElementById("par-list-" + name).classList.remove("d-flex");
     $("#par-list-" + name).fadeOut();
     $(".btn").removeClass("disabled");
-    const listId = findListNumById(name);
-    if (parseInt(listId, 10) > -1) {
-        window["LISTS"].splice(listId, 1);
+    const listId = parseInt(findListNumById(name), 10);
+    if (listId > -1) {
+        __LISTS__.splice(listId, 1);
     }
 };
 
 const dropList = (event: DragEvent) => {
-    dropElement(event, window["LISTS"], dragTarget);
+    dropElement(event, __LISTS__, dragTarget);
     renderBookshelf();
 };
 
 const renderBookshelf = (): void => {
     $("#book-list").empty();
-    window["LISTS"].forEach((list) => {
+    __LISTS__.forEach((list: List) => {
         const listName = list.name;
         const parent = document.createElement("div");
         parent.className = "d-flex cat-parent";
@@ -74,8 +78,8 @@ const renderBookshelf = (): void => {
     };
     document.getElementById("book-list").removeEventListener("drop", dropList);
     document.getElementById("book-list").addEventListener("drop", dropList);
-    if (window["parseTex"]) {
-        window["MathJax"].typesetPromise();
+    if (__parseTex__) {
+        MathJax.typesetPromise();
     }
 };
 
@@ -104,7 +108,7 @@ window.onload = () => {
             return false;
         }
         const url = "mod_lists";
-        submitSetting(url, window["LISTS"]).then(() => {
+        submitSetting(url, __LISTS__).then(() => {
             const btnCollection = document.getElementsByClassName("btn-save");
             for (let i = 0; i < btnCollection.length; i++) {
                 btnCollection[`${i}`].classList.add("disabled");

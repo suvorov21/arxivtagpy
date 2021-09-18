@@ -1,8 +1,11 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import {raiseAlert} from "./layout";
+import {raiseAlert, Tag} from "./layout";
+import {List} from "./paper_basic";
+
+type settings = Array<List> | Array<string> | Array<Tag>;
 
 // API call for settings modifications
-export const submitSetting = (url: string, set: JSON): Promise<boolean> => {
+export const submitSetting = (url: string, set: settings): Promise<boolean> => {
     return new Promise((resolve, reject) => {
         $.post(url, JSON.stringify(set))
         .done(function () {
@@ -51,7 +54,7 @@ export const setDefaultListeners = (): void => {
     }
 };
 
-export const dropElement = (event: DragEvent, arrayToSwap: Array<JSON>, dragTarget: number): void => {
+export const dropElement = (event: DragEvent, arrayToSwap: settings, dragTarget: number): void => {
     event.preventDefault();
     let moved = parseInt(event.dataTransfer.getData("Text"), 10);
     // insert transferred element at new place
