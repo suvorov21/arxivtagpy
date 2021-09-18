@@ -41,11 +41,12 @@
   {% endif %}
 
   <script type="text/javascript">
-    window["parseTex"] = false;
+    __parseTex__ = false;
   </script>
   {% if data.get('math_jax') %}
     <script>
-      window["MathJax"] = {
+      {#window["MathJax"] = {#}
+      MathJax = {
         tex: {
           inlineMath: [['$', '$'], ['\\(', '\\)']],
           displayMath: [['$$', '$$'], ['\\[', '\\]']],
@@ -54,7 +55,7 @@
           fontCache: 'global'
         }
       };
-      window["parseTex"] = true;
+      __parseTex__ = true;
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>

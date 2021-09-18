@@ -1,6 +1,12 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import {renderPapersBase, Paper} from "./paper_basic";
-import {raiseAlert, cssVar, prefs} from "./layout";
+import {renderPapersBase, Paper, List, Data} from "./paper_basic";
+import {raiseAlert, cssVar, Tag, Preference} from "./layout";
+
+declare const MathJax;
+declare const __parseTex__: boolean;
+
+declare const __TAGS__: Array<Tag>;
+declare const __CATS__: Array<string>;
 
 // global pagination vars
 let PAGE = 1;
@@ -8,18 +14,32 @@ let VISIBLE = 0;
 let BOOK_BTN = -1;
 const PAPERS_PER_PAGE = 40;
 
-const checkPaperVis = (paper, catsShow: Array<string>, allVisible: boolean, tagsShow: Array<boolean>): boolean => {
+// global DATA var
+// Contain the information about the papers
+// The var will be filled after the AJAX request just after page load
+let DATA: Data;
+
+const PREF = new Preference();
+
+const checkPaperVis = (paper: Paper,
+                       catsShow: Array<string>,
+                       allVisible: boolean,
+                       tagsShow: Array<boolean>
+                        ): boolean => {
     /** Check if the paper passes visibility rules.
      * Logic: if check-box is off --> cut all the affected papers
      */
 
-    if ((prefs.data["showNov"][0] === true || !(paper["nov"] & 1)) &&
-        (prefs.data["showNov"][1] === true || !(paper["nov"] & 2)) &&
-        (prefs.data["showNov"][2] === true || !(paper["nov"] & 4)) &&
+    if ((PREF.novArr[0] === true || !(paper.nov & 1)) &&
+        (PREF.novArr[1] === true || !(paper.nov & 2)) &&
+        (PREF.novArr[2] === true || !(paper.nov & 4)) &&
         // filter on categories check boxes
-        catsShow.filter((value) => paper["cats"].includes(value)).length > 0 &&
+        catsShow.filter((value: string) => paper.cats.includes(value)).length > 0 &&
         // filter on tags
-        (allVisible || (tagsShow.filter((value, index) => value && paper["tags"].includes(index)).length > 0))
+        (allVisible ||
+            (tagsShow.filter((value: boolean,
+                              index: number
+                             ) => value && paper.tags.includes(index)).length > 0))
     ) {
         VISIBLE += 1;
         return true;
@@ -29,7 +49,10 @@ const checkPaperVis = (paper, catsShow: Array<string>, allVisible: boolean, tags
     }
 };
 
-const sortFunction = (a:number, b:number, order = true, aDate:number, bDate:number): number => {
+const sortFunction = (a:number, b:number,
+                      order = true,
+                      aDate:number, bDate:number
+                      ): number => {
     if (a !== b) {
         return order? a - b : b - a;
     }
@@ -45,28 +68,28 @@ const sortPapers = () => {
     // tags
     if (sortMethod.includes("tag")) {
 
-        window["DATA"]["papersVis"].sort((a, b) => {
-            if (b["tags"].length === 0 && a["tags"].length !== 0) {
+        DATA.papersVis.sort((a: Paper, b: Paper) => {
+            if (b.tags.length === 0 && a.tags.length !== 0) {
                 return sortMethod === "tag-as" ? -1 : 1;
             }
-            if (b["tags"].length !== 0 && a["tags"].length === 0) {
+            if (b.tags.length !== 0 && a.tags.length === 0) {
                 return sortMethod === "tag-as" ? 1 : -1;
             }
-            if (b["tags"].length === 0 && a["tags"].length === 0) {
+            if (b.tags.length === 0 && a.tags.length === 0) {
                 return -1;
             }
-            return sortFunction(a["tags"][0], b["tags"][0],
+            return sortFunction(a.tags[0], b.tags[0],
                 sortMethod === "tag-as",
-                (new Date(a["date_up"]).getTime()),
-                (new Date(b["date_up"]).getTime())
+                (new Date(a.date_up).getTime()),
+                (new Date(b.date_up).getTime())
             );
         });
     }
     // dates
     if (sortMethod.includes("date-up")) {
-        window["DATA"]["papersVis"].sort((a, b) => {
-            const aDate = new Date(a["date_up"]);
-            const bDate = new Date(b["date_up"]);
+        DATA.papersVis.sort((a: Paper, b: Paper) => {
+            const aDate = new Date(a.date_up);
+            const bDate = new Date(b.date_up);
             return sortFunction(aDate.getTime(), bDate.getTime(),
                 sortMethod === "date-up_des",
                 aDate.getTime(), bDate.getTime());
@@ -74,7 +97,7 @@ const sortPapers = () => {
     }
 
     if (sortMethod.includes("date-sub")) {
-        window["DATA"]["papersVis"].sort((a, b) => {
+        DATA.papersVis.sort((a: Paper, b: Paper) => {
             const aDateSub = new Date(a["date_sub"]);
             const bDateSub = new Date(b["date_sub"]);
             return sortFunction(aDateSub.getTime(), bDateSub.getTime(),
@@ -87,25 +110,25 @@ const sortPapers = () => {
 
     // categories
     if (sortMethod.includes("cat")) {
-        window["DATA"]["papersVis"].sort((a, b) => {
+        DATA.papersVis.sort((a: Paper, b: Paper) => {
             let catA = "";
             let catB = "";
             for (let id = 0; id < a["cats"].length; id++) {
-                if (window["CATS"].includes(a["cats"][`${id}`])) {
+                if (__CATS__.includes(a["cats"][`${id}`])) {
                     catA = a["cats"][`${id}`];
                     break;
                 }
             }
             for (let id = 0; id < b["cats"].length; id++) {
-                if (window["CATS"].includes(b["cats"][`${id}`])) {
+                if (__CATS__.includes(b["cats"][`${id}`])) {
                     catB = b["cats"][`${id}`];
                     break;
                 }
             }
-            return sortFunction(window["CATS"].indexOf(catA), window["CATS"].indexOf(catB),
+            return sortFunction(__CATS__.indexOf(catA), __CATS__.indexOf(catB),
                 sortMethod === "cat-as",
-                (new Date(a["date_up"]).getTime()),
-                (new Date(b["date_up"]).getTime())
+                (new Date(a.date_up).getTime()),
+                (new Date(b.date_up).getTime())
             );
         });
     }
@@ -269,16 +292,16 @@ const renderPapers = (): void => {
     // prevent UB in case of pressing "back" button,
     // If number of visible papers if too low to go to s specified page,
     // then go to 1st one
-    if (start >= window["DATA"]["papersVis"].length) {
+    if (start >= DATA.papersVis.length) {
         pageChange(1, true);
         start = 0;
     }
 
     for (let pId = start;
-         pId < Math.min(start + PAPERS_PER_PAGE, window["DATA"]["papersVis"].length);
+         pId < Math.min(start + PAPERS_PER_PAGE, DATA.papersVis.length);
          pId++) {
 
-        const content = window["DATA"]["papersVis"][`${pId}`];
+        const content = DATA.papersVis[`${pId}`];
         const paperBase = renderPapersBase(content as Paper, pId);
         const btnPanel = paperBase[1];
 
@@ -299,8 +322,8 @@ const renderPapers = (): void => {
 
     selectActivePage();
 
-    if (window["parseTex"]) {
-        window["MathJax"].typesetPromise();
+    if (__parseTex__) {
+        MathJax.typesetPromise();
     }
 };
 
@@ -367,20 +390,21 @@ const filterVisiblePapers = (): void => {
 
     // create a list of categories that are visible based on checkbox selection
     const catsShow = [];
-    for (const key in prefs.data["catsArr"]) {
-        if (prefs.data["catsArr"][`${key}`]) {
+    for (const key in PREF.catsArr) {
+        if (PREF.catsArr[`${key}`]) {
             catsShow.push(key);
         }
     }
 
     const tagsShow = [];
-    prefs.data["tagsArr"].forEach((tag) => {
+    PREF.tagsArr.forEach((tag: Tag) => {
         tagsShow.push(tag.vis);
     });
 
-    const allVisible = prefs.data["tagsArr"].every((x) => x.vis);
+    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
 
-    window["DATA"]["papersVis"] = window["DATA"]["papers"].filter((paper) => checkPaperVis(paper,
+    // TODO add check if DATA.papers exist
+    DATA.papersVis = DATA.papers.filter((paper: Paper) => checkPaperVis(paper,
             catsShow,
             allVisible,
             tagsShow
@@ -389,7 +413,7 @@ const filterVisiblePapers = (): void => {
 
     let text = String(VISIBLE) + " result";
     text += VISIBLE > 1 ? "s" : "";
-    text += " over " + String(window["DATA"]["papers"].length);
+    text += " over " + String(DATA.papers.length);
     document.getElementById("passed").textContent = text;
 
     if (!VISIBLE) {
@@ -413,9 +437,9 @@ const checkCat = (event: MouseEvent): void => {
      */
     const number = (event.target as HTMLElement).id.split("-")[2];
     const cat = document.getElementById("cat-label-" + number).textContent;
-    prefs.data["catsArr"][`${cat}`] = (document.getElementById("check-cat-" + number) as HTMLInputElement).checked;
+    PREF.catsArr[`${cat}`] = (document.getElementById("check-cat-" + number) as HTMLInputElement).checked;
     // save the cookies
-    prefs.save();
+    PREF.save();
     pageChange();
     setTimeout(function () {
         filterVisiblePapers();
@@ -423,7 +447,7 @@ const checkCat = (event: MouseEvent): void => {
 };
 
 const tagBorder = (num: number, border: boolean): void => {
-    prefs.data["tagsArr"][num].vis = border;
+    PREF.tagsArr[num].vis = border;
     document.getElementById("tag-label-" + String(num)).style.borderColor = border ? cssVar("--tag_border_color") : "transparent";
 };
 
@@ -435,8 +459,8 @@ const checkTag = (event: MouseEvent) => {
         target = target.parentElement;
     }
     const number = parseInt(target.id.split("-")[2], 10);
-    const thisVisible = prefs.data["tagsArr"][number].vis;
-    const allVisible = prefs.data["tagsArr"].every((x) => x.vis);
+    const thisVisible = PREF.tagsArr[number].vis;
+    const allVisible = PREF.tagsArr.every((x) => x.vis);
 
     // if this tag is selected
     if (thisVisible) {
@@ -445,17 +469,17 @@ const checkTag = (event: MouseEvent) => {
                 typeof target.style.borderColor === "undefined")) {
             // select only this tag
             // make all others invisible
-            prefs.data["tagsArr"].forEach((tag) => {tag.vis = false;});
+            PREF.tagsArr.forEach((tag) => {tag.vis = false;});
 
             // but this one visible
             tagBorder(number, true);
         } else {
             // hide this tag
-            prefs.data["tagsArr"][number].vis = false;
+            PREF.tagsArr[number].vis = false;
             // if this was the only left tag
-            if (prefs.data["tagsArr"].filter((value) => value.vis).length === 0) {
+            if (PREF.tagsArr.filter((value) => value.vis).length === 0) {
                 // make all tags visible
-                prefs.data["tagsArr"].forEach((tag) => {tag.vis = true;});
+                PREF.tagsArr.forEach((tag) => {tag.vis = true;});
             }
             // remove border
             document.getElementById("tag-label-" + number).style.borderColor = "transparent";
@@ -465,7 +489,7 @@ const checkTag = (event: MouseEvent) => {
         // make this tag selected
         tagBorder(number, true);
     }
-    prefs.save();
+    PREF.save();
     pageChange();
     setTimeout(function () {
         filterVisiblePapers();
@@ -476,8 +500,8 @@ const novChange = (event: MouseEvent): void => {
     /** CLick on novelty checkbox.
      */
     const number = parseInt((event.target as HTMLElement).id.split("-")[2], 10);
-    prefs.data["showNov"][`${number}`] = (document.getElementById("check-nov-"+number) as HTMLInputElement).checked;
-    prefs.save();
+    PREF.novArr[`${number}`] = (document.getElementById("check-nov-"+number) as HTMLInputElement).checked;
+    PREF.save();
     pageChange();
     setTimeout(function () {
         filterVisiblePapers();
@@ -488,13 +512,13 @@ const novChange = (event: MouseEvent): void => {
 
 const renderCats = (): void => {
     // clean unused categories from cookies
-    const unusedCats = Object.keys(prefs.data["catsArr"]).filter((x) => !window["CATS"].includes(x));
-    unusedCats.forEach((cat) => delete prefs.data["catsArr"][`${cat}`]);
+    const unusedCats = Object.keys(PREF.catsArr).filter((x: string) => !__CATS__.includes(x));
+    unusedCats.forEach((cat: string) => delete PREF.catsArr[`${cat}`]);
 
-    window["CATS"].forEach((cat, num) => {
+    __CATS__.forEach((cat, num) => {
         // if category not in cookies visibility dictionary --> add it
-        if (!(cat in prefs.data["catsArr"])) {
-            prefs.data["catsArr"][`${cat}`] = true;
+        if (!(cat in PREF.catsArr)) {
+            PREF.catsArr[`${cat}`] = true;
         }
 
         const parent = document.createElement("div");
@@ -508,7 +532,7 @@ const renderCats = (): void => {
         check.id = "check-cat-"+num;
         check.className = "form-check-input check-cat";
         // read visibility from cookies
-        check.checked = prefs.data["catsArr"][`${cat}`];
+        check.checked = PREF.catsArr[`${cat}`];
         check.addEventListener("click", checkCat);
 
         // category name
@@ -532,36 +556,36 @@ const renderCats = (): void => {
     });
 
     // save cookies
-    prefs.save();
+    PREF.save();
 };
 
 const renderTags = (): void => {
-    const tagNames = window["TAGS"].map((x) => x.name);
+    const tagNames = __TAGS__.map((x) => x.name);
     const unusedTags = [];
 
-    window["TAGS"].forEach((tag, num) => {
+    __TAGS__.forEach((tag, num) => {
 
-        if (!prefs.data["tagsArr"].map((x) => x.name).includes(tag.name)) {
-            prefs.data["tagsArr"].push({"name": tag.name,
+        if (!PREF.tagsArr.map((x: Tag) => x.name).includes(tag.name)) {
+            PREF.tagsArr.push({"name": tag.name,
                 "vis": true,
                 "color": tag.color,
                 "order": num
             });
         } else {
-            const cookTag = prefs.data["tagsArr"].find((tagC) => tagC.name === tag.name);
+            const cookTag = PREF.tagsArr.find((tagC: Tag) => tagC.name === tag.name);
             if (cookTag.order !== num) {
                 cookTag.order = num;
             }
         }
     });
 
-    prefs.data["tagsArr"].sort((a, b) => {return a.order - b.order;});
+    PREF.tagsArr.sort((a: Tag, b: Tag) => {return a.order - b.order;});
 
-    const allVisible = prefs.data["tagsArr"].every((x) => x.vis);
+    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
 
     let num = 0;
-    for (let tagIter = 0; tagIter < prefs.data["tagsArr"].length; tagIter++) {
-        const tag = prefs.data["tagsArr"][`${tagIter}`];
+    for (let tagIter = 0; tagIter < PREF.tagsArr.length; tagIter++) {
+        const tag = PREF.tagsArr[`${tagIter}`];
         if (!tagNames.includes(tag.name)) {
             unusedTags.push(num);
             continue;
@@ -593,35 +617,35 @@ const renderTags = (): void => {
         num++;
     }
 
-    if (window["parseTex"]) {
-        window["MathJax"].typesetPromise();
+    if (__parseTex__) {
+        MathJax.typesetPromise();
     }
-    unusedTags.forEach((num) => prefs.data["tagsArr"].splice(num, 1));
-    prefs.save();
+    unusedTags.forEach((num) => PREF.tagsArr.splice(num, 1));
+    PREF.save();
 }
 
 const renderNov = (): void =>  {
-    prefs.data["showNov"].forEach((show, num) => {
+    PREF.novArr.forEach((show, num) => {
         (document.getElementById("check-nov-" + num) as HTMLInputElement).checked = show;
     });
 }
 
 const renderCounters = (): void => {
-    const nCats = window["CATS"].length;
-    if (typeof window["DATA"]["ncat"] === "undefined") {
+    const nCats = __CATS__.length;
+    if (typeof DATA.ncat === "undefined") {
         return;
     }
     for(let catId = 0; catId < nCats; catId++) {
-        document.getElementById("cat-count-" + String(catId)).textContent = window["DATA"]["ncat"][`${catId}`];
+        document.getElementById("cat-count-" + String(catId)).textContent = DATA.ncat[`${catId}`];
     }
 
     for(let novId = 0; novId < 3; novId++) {
-        document.getElementById("nov-count-" + String(novId)).textContent = window["DATA"]["nnov"][`${novId}`];
+        document.getElementById("nov-count-" + String(novId)).textContent = DATA.nnov[`${novId}`];
     }
 
-    const nTags = window["TAGS"].length;
+    const nTags = __TAGS__.length;
     for (let tagId = 0; tagId < nTags; tagId++) {
-        document.getElementById("tag-count-" + String(tagId)).textContent = window["DATA"]["ntag"][`${tagId}`];
+        document.getElementById("tag-count-" + String(tagId)).textContent = DATA.ntag[`${tagId}`];
     }
 }
 
@@ -657,12 +681,12 @@ const listClick = (event: MouseEvent): void => {
         target = target.parentElement;
     }
     const num = target.getAttribute("id");
-    const paper = window["DATA"]["papers"][`${BOOK_BTN}`];
-    // we take paper id w/o version --> do not overload paper DB
+    const paper = DATA.papers[`${BOOK_BTN}`];
+    // paper ID w/o version is a unique identifier of the paper record in DB
     $.post(url, {"paper_id": paper.id.split("v")[0],
         "list_id": num
     })
-        .done(function(data, textStatus, jqXHR) {
+        .done((data, textStatus, jqXHR) => {
             const status = jqXHR.status;
             if (status === 200) {
                 raiseAlert("Paper has been already saved", "success");
@@ -680,11 +704,10 @@ const listClick = (event: MouseEvent): void => {
 const renderLists = (): void => {
     /** Render pop-up window with page lists
      */
-    // eslint-disable-next-line no-prototype-builtins
-    if (!window["DATA"].hasOwnProperty("lists")) {
+    if (DATA.lists.length === 0) {
         return;
     }
-    window["DATA"]["lists"].forEach((list) => {
+    DATA.lists.forEach((list: List) => {
         const listDom = document.createElement("div");
         listDom.textContent = list.name;
         listDom.className = "list-name";
@@ -695,7 +718,9 @@ const renderLists = (): void => {
 };
 
 window.onload = () => {
-    prefs.load();
+    // prefs.load();
+    PREF.load();
+
     // a fix that prevent browser scrolling on "back" button
     // essential for nice work of window.onpopstate
     history.scrollRestoration = "manual";
@@ -709,11 +734,11 @@ window.onload = () => {
     // Get paper data from backend
     $.get(url)
         .done((data) => {
-            window["DATA"] = data;
+            DATA = data as Data;
             renderCounters();
             // update page title with detailed dates
             const element = $("#paper-list-title");
-            element.text(element.text() + window["DATA"]["title"]);
+            element.text(element.text() + DATA["title"]);
             filterVisiblePapers();
             renderLists();
         }).fail(() => {

@@ -1,9 +1,44 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-export const prefs = {
 
-    data: {},
+export interface Tag {
+    /**
+     * Tag information served to front-end
+     */
+    name: string;
+    id?: number;
+    color?: string;
+    rule?: string;
+    vis?: boolean;
+    order?: number;
+}
 
-    load(name = "prefs"): JSON {
+export interface Cats {
+    /**
+     * Category visibility stored in cookies
+     */
+    [name: string]: boolean;
+}
+
+export class Preference {
+    /**
+     * Class for working with cookies
+     */
+
+    catsArr: Cats;
+    tagsArr: Array<Tag>;
+    novArr: Array<boolean>;
+
+    constructor() {
+        this.catsArr = {};
+        this.tagsArr = [];
+        this.novArr = [true, true, true];
+    }
+
+
+    load(name = "prefs"): void {
+        /**
+         * Load cookies from browser
+         */
         const cookieDecoded = decodeURIComponent(document.cookie).split(";");
         const cname = name + "=";
         for (let i = 0; i < cookieDecoded.length; i++) {
@@ -12,34 +47,36 @@ export const prefs = {
                 cook = cook.slice(1);
             }
             if (cook.indexOf(cname) === 0) {
-                this.data = JSON.parse(cook.substring(cname.length, cook.length));
+                const parsedJSON = JSON.parse(cook.substring(cname.length, cook.length));
+                if ("catsArr" in parsedJSON) {
+                    this.catsArr = parsedJSON["catsArr"];
+                }
+                if ("tagsArr" in parsedJSON) {
+                    this.tagsArr = parsedJSON["tagsArr"];
+                }
+                if ("novArr" in parsedJSON) {
+                    this.novArr = parsedJSON["novArr"];
+                }
             }
         }
-
-        if (!prefs.data.hasOwnProperty("catsArr")) {
-            prefs.data["catsArr"] = {};
-        }
-
-        if (!prefs.data.hasOwnProperty("tagsArr")) {
-            prefs.data["tagsArr"] = [];
-        }
-
-        if (!prefs.data.hasOwnProperty("showNov")) {
-            prefs.data["showNov"] = [true, true, true];
-        }
-
-
-        return this.data;
-    },
+    }
 
     save(expires: Date = null, path: string = null): void {
+        /**
+         * Write cookies to browser
+         */
         const d = expires || new Date(2100, 2, 2);
         const p = path || "/";
-        document.cookie = "prefs=" + encodeURIComponent(JSON.stringify(this.data))
+        const data = {
+            catsArr: this.catsArr,
+            tagsArr: this.tagsArr,
+            novArr: this.novArr,
+        }
+        document.cookie = "prefs=" + encodeURIComponent(JSON.stringify(data))
             + ";expires=" + d.toUTCString()
             + ";path=" + p;
     }
-};
+}
 
 // ************************** UTILS ********************************************
 type alertType = "success" | "danger";

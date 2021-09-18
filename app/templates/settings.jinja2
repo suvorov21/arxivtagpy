@@ -263,20 +263,20 @@
 
 {% block script_footer %}
   {% if 'tags' in data %}
-    <script type="text/javascript">window["TAGS"] = {{ data['tags'] }};</script>
+    <script type="text/javascript">__TAGS__ = {{ data['tags'] }};</script>
     <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_tag.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
 
   {% if 'cats' in data %}
-      <script type="text/javascript">window["CATS"] = {{ data['cats'] }};</script>
+      <script type="text/javascript">__CATS__ = {{ data['cats'] }};</script>
       <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'lists' in data %}
-      <script type="text/javascript">window["LISTS"] = {{ data['lists'] }};</script>
+      <script type="text/javascript">__LISTS__ = {{ data['lists'] }};</script>
       <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'pref' in data %}
-      <script type="text/javascript">window["PREF"] = {{ data['pref'] }};</script>
+      <script type="text/javascript">__PREF__ = {{ data['pref'] }};</script>
       <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   <script type="text/javascript">

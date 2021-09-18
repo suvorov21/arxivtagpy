@@ -2,12 +2,14 @@
 import {setDefaultListeners} from "./settings";
 import {raiseAlert} from "./layout";
 
+declare const __PREF__;
+
 const renderPref = (): void => {
-    if (window["PREF"]["tex"]) {
+    if (__PREF__["tex"]) {
         (document.getElementById("tex-check") as HTMLInputElement).checked = true;
     }
 
-    if (window["PREF"]["theme"] === "dark") {
+    if (__PREF__["theme"] === "dark") {
         (document.getElementById("radio-dark") as HTMLInputElement).checked = true;
     } else {
         (document.getElementById("radio-light") as HTMLInputElement).checked = true;

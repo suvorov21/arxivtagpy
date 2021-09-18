@@ -1,4 +1,55 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
+
+import {Tag} from "./layout"
+
+export interface List {
+    /**
+     * Paper list information served to front-end
+     */
+    id: number;
+    name: string;
+    not_seen: number;
+}
+
+export interface Paper {
+    /**
+     * Paper information served to front-end
+     */
+    id: string;
+    title: string;
+    author: string;
+    abstract: string;
+    date_up: string;
+    date_sub: string;
+    tags: Array<number>;
+    cats: Array<string>;
+    nov: number;
+    ref_pdf: string;
+    ref_web: string;
+    ref_doi: string;
+    hide?: boolean;
+    num?: number
+}
+
+export interface Data {
+    /** Interface between backend and front-end.
+     * Contains the papers and the information about paper counters
+     */
+    // precisely specified page title
+    title?: string;
+    // all the papers received from server
+    papers: Array<Paper>;
+    lists: Array<List>;
+    // counters --> number of papers in category / tag
+    nnov: Array<number>;
+    ncat: Array<number>;
+    ntag: Array<number>;
+    // visible papers that are selected according to checkbox set
+    papersVis?: Array<Paper>
+}
+
+declare const __TAGS__: Array<Tag>;
+
 const renderOcoins = (paper) => {
     const ocoins = {
         "ctx_ver": "Z39.88-2004",
@@ -22,19 +73,6 @@ const renderOcoins = (paper) => {
 
     return ocoinsStr;
 };
-
-export interface Paper {
-  title: string;
-  author: string;
-  abstract: string;
-  date_up: string;
-  date_sub: string;
-  tags: Array<number>;
-  cats: Array<string>;
-  ref_pdf: string;
-  ref_web: string;
-  ref_doi: string;
-}
 
 const renderButtonsBase = (content: Paper, pId: number): HTMLElement => {
     const btnPanel = document.createElement("div");
@@ -115,8 +153,8 @@ export const renderPapersBase = (content: Paper, pId: number): Array<HTMLElement
         content.tags.forEach((tag: number) => {
             const tagDiv = document.createElement("div");
             tagDiv.className = "tag-panel-item";
-            tagDiv.style.backgroundColor = window["TAGS"][tag].color;
-            tagDiv.textContent = window["TAGS"][tag].name;
+            tagDiv.style.backgroundColor = __TAGS__[tag].color;
+            tagDiv.textContent = __TAGS__[tag].name;
             tagPanel.appendChild(tagDiv);
         });
     } else {
@@ -135,7 +173,7 @@ export const renderPapersBase = (content: Paper, pId: number): Array<HTMLElement
     date.textContent = content.date_up;
 
     if ("date_sub" in content && content.date_sub !== content.date_up) {
-        date.textContent += " (v1: " + content["date_sub"] + ")";
+        date.textContent += " (v1: " + content.date_sub + ")";
     }
     paper.appendChild(date);
 

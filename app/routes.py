@@ -312,6 +312,7 @@ def bookshelf():
     # numerate paper for easier delete on the frontend
     for num, paper in enumerate(papers['papers']):
         paper['num'] = num
+    papers['lists'] = lists
     tags_dict = render_tags_front(session['tags'])
 
     url_base = url_for('main_bp.bookshelf',
@@ -321,7 +322,6 @@ def bookshelf():
 
     return render_template('bookshelf.jinja2',
                            papers=papers,
-                           lists=lists,
                            title=paper_list.name,
                            url_base=url_base,
                            page=page,

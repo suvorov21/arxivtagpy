@@ -6,12 +6,11 @@
   <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
 
   <script type="text/javascript">
-    window["DATA"] = {{ papers }};
-    window["TAGS"] = {{ tags }};
-    window["displayList"] = parseInt("{{ displayList }}", 10);
-    window["LISTS"] = {{ lists }};
-    window["page"] = {{ page }};
-    window["paperPage"] = {{ paper_page }}
+    __DATA__ = {{ papers }};
+    __TAGS__ = {{ tags }};
+    __DISPLAY_LIST__ = parseInt("{{ displayList }}", 10);
+    __PAGE__ = {{ page }};
+    __PAGE_SIZE__ = {{ paper_page }}
   </script>
 {% endblock %}
 

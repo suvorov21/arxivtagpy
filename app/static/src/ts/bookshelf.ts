@@ -1,29 +1,38 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import {renderPapersBase, Paper} from "./paper_basic";
+import {renderPapersBase, Paper, List, Data} from "./paper_basic";
 import {raiseAlert, cssVar} from "./layout";
 
 let unseenCurrentList = 0;
+
+declare const __DATA__: Data;
+
+declare const __PAGE__: number;
+declare const __PAGE_SIZE__: number;
+declare const __DISPLAY_LIST__: number;
+
+declare const MathJax;
+declare const __parseTex__: boolean;
 
 const renderLists = (): void => {
     // WARNING very inaccurate parsing
     // TODO replace with regex
     const hrefBase = document.location.href.split("=")[0];
-    window["LISTS"].forEach((listName) => {
+    __DATA__.lists.forEach((list: List) => {
         const listItem = document.createElement("li");
         listItem.className = "nav-item";
         const link = document.createElement("a");
-        link.href = hrefBase + "=" + listName.id;
+        link.href = hrefBase + "=" + list.id;
         link.className = "nav-link";
-        if (listName.id === window["displayList"]) {
+        if (list.id === __DISPLAY_LIST__) {
             link.className += " active";
-            unseenCurrentList = listName["not_seen"];
+            unseenCurrentList = list.not_seen;
         }
-        link.textContent = listName.name;
-        if (listName["not_seen"] !== 0) {
+        link.textContent = list.name;
+        if (list.not_seen !== 0) {
             link.textContent += " ";
             const badge = document.createElement("span");
             badge.className = "badge badge-light";
-            badge.textContent = listName["not_seen"];
+            badge.textContent = String(list.not_seen);
             link.appendChild(badge);
         }
         listItem.appendChild(link);
@@ -45,10 +54,10 @@ const deleteBookmark = (event: MouseEvent): void => {
     }
     const url = "del_bm";
     const num = parseInt(target.id.split("-")[2], 10);
-    const paper = window["DATA"]["papers"][num - (window["page"] - 1) * window["paperPage"]];
+    const paper = __DATA__.papers[num - (__PAGE__ - 1) * __PAGE_SIZE__];
     $.post(url, {
         "paper_id": paper.id.split("v")[0],
-        "list_id": window["displayList"]
+        "list_id": __DISPLAY_LIST__
     })
     .done((data, textStatus, jqXHR) => {
         const status = jqXHR.status;
@@ -56,11 +65,11 @@ const deleteBookmark = (event: MouseEvent): void => {
             raiseAlert("Paper has been deleted", "success");
         }
         $("#paper-"+num).css("display", "none");
-        window["DATA"]["papers"][`${num}`]["hide"] = true;
+        __DATA__.papers[`${num}`].hide = true;
         let visible = 1;
-        window["DATA"]["papers"].forEach((paper) => {
-            if (!paper["hide"]) {
-                const numEl = document.getElementById("paper-num-" + parseInt(paper["num"], 10));
+        __DATA__.papers.forEach((paper: Paper) => {
+            if (!paper.hide) {
+                const numEl = document.getElementById("paper-num-" + paper.num);
                 numEl.textContent = String(visible);
                 visible += 1;
             }
@@ -74,8 +83,8 @@ const deleteBookmark = (event: MouseEvent): void => {
 }
 
 const renderPapers = (): void => {
-    window["DATA"]["papers"].forEach((paper, num) => {
-        num += window["paperPage"] * (window["page"] - 1);
+    __DATA__.papers.forEach((paper: Paper, num: number) => {
+        num += __PAGE_SIZE__ * (__PAGE__ - 1);
         const paperBase = renderPapersBase(paper as Paper, num);
 
         // highlight new papers
@@ -101,12 +110,12 @@ const renderPapers = (): void => {
 
     });
 
-    if (window["DATA"]["papers"].length === 0) {
+    if (__DATA__.papers.length === 0) {
         document.getElementById("no-paper").style.display = "block";
     }
 
-    if (window["parseTex"]) {
-        window["MathJax"].typesetPromise();
+    if (__parseTex__) {
+        MathJax.typesetPromise();
     }
     document.getElementById("loading-papers").style.display = "none";
 }
