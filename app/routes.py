@@ -9,15 +9,16 @@ from flask import Blueprint, render_template, session, redirect, \
 from flask_login import current_user, login_required
 from flask_mail import Message
 
-from .import mail
+from . import mail
 from .model import db, Paper, PaperList, paper_associate, Tag
 from .render import render_papers, render_title, \
     render_tags_front, tag_name_and_rule, render_title_precise
+from .auth import new_default_list
 
 from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers, tag_test
 from .paper_api import get_arxiv_sub_start, \
-    get_annonce_date, get_axiv_announce_date, get_date_range
+    get_annonce_date, get_arxiv_announce_date, get_date_range
 from .utils import get_lists_for_user
 from .settings import load_prefs, default_data
 
@@ -32,7 +33,6 @@ main_bp = Blueprint(
     static_folder='static'
 )
 
-########### MAIN PAGES #################################################
 
 @main_bp.route('/')
 def root():
@@ -45,6 +45,7 @@ def root():
                            data=default_data()
                            )
 
+
 @main_bp.route('/papers')
 @login_required
 def papers_list():
@@ -54,7 +55,7 @@ def papers_list():
     if date_type is None:
         return redirect(url_for('main_bp.papers_list',
                                 date='today',
-                                *request.args
+                                **request.args
                                 ))
 
     # page is obligatory for front-end rendering
@@ -70,10 +71,8 @@ def papers_list():
     # get rid of tag rule at front-end
     tags_dict = render_tags_front(session['tags'])
 
-    last_visit_date = get_axiv_announce_date(current_user.last_paper)
-
     return render_template('papers.jinja2',
-                           title=render_title(date_type, last_visit_date),
+                           title=render_title(date_type),
                            cats=session['cats'],
                            tags=dumps(tags_dict),
                            data=default_data()
@@ -105,31 +104,28 @@ def paper_land():
             continue
 
         visit = bool(current_user.recent_visit & (2 ** i))
-        past_week.append({'day':datetime.strftime(day,
-                                            '%A, %d %B'),
-                          'href': url_for('main_bp.papers_list') + \
-                                          '?date=range&from=' + \
-                                          datetime.strftime(day,
-                                                            '%d-%m-%Y'
-                                                            ) + \
-                                          '&until=' + \
-                                          datetime.strftime(day,
-                                                            '%d-%m-%Y'
-                                                            ),
+        href = '{url}?date=range&from={fr}&until={until}'
+        from_str = datetime.strftime(day, '%d-%m-%Y')
+        until_str = datetime.strftime(day, '%d-%m-%Y')
+        past_week.append({'day': datetime.strftime(day, '%A, %d %B'),
+                          'href': href.format(url=url_for('main_bp.papers_list'),
+                                              fr=from_str,
+                                              until=until_str
+                                              ),
                           'visit': visit
                           })
         count += 1
 
-    last_visit_date = get_axiv_announce_date(current_user.last_paper)
+    last_visit_date = get_arxiv_announce_date(current_user.last_paper)
     return render_template('paper_land.jinja2',
                            data=default_data(),
-                           last_visit = datetime.strftime(last_visit_date,
-                                                          '%d %b %Y'
-                                                          ),
-
+                           last_visit=datetime.strftime(last_visit_date,
+                                                        '%d %b %Y'
+                                                        ),
 
                            past_week=past_week
                            )
+
 
 @main_bp.route('/data')
 @login_required
@@ -142,14 +138,15 @@ def data():
 
     announce_date = get_annonce_date()
 
+    # update the information about "seen" papers since the last visit
     update_recent_papers(announce_date)
 
     old_date_tmp, new_date_tmp, new_date = get_date_range(
-                                           request.args['date'],
-                                           announce_date,
-                                           fr=request.args.get('from'),
-                                           un=request.args.get('until')
-                                           )
+        request.args['date'],
+        announce_date,
+        fr=request.args.get('from'),
+        un=request.args.get('until')
+    )
 
     if request.args['date'] != 'last':
         old_date = get_arxiv_sub_start(old_date_tmp.date())
@@ -184,10 +181,10 @@ def data():
                                                   announce_date)
 
     # update "seen" papers
-    it_start = (announce_date -  \
+    it_start = (announce_date -
                 new_date_tmp.replace(tzinfo=timezone.utc)).days
-    it_end = (announce_date - \
-             old_date_tmp.replace(tzinfo=timezone.utc)).days
+    it_end = (announce_date -
+              old_date_tmp.replace(tzinfo=timezone.utc)).days
 
     #  mark all the papers as "seen"
     if request.args['date'] == 'unseen':
@@ -198,12 +195,12 @@ def data():
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
         # prevent underflow by 1
-        if i == -1: i += 1
-        current_user.recent_visit = current_user.recent_visit | 2**i
+        i += 1 if i == -1 else 0
+        current_user.recent_visit = current_user.recent_visit | 2 ** i
 
-    # error hahdler
+    # error handler
     if len(papers['papers']) == 0 and \
-        request.args['date'] not in ('last', 'unseen'):
+            request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
         return jsonify(papers)
 
@@ -226,7 +223,11 @@ def data():
                             )
     render_papers(papers, sort='tag')
 
+    # lists are required at front-end as there is an interface to add paper to any one
     lists = get_lists_for_user()
+
+    if request.args['date'] == 'last':
+        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
 
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
@@ -240,6 +241,7 @@ def data():
               }
     return jsonify(result)
 
+
 @main_bp.route('/about')
 def about():
     """About page."""
@@ -248,16 +250,20 @@ def about():
                            data=default_data()
                            )
 
-##### Bookshelf stuff ##################################################
+
 @main_bp.route('/bookshelf')
 @login_required
 def bookshelf():
     """Bookshelf page."""
     # if list is not specified take the default one
     if 'list_id' not in request.args:
-        ll = PaperList.query.filter_by(user_id=current_user.id \
-                                       ).order_by(PaperList.order).first()
-        return redirect(url_for('main_bp.bookshelf', list_id=ll.id))
+        fst_list = PaperList.query.filter_by(user_id=current_user.id
+                                             ).order_by(PaperList.order).first()
+        if not fst_list:
+            new_default_list(current_user.id)
+            fst_list = PaperList.query.filter_by(user_id=current_user.id
+                                                 ).order_by(PaperList.order).first()
+        return redirect(url_for('main_bp.bookshelf', list_id=fst_list.id))
     display_list = request.args['list_id']
 
     if 'page' not in request.args:
@@ -291,7 +297,7 @@ def bookshelf():
                            key=lambda p: p.date_up,
                            reverse=True
                            )
-    for paper in sorted_papers[PAPERS_PAGE * (page-1):][:PAPERS_PAGE]:
+    for paper in sorted_papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]:
         papers['papers'].append(render_paper_json(paper))
 
     total_pages = len(paper_list.papers) // PAPERS_PAGE
@@ -309,6 +315,7 @@ def bookshelf():
     # numerate paper for easier delete on the frontend
     for num, paper in enumerate(papers['papers']):
         paper['num'] = num
+    papers['lists'] = lists
     tags_dict = render_tags_front(session['tags'])
 
     url_base = url_for('main_bp.bookshelf',
@@ -318,7 +325,6 @@ def bookshelf():
 
     return render_template('bookshelf.jinja2',
                            papers=papers,
-                           lists=lists,
                            title=paper_list.name,
                            url_base=url_base,
                            page=page,
@@ -328,6 +334,7 @@ def bookshelf():
                            tags=dumps(tags_dict),
                            data=default_data()
                            )
+
 
 @main_bp.route('/add_bm', methods=['POST'])
 @login_required
@@ -344,27 +351,27 @@ def add_bm():
     # search if paper is already in the paper DB
     paper = Paper.query.filter_by(paper_id=paper_id).first()
     # if paper is not in the paper table
-    # cerate a new one
+    # create a new one
     if not paper:
         logging.error('Paper is not in the paper table %r', paper_id)
-        return dumps({'success':False}), 422
+        return dumps({'success': False}), 422
 
     list_id = request.form.get('list_id')
     paper_list = PaperList.query.filter_by(id=list_id).first()
     if not paper_list:
         logging.error('List is not in the DB %r', list_id)
-        return dumps({'success':False}), 422
+        return dumps({'success': False}), 422
 
     # check if paper is already in the given list of the current user
     result = db.session.query(paper_associate).filter_by(list_ref_id=paper_list.id,
                                                          paper_ref_id=paper.id
                                                          ).first()
     if result:
-        return dumps({'success':True}), 200
+        return dumps({'success': True}), 200
 
     paper_list.papers.append(paper)
     db.session.commit()
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
 
 
 @main_bp.route('/del_bm', methods=['POST'])
@@ -375,17 +382,18 @@ def del_bm():
     list_id = request.form.get('list_id')
     paper = Paper.query.filter_by(paper_id=paper_id).first()
     if not paper:
-        return dumps({'success':False}), 204
+        return dumps({'success': False}), 204
     paper_list = PaperList.query.filter_by(id=list_id).first()
 
     paper_list.papers.remove(paper)
     db.session.commit()
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
+
 
 @main_bp.route('/public_tags', methods=['GET'])
 @login_required
 def public_tags():
-    """Get puclicly available tags as examples."""
+    """Get publicly available tags as examples."""
     tags = Tag.query.filter_by(public=True).order_by(Tag.name)
     tags = tag_name_and_rule(tags)
     unique_tags = []
@@ -394,6 +402,7 @@ def public_tags():
             unique_tags.append(tag)
 
     return jsonify(unique_tags)
+
 
 @main_bp.route('/feedback', methods=['POST'])
 @login_required
@@ -413,7 +422,8 @@ def collect_feedback():
 
     mail.send(msg)
 
-    return dumps({'success':True}), 200
+    return dumps({'success': True}), 200
+
 
 @main_bp.route('/test_tag', methods=['GET'])
 @login_required
@@ -426,12 +436,13 @@ def test_tag():
 
     if not request.args.get('rule'):
         logging.error('Test tag request w/o rule')
-        return dumps({'success':False}), 422
+        return dumps({'success': False}), 422
 
     if tag_test(paper, request.args.get('rule')):
-        return dumps({'result':True}), 200
+        return dumps({'result': True}), 200
 
-    return dumps({'result':False}), 200
+    return dumps({'result': False}), 200
+
 
 def update_recent_papers(announce_date: datetime):
     """
@@ -448,9 +459,9 @@ def update_recent_papers(announce_date: datetime):
     delta = (announce_date.date() - login.date()).days
     if delta < 0:
         return
-    # shift acording to delta since last visit
+    # shift according to delta since last visit
     current_user.recent_visit = current_user.recent_visit << delta
     # keep only last 7 days
-    current_user.recent_visit = current_user.recent_visit % 2**RECENT_PAPER_RANGE
+    current_user.recent_visit = current_user.recent_visit % 2 ** RECENT_PAPER_RANGE
     current_user.login = announce_date.replace(tzinfo=None)
     db.session.commit()

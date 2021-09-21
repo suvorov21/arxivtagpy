@@ -5,11 +5,13 @@ from time import sleep
 
 from test.conftest import EMAIL, PASS
 
+from flask import url_for
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-from flask import url_for
 import pytest
+
 
 @pytest.fixture(scope='session')
 def driver():
@@ -20,8 +22,9 @@ def driver():
     driver = webdriver.Chrome(options=options)
     yield driver
 
+
 @pytest.mark.usefixtures('live_server')
-class TestLiveServer():
+class TestLiveServer:
     """Class for tests with visual driver."""
     def test_server_is_up_and_running(self, driver):
         """Test server is up and driver is working."""
@@ -167,3 +170,34 @@ class TestLiveServer():
         driver.find_element_by_id('add-book-btn').click()
         sleep(2)
         assert 'new_list' in driver.page_source
+
+    def test_btn_save(self, driver):
+        """Test if save button become active on change on settings page."""
+        driver.get(url_for('settings_bp.settings_page',
+                           page='pref',
+                           _external=True
+                           ))
+        sleep(2)
+        element1 = driver.find_element_by_class_name('btn-success')
+        element2 = driver.find_element_by_class_name('btn-secondary')
+
+        assert 'disabled' in element1.get_attribute('class')
+        assert 'disabled' in element2.get_attribute('class')
+
+        driver.find_element_by_id('tex-check').click()
+        sleep(1)
+        element1 = driver.find_element_by_class_name('btn-success')
+        element2 = driver.find_element_by_class_name('btn-secondary')
+
+        assert 'disabled' not in element1.get_attribute('class')
+        assert 'disabled' not in element2.get_attribute('class')
+
+    def test_cookies(self, driver):
+        """Test cookies."""
+        driver.get(url_for('main_bp.root', _external=True) + '/papers')
+        sleep(3)
+        assert driver.find_element_by_id('check-nov-1').is_selected()
+        driver.find_element_by_id('check-nov-1').click()
+        driver.get(url_for('main_bp.root', _external=True) + '/papers')
+        sleep(3)
+        assert not driver.find_element_by_id('check-nov-1').is_selected()

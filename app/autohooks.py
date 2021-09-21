@@ -9,18 +9,17 @@ Module with daemon functions that work are triggered by hooks.
 from datetime import datetime, timedelta
 import logging
 from json import dumps
-from typing import Dict, List
 from functools import wraps
 
 from flask import Blueprint, current_app, request, render_template
 from flask_mail import Message
-from flask_login import current_user, login_required
+from flask_login import current_user
 
 from .model import User, Tag, db, PaperList, Paper, UpdateDate, \
-paper_associate
+    paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from .utils import mail_catch, cast_args_to_dict
+from .utils import mail_catch
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -29,20 +28,23 @@ auto_bp = Blueprint(
     static_folder='static'
 )
 
+
 def check_token(funct):
     """
     Decorator that checks the token.
 
     Used in the autometic functions for verifications.
     """
+
     @wraps(funct)
     def my_wrapper(*args, **kwargs):
         if current_app.config['TOKEN'] != request.args.get('token'):
             logging.error('Wrong token')
-            return dumps({'success':False}), 422
+            return dumps({'success': False}), 422
         return funct(*args, **kwargs)
 
     return my_wrapper
+
 
 @auto_bp.route('/load_papers', methods=['POST'])
 @check_token
@@ -95,6 +97,7 @@ def load_papers():
 
     return dumps({'success': True}), 201
 
+
 @auto_bp.route('/delete_papers', methods=['POST'])
 @check_token
 def delete_papers():
@@ -106,7 +109,7 @@ def delete_papers():
                                        )
     elif 'week' in request.args:
         n_weeks = int(request.args['week'])
-        until_date = datetime.now() - timedelta(days=7*n_weeks)
+        until_date = datetime.now() - timedelta(days=7 * n_weeks)
     elif 'days' in request.args:
         n_days = int(request.args['days'])
         until_date = datetime.now() - timedelta(n_days)
@@ -119,11 +122,10 @@ def delete_papers():
 
     logging.info('All papers until %r are deleted.', until_date)
 
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
 
 
 @auto_bp.route('/bookmark_papers_user', methods=['POST'])
-# @login_required
 def bookmark_user():
     """Bookmarks papers for a given user for the last months."""
     name = request.form.to_dict().get('name')
@@ -132,14 +134,13 @@ def bookmark_user():
     # but in principle any user could be triggered, but token is required
     email = request.form.to_dict().get('email')
     if email and \
-        request.form.to_dict().get('token') == current_app.config['TOKEN']:
+            request.form.to_dict().get('token') == current_app.config['TOKEN']:
         usr = User.query.filter_by(email=email).first()
     elif current_user.is_authenticated:
         usr = current_user
     else:
         logging.error('Bad bookmark request %r', request.form)
         return dumps({'success': False}), 422
-
 
     try:
         weeks = int(request.form.to_dict().get('weeks'))
@@ -168,7 +169,6 @@ def bookmark_user():
                                 Paper.date_up > old_date
                                 ).order_by(Paper.date_up).all()
 
-
     paper_list = PaperList.query.filter_by(user_id=usr.id,
                                            name=name
                                            ).first()
@@ -183,7 +183,7 @@ def bookmark_user():
 
     for paper in papers:
         if tag_suitable(render_paper_json(paper), rule):
-            # check if paper is already there to prevent dublicatiopn
+            # check if paper is already there to prevent duplication
             result = db.session.query(paper_associate
                                       ).filter_by(list_ref_id=paper_list.id,
                                                   paper_ref_id=paper.id
@@ -193,7 +193,7 @@ def bookmark_user():
                 paper_list.not_seen += 1
 
     db.session.commit()
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
 
 
 @auto_bp.route('/bookmark_papers', methods=['POST'])
@@ -230,6 +230,7 @@ def bookmark_papers():
 
     n_user = 0
     n_papers = 0
+    papers = []
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
@@ -276,7 +277,7 @@ def bookmark_papers():
                  n_papers
                  )
 
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
 
 
 @auto_bp.route('/email_papers', methods=['POST'])
@@ -285,7 +286,7 @@ def email_papers():
     """
     Email notifications about new submissions.
 
-    1. Start with quering all the tags with email==True
+    1. Start with querying all the tags with email==True
         sort by user id
     2. User by user:
         2.1 Get a user that owns this tag
@@ -312,13 +313,14 @@ def email_papers():
     n_user = 0
     n_papers = 0
     user = None
+    papers = []
     for tag in tags:
         # 2
         if tag.user_id != prev_user:
             # 4. send papers. If tags['papers'] is empty
             #  --> the first user is processing
             if any([len(tags['papers']) > 0 for tags in papers_to_send]) \
-                and user:
+                    and user:
                 logging.debug('Send email for user %i', user.id)
                 email_paper_update(papers_to_send, user.email, bool(do_send == "True"))
 
@@ -342,12 +344,10 @@ def email_papers():
                 papers_to_send[-1]['papers'].append(paper)
                 n_papers += 1
 
-
     # for the last user
     if any([len(tags['papers']) > 0 for tags in papers_to_send]):
         logging.debug('Send email for user %i', user.id)
         email_paper_update(papers_to_send, user.email, bool(do_send == "True"))
-
 
     # store the last checked paper
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
@@ -358,9 +358,10 @@ def email_papers():
                  n_user,
                  n_papers
                  )
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
 
-def month_start():
+
+def month_start() -> datetime:
     """Return the first day of the month."""
     today_date = datetime.now()
     # if month just stated --> take the previous one
@@ -368,7 +369,8 @@ def month_start():
         today_date -= timedelta(days=4)
     return today_date - timedelta(days=today_date.day)
 
-def email_paper_update(papers: List[Dict], email: str, do_send: bool):
+
+def email_paper_update(papers: list, email: str, do_send: bool):
     """Send the papers update."""
     body = 'Hello,\n\nWe created a daily paper feed based on your preferences.'
     html_body = ''
@@ -378,8 +380,8 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
         body += '\n\nFor tag ' + paper_tag['tag'] + ':\n'
         html_body += f'<br/><h3>Fot tag {paper_tag["tag"]}:</h3>'
         for number, paper in enumerate(paper_tag['papers']):
-            body += f'{str(number+1)}. {paper.title}\n'
-            html_body += f'<p>{str(number+1)}. {paper.title}</p>'
+            body += f'{str(number + 1)}. {paper.title}\n'
+            html_body += f'<p>{str(number + 1)}. {paper.title}</p>'
 
     body += '\n\n\nRegards, \narXiv tag team.'
 
@@ -397,6 +399,7 @@ def email_paper_update(papers: List[Dict], email: str, do_send: bool):
 
     if do_send:
         mail_catch(msg)
+
 
 def get_old_update_date() -> UpdateDate:
     """Chech if the database record with latest update exists. If not create."""

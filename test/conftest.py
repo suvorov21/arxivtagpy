@@ -14,11 +14,12 @@ from app import app_init, db
 from app.model import User, Tag
 
 EMAIL = 'tester@gmail.com'
-PASS = 'tester' # nosec
+PASS = 'tester'  # nosec
 
 TMP_EMAIL = 'tmp_tester@gmail.com'
 
 DEFAULT_LIST = 'Favourite'
+
 
 def make_user(email):
     """Make a default user."""
@@ -42,6 +43,7 @@ def make_user(email):
     user1.tags.append(tag)
     return user1
 
+
 @pytest.fixture(scope='session', autouse=True)
 def app():
     """Initialize app + user recrod in db."""
@@ -59,6 +61,7 @@ def app():
         db.session.remove()
         db.drop_all()
 
+
 @pytest.fixture(scope='function')
 def login(client):
     """Login user to access the personal data."""
@@ -72,6 +75,7 @@ def login(client):
     client.get('/logout',
                follow_redirects=True
                )
+
 
 @pytest.fixture(scope='function')
 def tmp_user(client):

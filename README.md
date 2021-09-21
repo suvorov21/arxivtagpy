@@ -11,8 +11,8 @@ A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the pa
 ### Main features:
 1. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and/negation), regular expressions, and TeX formulas. The paper feed is sorted based on your preferences. View the most interesting papers on top!
 2. Papers suitable with a given tag are **bookmarked automatically**.
-3. Email notifications are send when the paper suitable with a given tag is submitted.
-4. Add any number of arXiv sections and further toggle them easily with check boxes. Control paper novelty (new/updated) and papers from the cross-categories with the check boxes as well.
+3. Email notifications are sent when the paper suitable with a given tag is submitted.
+4. Add any number of arXiv sections and further toggle them easily with check boxes. Control paper novelty (new/updated) and papers from the cross-categories with the checkboxes as well.
 5. Select a date range of submissions: today/this week/this month/**since your last visit**. Check easily what submissions you have been already overviewed.
 6. Dark and light theme of the website.
 
@@ -49,6 +49,14 @@ The Postgres DB should be installed. The DB can be created with
 
 ```bash
 flask db init; flask db migrate; flask db upgrade
+```
+
+The front-end is build with npm
+
+```bash
+cd app/static/src/
+npm install
+npm run build
 ```
 
 The server can be run in the dev mode with

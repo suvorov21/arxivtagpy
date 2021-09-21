@@ -6,13 +6,13 @@ from json import loads
 
 import smtplib
 
-from flask import url_for
 from flask_mail import Message
 from flask_login import current_user
 
 from .import mail
 
 from .model import PaperList
+
 
 def fix_xml(xml: str) -> str:
     """
@@ -21,6 +21,7 @@ def fix_xml(xml: str) -> str:
     Remove line endings and double spaces.
     """
     return xml.replace(linesep, " ").replace("  ", " ")
+
 
 def mail_catch(msg: Message) -> bool:
     """Catch email exceptions."""
@@ -32,10 +33,11 @@ def mail_catch(msg: Message) -> bool:
 
     return True
 
+
 def get_lists_for_user() -> list:
     """Get all paper lists for a given user."""
     # get all lists for the menu (ordered)
-    paper_lists = PaperList.query.filter_by(user_id=current_user.id \
+    paper_lists = PaperList.query.filter_by(user_id=current_user.id
                                             ).order_by(PaperList.order).all()
     # if no, create the default list
     if len(paper_lists) == 0:
@@ -53,7 +55,8 @@ def get_lists_for_user() -> list:
 
     return lists
 
-def cast_args_to_dict(args) -> dict:
+
+def cast_args_to_dict(args) -> list:
     """Cast requests args to dictionary."""
     prefs = []
     # FIXME Fix key break with ampersand
@@ -63,9 +66,12 @@ def cast_args_to_dict(args) -> dict:
     prefs = '&'.join(prefs)
 
     if prefs == '':
-        return dict()
+        return list()
 
     # convert to array of dict
     prefs = loads(prefs)
+
+    if isinstance(prefs, dict):
+        prefs = [prefs]
 
     return prefs

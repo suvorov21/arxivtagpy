@@ -1,10 +1,8 @@
 """Render utils."""
 
-from typing import Dict, List
-from datetime import datetime, timedelta
-from .model import Tag
+from datetime import datetime
 
-# dictionary for acccents
+# dictionary for accents
 accents = {"\\'a": '&aacute;',
            "\\'A": '&Aacute;',
            "\\'e": '&eacute;',
@@ -50,21 +48,22 @@ accents = {"\\'a": '&aacute;',
            '\\"E': '&Euml;'
            }
 
-def render_title(date_type: str, last_visit: datetime = 0) -> str:
+
+def render_title(date_type: str) -> str:
     """Put the date type in the title text."""
     if date_type == 'today':
         return 'Papers for today'
-    elif date_type == 'week':
+    if date_type == 'week':
         return 'Papers for this week'
-    elif date_type == 'month':
+    if date_type == 'month':
         return 'Papers for this month'
-    elif date_type == 'last':
-        return 'Papers since your last visit on ' + \
-                (last_visit).strftime('%d %b %Y')
-    elif date_type == 'unseen':
+    if date_type == 'last':
+        return 'Papers since your last visit'
+    if date_type == 'unseen':
         return 'Unseen papers during the past week'
 
     return 'Papers'
+
 
 def render_title_precise(date: str, old: datetime, new: datetime) -> str:
     """Render title based on the computed dates."""
@@ -74,16 +73,20 @@ def render_title_precise(date: str, old: datetime, new: datetime) -> str:
         return datetime.strftime(old, '%d %B') + ' - ' + \
                datetime.strftime(new, '%d %B')
     if date == 'range':
-        if (old.date() == new.date()):
+        if old.date() == new.date():
             return 'for ' + datetime.strftime(old, '%A, %d %B')
-        else:
-            return 'from '  + \
-                   datetime.strftime(old, '%d %B') + ' until ' + \
-                   datetime.strftime(new, '%d %B')
-    if date in ('last', 'unseen'):
+
+        return 'from ' + \
+               datetime.strftime(old, '%d %B') + ' until ' + \
+               datetime.strftime(new, '%d %B')
+    if date == 'last':
+        return ' on ' + datetime.strftime(old, '%d %B')
+
+    if date == 'unseen':
         return ''
 
     return 'Papers'
+
 
 def key_tag(paper):
     """Key for sorting with tags."""
@@ -92,24 +95,26 @@ def key_tag(paper):
 
     # to make the secondary key working in the right way
     # the sorting is reversed
-    # for consistancy the tag index is inversed too
+    # for consistency the tag index is inverse too
 
     # WARNING cross-fingered nobody will use 1000 tags
     # otherwise I'm in trouble
     return -paper['tags'][0] if len(paper['tags']) > 0 else -1000, \
-           paper['date_up']
+        paper['date_up']
+
 
 def key_date_up(paper):
     """Sorting with date."""
     return paper['date_up']
 
-def render_papers(papers: Dict, **kwargs) -> Dict:
+
+def render_papers(papers: dict, **kwargs):
     """Convert papers dict to minimize info."""
     if kwargs.get('sort'):
         reverse = True
-        if  kwargs['sort'] == 'tag':
-            key = key_tag
-        elif kwargs['sort'] == 'date_up':
+        key = key_tag
+
+        if kwargs['sort'] == 'date_up':
             key = key_date_up
         papers['papers'] = sorted(papers['papers'],
                                   key=key,
@@ -133,7 +138,8 @@ def render_papers(papers: Dict, **kwargs) -> Dict:
         if paper.get('date_up'):
             paper['date_up'] = paper['date_up'].strftime('%d %B %Y')
 
-def render_tags_front(tags: Dict) -> Dict:
+
+def render_tags_front(tags: list) -> list:
     """Get rid of additional info about tags at front end."""
     tags_dict = [{'color': tag['color'],
                   'name': tag['name']
@@ -141,7 +147,8 @@ def render_tags_front(tags: Dict) -> Dict:
 
     return tags_dict
 
-def tag_name_and_rule(tags: List[Tag]) -> List:
+
+def tag_name_and_rule(tags: list) -> list:
     """Return only tag name and rule in JSON."""
     json = []
     for tag in tags:

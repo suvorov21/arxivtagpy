@@ -6,6 +6,7 @@ import pytest
 
 from app.papers import tag_test
 
+
 @pytest.fixture(scope='function')
 def simple_paper():
     """Fixture with a simple paper."""
@@ -14,6 +15,7 @@ def simple_paper():
              'abstract': 'Breakthrough is coming'
              }
     yield paper
+
 
 def test_base(simple_paper):
     """Check if the simple rules are working."""
@@ -28,10 +30,12 @@ def test_and_or_outside(simple_paper):
     assert not tag_test(simple_paper, 'ti{awesome}&abs{awesome}')
     assert tag_test(simple_paper, 'ti{awesome}|abs{awesome}')
 
+
 def test_and_or_inside(simple_paper):
     """Test logic operators in inside the simple rules."""
     assert tag_test(simple_paper, 'ti{awesome&title}')
     assert tag_test(simple_paper, 'ti{awesome|breakthrough}')
+
 
 def test_tricky_logic_and():
     """Test logic end versus sequence."""
@@ -44,6 +48,7 @@ def test_tricky_logic_and():
     rule = 'abs{heavy neutrino|HNL}|ti{heavy neutrino|HNL}'
 
     assert not tag_test(paper, rule)
+
 
 def test_tag_endpoint(client, login):
     """Test the tag test endpoint."""

@@ -7,9 +7,9 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
 
   {% if data['theme'] == 'dark' %}
-    <link href="{{ url_for('static', filename='dist/css/vars_dark.css') }}" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/vars_dark.bundle.js') }}?{{ data['version'] }}"></script>
   {% else %}
-    <link href="{{ url_for('static', filename='dist/css/vars.css') }}" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/vars.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
 
   {% if data['sentry'] == 'short' %}
@@ -18,10 +18,10 @@
       crossorigin="anonymous">
     </script>
     <script type="text/javascript">
-      Sentry.onLoad(function() {
+      Sentry.onLoad(() => {
         Sentry.init({
           release: "{{ data['version'] }}",
-        });
+        })});
     </script>
   {% endif %}
 
@@ -41,10 +41,11 @@
   {% endif %}
 
   <script type="text/javascript">
-    var parseTex = false;
+    __parseTex__ = false;
   </script>
   {% if data.get('math_jax') %}
     <script>
+      {#window["MathJax"] = {#}
       MathJax = {
         tex: {
           inlineMath: [['$', '$'], ['\\(', '\\)']],
@@ -54,7 +55,7 @@
           fontCache: 'global'
         }
       };
-      parseTex = true;
+      __parseTex__ = true;
     </script>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -104,7 +105,7 @@
               <div class="input-group-prepend">
                 <div class="input-group-text">@</div>
               </div>
-              <input type="text" class="form-control" placeholder="Email" name="i_login" size="15" required="required" />
+              <input type="text" class="form-control" placeholder="Email" name="i_login" size="15" required="required" autocomplete="username"/>
             </div>
           </div>
           <div class="col-auto">
@@ -112,7 +113,7 @@
               <div class="input-group-prepend">
                 <div class="input-group-text"><i class="fa fa-lock"></i></div>
               </div>
-              <input type="password" class="form-control" placeholder="Password" name="i_pass" size="15" required="required" />
+              <input type="password" class="form-control" placeholder="Password" name="i_pass" size="15" required="required" autocomplete="current-password" />
             </div>
           </div>
           <div class="col-auto">
@@ -165,9 +166,35 @@
       Please leave your feedback through the feedback panel,<br/> or with submitting issues at the repos.
     </div>
 
+  {# TODO  do we need his with webpack? #}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
   <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    {% if current_user.is_authenticated %}
+          <script type="text/javascript">
+              {# TODO put feedback script here for the timebeing #}
+               $(function() {
+                   document.getElementById("feedback-tab").onclick = () => {
+                     $("#feedback-form").toggle("slide");
+                   };
+
+                   $("#feedback-form form").on("submit", function(event) {
+                     let $form = $(this);
+                     $.ajax({
+                       type: $form.attr("method"),
+                       url: $form.attr("action"),
+                     data: $form.serialize(),
+                       success: function() {
+                         $("#feedback-form").toggle("slide").find("textarea").val("");
+                         {# FIXME make the alert back to work #}
+                         {#raiseAlert("Thank you for your feedback!", "success");#}
+                       }
+                     });
+                     event.preventDefault();
+                   });
+                 });
+          </script>
+    {% endif %}
 
   {% block script_footer %}{% endblock %}
 </body>

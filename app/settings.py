@@ -5,7 +5,7 @@ from json import loads, dumps
 import logging
 
 from flask import Blueprint, render_template, session, request, \
-current_app, redirect, url_for
+    current_app, redirect, url_for
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
@@ -17,6 +17,7 @@ settings_bp = Blueprint(
     template_folder='templates',
     static_folder='static'
 )
+
 
 @settings_bp.route('/settings')
 @login_required
@@ -33,8 +34,8 @@ def settings_page():
     if page == 'cat':
         data['cats'] = session['cats']
     elif page == 'bookshelf':
-        paper_lists = PaperList.query.filter_by(user_id=current_user.id \
-                                            ).order_by(PaperList.order).all()
+        paper_lists = PaperList.query.filter_by(user_id=current_user.id
+                                                ).order_by(PaperList.order).all()
         data['lists'] = [{'id': paper_list.id,
                           'name': paper_list.name
                           } for paper_list in paper_lists]
@@ -52,23 +53,17 @@ def settings_page():
                            data=data
                            )
 
-########### Setings change #############################################
 
 @settings_bp.route('/mod_cat', methods=['POST'])
 @login_required
 def mod_cat():
     """Apply category changes."""
     new_cats = cast_args_to_dict(request.form.to_dict().keys())
-
-    if len(new_cats) == 0:
-        logging.error('Error during cats mod. Requiest %r', new_cats)
-        return dumps({'success': False}), 422
-    if new_cats == ["null"]:
-        new_cats = []
     current_user.arxiv_cat = new_cats
     db.session.commit()
     session['cats'] = current_user.arxiv_cat
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
+
 
 @settings_bp.route('/mod_tag', methods=['POST'])
 @login_required
@@ -82,6 +77,7 @@ def mod_tag():
                            current_user.tags
                            )
 
+
 @settings_bp.route('/mod_lists', methods=['POST'])
 @login_required
 def mod_list():
@@ -94,14 +90,15 @@ def mod_list():
                            current_user.lists
                            )
 
+
 @settings_bp.route('/add_list', methods=['POST'])
 @login_required
 def add_list():
     """Add a new paper list."""
-    args = cast_args_to_dict(request.form.to_dict().keys())
+    args = cast_args_to_dict(request.form.to_dict().keys())[0]
 
     if args['name'] == '':
-        logging.error('Error during list add. Requiest %r', args)
+        logging.error('Error during list add. Request %r', args)
         return dumps({'success': False}), 422
 
     n_list = PaperList(name=args['name'],
@@ -111,7 +108,8 @@ def add_list():
 
     current_user.lists.append(n_list)
     db.session.commit()
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
+
 
 @settings_bp.route('/mod_pref', methods=['POST'])
 @login_required
@@ -121,13 +119,14 @@ def mod_pref():
     for arg in request.form.to_dict().keys():
         new_pref = arg
 
-    if new_pref == []:
+    if not new_pref:
         return dumps({'success': False}), 204
 
     current_user.pref = str(new_pref)
     db.session.commit()
     session['pref'] = loads(current_user.pref)
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
+
 
 @settings_bp.route('/noEmail', methods=["POST"])
 @login_required
@@ -139,7 +138,8 @@ def no_email():
         tag.email = False
 
     db.session.commit()
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
+
 
 def new_tag(tag, order):
     """Create new Tag object."""
@@ -153,6 +153,7 @@ def new_tag(tag, order):
                  )
     return db_tag
 
+
 def new_list(n_list, order):
     """Create new PaperList object."""
     db_list = PaperList(name=n_list['name'],
@@ -160,6 +161,7 @@ def new_list(n_list, order):
                         not_seen=0
                         )
     return db_list
+
 
 def modify_settings(args, db_class, new_db_object, update, set_place):
     """
@@ -173,13 +175,10 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
     """
     new_settings = cast_args_to_dict(args)
 
-    if len(new_settings) == 0:
-        return dumps({'success': False}), 422
+    # if len(new_settings) == 0:
+    #     new_settings = []
 
-    if new_settings == ["null"]:
-        new_settings = []
-
-    settings = db_class.query.filter_by(user_id=current_user.id \
+    settings = db_class.query.filter_by(user_id=current_user.id
                                         ).order_by(db_class.order).all()
     # save the old version wo delete unused options later
     old_set_id = {setting.id for setting in settings}
@@ -202,7 +201,7 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
         db_class.query.filter_by(id=del_list).delete()
 
     db.session.commit()
-    return dumps({'success':True}), 201
+    return dumps({'success': True}), 201
 
 
 def update_tag(old_tag: Tag, tag: Tag, order: int):
@@ -215,10 +214,12 @@ def update_tag(old_tag: Tag, tag: Tag, order: int):
     old_tag.public = tag['public']
     old_tag.order = order
 
+
 def update_list(old_list: PaperList, up_list: PaperList, order: int):
     """Update PaperList db record."""
     old_list.name = up_list['name']
     old_list.order = order
+
 
 def tag_to_dict(tag: Tag) -> dict:
     """Transform Tag class object into dict."""
@@ -231,6 +232,7 @@ def tag_to_dict(tag: Tag) -> dict:
                 'public': tag.public
                 }
     return tag_dict
+
 
 def load_prefs():
     """Load preferences from DB to session."""
@@ -250,15 +252,16 @@ def load_prefs():
     # read preferences
     session['pref'] = loads(current_user.pref)
 
+
 def default_data():
     """Get default template render params."""
     data = dict()
+    data['version'] = current_app.config['VERSION']
     data['sentry'] = ''
     if current_app.config['SENTRY_HOOK']:
         data['sentry'] = 'long'
         data['sentry_dsn'] = current_app.config['SENTRY_HOOK']
         data['sentry_key'] = current_app.config['SENTRY_HOOK'].split('//')[1].split('@')[0]
-        data['version'] = current_app.config['VERSION']
     if 'pref' in session:
         data['theme'] = session['pref'].get('theme')
         data['math_jax'] = session['pref'].get('tex')

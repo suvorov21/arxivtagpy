@@ -2,15 +2,15 @@
 
 {% block head_scripts %}
   <title>arXiv tag. Your bookxhelf</title>
-  <link href="{{ url_for('static', filename='dist/css/papers.css') }}" rel="stylesheet" type="text/css">
+
+  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
 
   <script type="text/javascript">
-    var DATA = {{ papers }};
-    var TAGS = {{ tags }};
-    var displayList = parseInt("{{ displayList }}", 10);
-    var LISTS = {{ lists }};
-    var page = {{ page }};
-    var paperPage = {{ paper_page }}
+    __DATA__ = {{ papers }};
+    __TAGS__ = {{ tags }};
+    __DISPLAY_LIST__ = parseInt("{{ displayList }}", 10);
+    __PAGE__ = {{ page }};
+    __PAGE_SIZE__ = {{ paper_page }}
   </script>
 {% endblock %}
 
@@ -87,7 +87,7 @@
 
 
 {% block script_footer %}
-<script type="text/javascript" src="{{ url_for('static', filename='dist/js/bookshelf.min.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='dist/js/bookshelf.bundle.js') }}?{{ data['version'] }}"></script>
   <script type="text/javascript">
     document.getElementById("shelf-nav").classList.add("active");
   </script>

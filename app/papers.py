@@ -5,8 +5,7 @@ Paper downloader function update the paper DB.
 Tag processor checks if a given paper is suitable with the tag
 """
 
-from typing import Dict, Tuple
-from re import search, compile, sub, IGNORECASE, error
+from re import search, compile, IGNORECASE, error
 from datetime import datetime, timedelta
 import logging
 
@@ -18,6 +17,7 @@ rule_dict = {'ti': 'title',
              'abs': 'abstract',
              'cat': 'cats'
              }
+
 
 def update_papers(api_list: list, **kwargs):
     """
@@ -68,7 +68,6 @@ def update_papers(api_list: list, **kwargs):
                  )
 
 
-
 def update_paper_record(paper_prev: Paper, paper: Paper):
     """Update the paper record."""
     paper_prev.title = paper.title
@@ -79,12 +78,14 @@ def update_paper_record(paper_prev: Paper, paper: Paper):
     paper_prev.abstract = paper.abstract
     paper_prev.cats = paper.cats
 
+
 def resolve_doi(doi: str) -> str:
     """Resolve doi string into link."""
     return 'https://www.doi.org/' + doi
 
-def render_paper_json(paper: Paper) -> Dict:
-    """Render Paper class obkect into JSON for front-end."""
+
+def render_paper_json(paper: Paper) -> dict:
+    """Render Paper class object into JSON for front-end."""
     result = {'id': paper.paper_id,
               'title': paper.title,
               'author': paper.author,
@@ -110,12 +111,12 @@ def render_paper_json(paper: Paper) -> Dict:
     return result
 
 
-def process_papers(papers: Dict,
-                   tags: Dict,
-                   cats: Tuple[str],
+def process_papers(papers: dict,
+                   tags: dict,
+                   cats: list,
                    do_nov: bool,
                    do_tag: bool
-                   ) -> Dict:
+                   ) -> dict:
     """
     Papers processing.
 
@@ -159,7 +160,7 @@ def process_papers(papers: Dict,
     return papers
 
 
-def tag_suitable(paper: Dict, rule: str) -> bool:
+def tag_suitable(paper: dict, rule: str) -> bool:
     """
     Simple rules are expected in the most of th cases.
 
@@ -235,9 +236,10 @@ def tag_suitable(paper: Dict, rule: str) -> bool:
     # default safety return
     return False
 
-def parse_simple_rule(paper: Dict, condition: str) -> bool:
+
+def parse_simple_rule(paper: dict, condition: str) -> bool:
     """Parse simple rules as ti/au/abs."""
-    prefix_re = search(r'^(ti|abs|au|cat)\{(.*?)\}', condition)
+    prefix_re = search(r'^(ti|abs|au|cat){(.*?)}', condition)
     if not prefix_re:
         return False
 
@@ -295,14 +297,15 @@ def parse_simple_rule(paper: Dict, condition: str) -> bool:
 
     found = re_cond.search(search_target) is not None
 
-    if  found != inversion:
+    if found != inversion:
         return True
     return False
+
 
 def get_json_papers(cats: list,
                     old_date: datetime,
                     new_date: datetime
-                    ) -> dict:
+                    ) -> list:
     """Get list of papers from DB in JSON format."""
     paper_query = Paper.query.filter(
                         Paper.cats.overlap(cats),
@@ -311,17 +314,18 @@ def get_json_papers(cats: list,
                         ).order_by(Paper.date_up.desc()).all()
     return [render_paper_json(paper) for paper in paper_query]
 
+
 def get_json_unseen_papers(cats: list,
                            recent_visit: int,
                            recent_range: int,
                            announce_date: datetime
-                           ) ->dict:
+                           ) -> list:
     """Get unseen papers from DB in JSON format."""
     result = []
     for i in range(recent_range - 1):
         if not 2**i & recent_visit:
             if (announce_date - timedelta(days=i)).weekday() > 4:
-                # no announcments on weekends
+                # no announcements on weekends
                 continue
             old_date_tmp, new_date_tmp, new_date = get_date_range(
                                 'today',
@@ -336,6 +340,7 @@ def get_json_unseen_papers(cats: list,
                         ).order_by(Paper.date_up.desc()).all()
             result.extend([render_paper_json(paper) for paper in paper_query])
     return result
+
 
 def tag_test(paper: dict, tag_rule: str) -> bool:
     """Function for tag rule testing."""
