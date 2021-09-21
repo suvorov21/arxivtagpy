@@ -18,7 +18,7 @@ from .auth import new_default_list
 from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers, tag_test
 from .paper_api import get_arxiv_sub_start, \
-    get_annonce_date, get_axiv_announce_date, get_date_range
+    get_annonce_date, get_arxiv_announce_date, get_date_range
 from .utils import get_lists_for_user
 from .settings import load_prefs, default_data
 
@@ -71,10 +71,8 @@ def papers_list():
     # get rid of tag rule at front-end
     tags_dict = render_tags_front(session['tags'])
 
-    last_visit_date = get_axiv_announce_date(current_user.last_paper)
-
     return render_template('papers.jinja2',
-                           title=render_title(date_type, last_visit_date),
+                           title=render_title(date_type),
                            cats=session['cats'],
                            tags=dumps(tags_dict),
                            data=default_data()
@@ -118,7 +116,7 @@ def paper_land():
                           })
         count += 1
 
-    last_visit_date = get_axiv_announce_date(current_user.last_paper)
+    last_visit_date = get_arxiv_announce_date(current_user.last_paper)
     return render_template('paper_land.jinja2',
                            data=default_data(),
                            last_visit=datetime.strftime(last_visit_date,
@@ -140,6 +138,7 @@ def data():
 
     announce_date = get_annonce_date()
 
+    # update the information about "seen" papers since the last visit
     update_recent_papers(announce_date)
 
     old_date_tmp, new_date_tmp, new_date = get_date_range(
@@ -224,7 +223,11 @@ def data():
                             )
     render_papers(papers, sort='tag')
 
+    # lists are required at front-end as there is an interface to add paper to any one
     lists = get_lists_for_user()
+
+    if request.args['date'] == 'last':
+        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
 
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],

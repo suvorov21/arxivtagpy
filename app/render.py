@@ -49,7 +49,7 @@ accents = {"\\'a": '&aacute;',
            }
 
 
-def render_title(date_type: str, last_visit: datetime = 0) -> str:
+def render_title(date_type: str) -> str:
     """Put the date type in the title text."""
     if date_type == 'today':
         return 'Papers for today'
@@ -58,8 +58,7 @@ def render_title(date_type: str, last_visit: datetime = 0) -> str:
     if date_type == 'month':
         return 'Papers for this month'
     if date_type == 'last':
-        return 'Papers since your last visit on ' + \
-               last_visit.strftime('%d %b %Y')
+        return 'Papers since your last visit'
     if date_type == 'unseen':
         return 'Unseen papers during the past week'
 
@@ -80,7 +79,10 @@ def render_title_precise(date: str, old: datetime, new: datetime) -> str:
         return 'from ' + \
                datetime.strftime(old, '%d %B') + ' until ' + \
                datetime.strftime(new, '%d %B')
-    if date in ('last', 'unseen'):
+    if date == 'last':
+        return ' on ' + datetime.strftime(old, '%d %B')
+
+    if date == 'unseen':
         return ''
 
     return 'Papers'

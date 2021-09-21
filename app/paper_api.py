@@ -209,7 +209,7 @@ def get_arxiv_sub_end(announce_date: date) -> datetime:
     return sub_date_end
 
 
-def get_axiv_announce_date(paper_sub: datetime) -> datetime:
+def get_arxiv_announce_date(paper_sub: datetime) -> datetime:
     """Get the announce date for a given paper."""
     announce_date = paper_sub
     announce_date = announce_date \
@@ -293,6 +293,6 @@ def get_date_range(date_type: str,
 
     # the last uncovered request type
     # otherwise log an error
-    if date_type != 'unseen' and date_type != 'last':
+    if date_type not in {'unseen', 'last'}:
         logging.error('Unsupported date type %r', date_type)
     return announce_date, announce_date, announce_date
