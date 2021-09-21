@@ -381,9 +381,17 @@ def email_paper_update(papers: list, email: str, do_send: bool):
         html_body += f'<br/><h3>Fot tag {paper_tag["tag"]}:</h3>'
         for number, paper in enumerate(paper_tag['papers']):
             body += f'{str(number + 1)}. {paper.title}\n'
-            html_body += f'<p>{str(number + 1)}. {paper.title}</p>'
+            html_body += f'<p>{str(number + 1)}. {paper.title}<br/>'
+            ref_pdf = ArxivOaiApi().get_ref_pdf(paper.paper_id,
+                                                paper.version
+                                                )
 
-    body += '\n\n\nRegards, \narXiv tag team.'
+            ref_arxiv = ArxivOaiApi().get_ref_web(paper.paper_id,
+                                                  paper.version
+                                                  )
+            html_body += f'<a href={ref_arxiv}>arXiv</a> | <a href={ref_pdf}>PDF</a></p>'
+
+    body += '\n\n\n\nRegards, \narXiv tag team.'
 
     html = render_template('mail_feed.jinja2',
                            papers=html_body,
