@@ -3,7 +3,7 @@
 {% block head_scripts %}
   <title>arXiv tag. Paper feed</title>
 
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
+  <script type="text/javascript" src="{{ url_for('main_bp.static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
 
   <script type="text/javascript">
     __TAGS__ = {{ tags }};
@@ -105,7 +105,7 @@
 {% endblock %}
 
 {% block script_footer %}
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers.bundle.js') }}?{{ data['version'] }}"></script>
+  <script type="text/javascript" src="{{ url_for('main_bp.static', filename='dist/js/papers.bundle.js') }}?{{ data['version'] }}"></script>
   <script type="text/javascript">
     document.getElementById("papers-nav").classList.add("active");
   </script>

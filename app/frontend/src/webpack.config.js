@@ -14,7 +14,7 @@ module.exports = {
         "vars": "./less/vars.less",
         "vars_dark": "./less/vars_dark.less",
         "papers_style": "./less/papers.less",
-        "settings_style": "./less/settings.less"
+        "settings_style": "./less/settings.less",
     },
     devtool: "inline-source-map",
     module: {

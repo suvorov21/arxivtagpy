@@ -1,6 +1,4 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import "../css/wheelcolorpicker.css";
-import "../js/jquery.wheelcolorpicker";
 import {submitSetting, setDefaultListeners, dropElement} from "./settings";
 import {cssVar, raiseAlert, Tag} from "./layout";
 
@@ -86,11 +84,6 @@ function renderTags() {
     document.getElementById("tag-list").appendChild(tagElement);
 }
 
-const updateColorField = () => {
-    const colorEl = document.getElementById("tag-color") as HTMLInputElement;
-    colorEl.style.backgroundColor =  colorEl.value;
-};
-
 const clearTagField = (): void => {
     document.forms["add-tag"]["tag_name"].value = "";
     document.forms["add-tag"]["tag_rule"].value = "";
@@ -99,7 +92,6 @@ const clearTagField = (): void => {
     document.getElementById("btn-book").classList.add("disabled");
     document.forms["add-tag2"]["email-check"].checked = false;
     document.forms["add-tag2"]["public-check"].checked = false;
-    updateColorField();
 };
 
 const reloadTags = (hardReload = false): void => {
@@ -434,7 +426,6 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
         changeBookBtnStatus(tag.bookmark);
         document.forms["add-tag2"]["email-check"].checked = tag.email;
         document.forms["add-tag2"]["public-check"].checked = tag.public;
-        updateColorField();
 
         // make delete possible
         document.getElementById("btn-del").classList.remove("disabled");
@@ -451,11 +442,6 @@ $(".tag-field").on("input", function() {
 $(".tag-field").on("change", function() {
     makeTagEdited();
 });
-
-document.getElementById("tag-color").onchange = () => {
-    updateColorField();
-    $(".btn-save").removeClass("disabled");
-};
 
 document.getElementById("book-check").onchange = () => {
     changeBookBtnStatus(document.forms["add-tag2"]["book-check"].checked);

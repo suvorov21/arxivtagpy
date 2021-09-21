@@ -28,13 +28,13 @@ assets_build:
     stage: build
     image: node:16.9.0-alpine3.14
     before_script:
-      - cd app/static/src/
+      - cd app/frontend/src/
       - npm install
     script:
         - npm run build
     artifacts:
       paths:
-        - app/static/dist/js/*
+        - app/frontend/dist/js/*
 
 integration_test:
   stage: test

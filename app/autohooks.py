@@ -25,7 +25,7 @@ auto_bp = Blueprint(
     'auto_bp',
     __name__,
     template_folder='templates',
-    static_folder='static'
+    static_folder='frontend'
 )
 
 
@@ -410,7 +410,7 @@ def email_paper_update(papers: list, email: str, do_send: bool):
 
 
 def get_old_update_date() -> UpdateDate:
-    """Chech if the database record with latest update exists. If not create."""
+    """Check if the database record with latest update exists. If not create."""
     old_date_record = UpdateDate.query.first()
     if not old_date_record:
         old_date = month_start()

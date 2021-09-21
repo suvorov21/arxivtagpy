@@ -2,7 +2,7 @@
 
 {% block head_scripts %}
   <title>arXiv tag. Settings</title>
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_style.bundle.js') }}?{{ data['version'] }}"></script>
+  <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_style.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -151,8 +151,8 @@
               <form name="add-tag2" class="form-group">
                 <fieldset id="tag-fields2">
                   <label for="tag-color" >Tag color</label><br/>
-                  <input type="text" class="form-control tag-field" name="tag_color" id="tag-color" placeholder="#ff0000" data-wheelcolorpicker data-wcp-format="css" size="15"><br/>
-                  <div class="form-check">
+                    <input type="color" name="tag_color" id="tag-color" class="tag-field">
+                  <div class="form-check mt-4">
                     <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
                     <label class="form-check-label" for="book-check">Bookmark automatically</label>
                     <small class="form-text text-muted">
@@ -264,20 +264,20 @@
 {% block script_footer %}
   {% if 'tags' in data %}
     <script type="text/javascript">__TAGS__ = {{ data['tags'] }};</script>
-    <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_tag.bundle.js') }}?{{ data['version'] }}"></script>
+    <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_tag.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
 
   {% if 'cats' in data %}
       <script type="text/javascript">__CATS__ = {{ data['cats'] }};</script>
-      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
+      <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'lists' in data %}
       <script type="text/javascript">__LISTS__ = {{ data['lists'] }};</script>
-      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
+      <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'pref' in data %}
       <script type="text/javascript">__PREF__ = {{ data['pref'] }};</script>
-      <script type="text/javascript" src="{{ url_for('static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
+      <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   <script type="text/javascript">
     document.getElementById("set-nav").classList.add("active");

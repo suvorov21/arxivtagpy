@@ -6,7 +6,7 @@
 # arXiv tag
 A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv](https://arxiv.org/).
 
-![Framework flow](app/static/dist/img/scheme_small.png)
+![Framework flow](app/frontend/dist/img/scheme_small.png)
 
 ### Main features:
 1. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and/negation), regular expressions, and TeX formulas. The paper feed is sorted based on your preferences. View the most interesting papers on top!
@@ -54,7 +54,7 @@ flask db init; flask db migrate; flask db upgrade
 The front-end is build with npm
 
 ```bash
-cd app/static/src/
+cd app/frontend/src/
 npm install
 npm run build
 ```

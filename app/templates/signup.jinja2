@@ -3,7 +3,7 @@
 {% block head_scripts %}
   <title>arXiv tag. Sign up</title>
 
-  <script type="text/javascript" src="{{ url_for('static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
+  <script type="text/javascript" src="{{ url_for('main_bp.static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}
 
 {% block content %}
