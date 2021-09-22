@@ -80,13 +80,13 @@ const renderButtonsBase = (content: Paper, pId: number): HTMLElement => {
     btnPanel.id = "btn-toolbar-"+pId;
 
     const btnGroup1 = document.createElement("div");
-    btnGroup1.className = "btn-group mr-2";
+    btnGroup1.className = "btn-group me-2";
     btnPanel.appendChild(btnGroup1);
 
     const btnAbs = document.createElement("button");
     btnAbs.className = "btn btn-primary";
-    btnAbs.setAttribute("data-toggle", "collapse");
-    btnAbs.setAttribute("data-target", "#abs-"+pId);
+    btnAbs.setAttribute("data-bs-toggle", "collapse");
+    btnAbs.setAttribute("data-bs-target", "#abs-"+pId);
     btnAbs.id = "btn-abs-"+pId;
     btnAbs.textContent = "Abstract";
     btnGroup1.appendChild(btnAbs);
@@ -99,7 +99,7 @@ const renderButtonsBase = (content: Paper, pId: number): HTMLElement => {
     btnPdf.innerHTML = "<i class='fa fa-file-pdf-o' aria-hidden='true' style='font-weight:600'></i>&nbsp; PDF";
 
     const btnGroup2 = document.createElement("div");
-    btnGroup2.className = "btn-group mr-2";
+    btnGroup2.className = "btn-group me-2";
     btnPanel.appendChild(btnGroup2);
     btnGroup2.appendChild(btnPdf);
 
@@ -111,7 +111,7 @@ const renderButtonsBase = (content: Paper, pId: number): HTMLElement => {
     btnArxiv.textContent = "arXiv";
 
     const btnGroup3 = document.createElement("div");
-    btnGroup3.className = "btn-group mr-2";
+    btnGroup3.className = "btn-group me-2";
     btnPanel.appendChild(btnGroup3);
     btnGroup3.appendChild(btnArxiv);
 

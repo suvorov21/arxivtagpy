@@ -544,7 +544,7 @@ const renderCats = (): void => {
 
         // number of papers of given category
         const counter = document.createElement("div");
-        counter.className = "ml-auto counter";
+        counter.className = "ms-auto counter";
         counter.id = "cat-count-"+num;
         counter.textContent = "0";
 
@@ -667,10 +667,10 @@ document.getElementById("sort-sel").onchange = () => {
 document.getElementById("filter-button").onclick = function() {
     if (document.getElementById("menu-col").classList.contains("d-none")) {
         document.getElementById("menu-col").classList.remove("d-none");
-        document.getElementById("menu-main").classList.remove("ml-auto");
+        document.getElementById("menu-main").classList.remove("ms-auto");
     } else {
         document.getElementById("menu-col").classList.add("d-none");
-        document.getElementById("menu-main").classList.add("ml-auto");
+        document.getElementById("menu-main").classList.add("ms-auto");
     }
 };
 
