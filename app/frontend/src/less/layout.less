@@ -11,6 +11,13 @@ body {
   }
 }
 
+p > a {
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .main-row {
   background-color: var(--background_color);
 }
@@ -158,12 +165,6 @@ body {
   width: 100%;
   margin-top: 3rem;
   margin-bottom: 5rem;
-  a {
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
 
 #feedback {
