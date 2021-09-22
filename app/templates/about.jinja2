@@ -134,23 +134,50 @@
 
         <div class="row pt-5 ps-3 justify-content-center">
 
-          <div class="col-sm-12 col-md-11">
-            <div id="carouselExampleControls" class="carousel slide carousel-dark" data-ride="carousel">
+          <div class="col-sm-12 col-md-12 col-xl-10 col-xxl-9">
+            <div id="carouselExampleControls" class="carousel slide carousel-dark" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="4" aria-label="Slide 5"></button>
+              </div>
               <div class="carousel-inner">
                 <div class="carousel-item active">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/screen_summer.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Paper sorting</h5>
+                    <p>View the interesting papers on top of the huge heap of submissions.</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/screen_land.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Paper range selector</h5>
+                    <p>Check the viewed submissions and select the range you are interested in.</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/screen_book_dark.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Automatic bookmarks of the important papers</h5>
+                    <p>Have you noticed the dark theme?</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/set_cat.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Follow multiple categories</h5>
+                    <p>Setup multiple submission categories to aggregate all the papers.</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/set_tag.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Categorize papers automatically</h5>
+                    <p>Easily setup rules with keywords to classify submissions.</p>
+                  </div>
                 </div>
               </div>
               <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
