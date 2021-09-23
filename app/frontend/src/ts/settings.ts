@@ -4,6 +4,8 @@ import {List} from "./paper_basic";
 
 type settings = Array<List> | Array<string> | Array<Tag>;
 
+declare const bootstrap;
+
 // API call for settings modifications
 export const submitSetting = (url: string, set: settings): Promise<boolean> => {
     return new Promise((resolve, reject) => {
@@ -36,9 +38,10 @@ export const setDefaultListeners = (): void => {
             const target = document.getElementsByClassName("btn-cancel")[0] as HTMLElement;
             if (target &&
                 !target.classList.contains("disabled")) {
-                if (!confirm("Settings will not be saved. Continue?")) {
-                    event.preventDefault();
-                }
+                const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                modal.show();
+                event.preventDefault();
+                (document.getElementById("btn-confirm") as HTMLLinkElement).href = (event.target as HTMLLinkElement).href;
             }
         });
     }
