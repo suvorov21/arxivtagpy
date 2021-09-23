@@ -50,8 +50,8 @@ const checkPaperVis = (paper: Paper,
 };
 
 const sortFunction = (a:number, b:number,
+                      aDate:number, bDate:number,
                       order = true,
-                      aDate:number, bDate:number
                       ): number => {
     if (a !== b) {
         return order? a - b : b - a;
@@ -79,9 +79,9 @@ const sortPapers = () => {
                 return -1;
             }
             return sortFunction(a.tags[0], b.tags[0],
-                sortMethod === "tag-as",
                 (new Date(a.date_up).getTime()),
-                (new Date(b.date_up).getTime())
+                (new Date(b.date_up).getTime()),
+                sortMethod === "tag-as"
             );
         });
     }
@@ -91,8 +91,9 @@ const sortPapers = () => {
             const aDate = new Date(a.date_up);
             const bDate = new Date(b.date_up);
             return sortFunction(aDate.getTime(), bDate.getTime(),
-                sortMethod === "date-up_des",
-                aDate.getTime(), bDate.getTime());
+                                aDate.getTime(), bDate.getTime(),
+                          sortMethod === "date-up_des"
+                                );
         });
     }
 
@@ -101,10 +102,10 @@ const sortPapers = () => {
             const aDateSub = new Date(a["date_sub"]);
             const bDateSub = new Date(b["date_sub"]);
             return sortFunction(aDateSub.getTime(), bDateSub.getTime(),
-                sortMethod === "date-sub_des",
-                aDateSub.getTime(),
-                bDateSub.getTime()
-            );
+                                aDateSub.getTime(),
+                                bDateSub.getTime(),
+                          sortMethod === "date-sub_des"
+                                );
         });
     }
 
@@ -126,10 +127,10 @@ const sortPapers = () => {
                 }
             }
             return sortFunction(__CATS__.indexOf(catA), __CATS__.indexOf(catB),
-                sortMethod === "cat-as",
-                (new Date(a.date_up).getTime()),
-                (new Date(b.date_up).getTime())
-            );
+                                new Date(a.date_up).getTime(),
+                                new Date(b.date_up).getTime(),
+                                sortMethod === "cat-as"
+                                );
         });
     }
 };
@@ -265,8 +266,6 @@ const addBookmark = (event: MouseEvent): void => {
         popupContent.classList.add("full-width");
         BOOK_BTN = parseInt(target.id.split("-")[2], 10);
     }, sleep ? 200 : 0);
-
-    return;
 };
 
 document.onclick = (event: MouseEvent) => {
@@ -337,7 +336,6 @@ const pageLinkClick = (event: MouseEvent) => {
     if (target.parentElement.classList.contains("disabled")) {
         return;
     }
-    // cleanPageList();
 
     const pageStr = target.textContent;
     let page: number;
@@ -515,7 +513,7 @@ const renderCats = (): void => {
     const unusedCats = Object.keys(PREF.catsArr).filter((x: string) => !__CATS__.includes(x));
     unusedCats.forEach((cat: string) => delete PREF.catsArr[`${cat}`]);
 
-    __CATS__.forEach((cat, num) => {
+    __CATS__.forEach((cat: string, num: number) => {
         // if category not in cookies visibility dictionary --> add it
         if (!(cat in PREF.catsArr)) {
             PREF.catsArr[`${cat}`] = true;
@@ -560,10 +558,10 @@ const renderCats = (): void => {
 };
 
 const renderTags = (): void => {
-    const tagNames = __TAGS__.map((x) => x.name);
+    const tagNames = __TAGS__.map((x: Tag) => x.name);
     const unusedTags = [];
 
-    __TAGS__.forEach((tag, num) => {
+    __TAGS__.forEach((tag: Tag, num: number) => {
 
         if (!PREF.tagsArr.map((x: Tag) => x.name).includes(tag.name)) {
             PREF.tagsArr.push({"name": tag.name,
@@ -718,7 +716,6 @@ const renderLists = (): void => {
 };
 
 window.onload = () => {
-    // prefs.load();
     PREF.load();
 
     // a fix that prevent browser scrolling on "back" button
@@ -737,8 +734,8 @@ window.onload = () => {
             DATA = data as Data;
             renderCounters();
             // update page title with detailed dates
-            const element = $("#paper-list-title");
-            element.text(element.text() + DATA["title"]);
+            const elem = $("#paper-list-title");
+            elem.text(elem.text() + DATA["title"]);
             filterVisiblePapers();
             renderLists();
         }).fail(() => {

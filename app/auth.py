@@ -30,6 +30,9 @@ auth_bp = Blueprint(
     static_folder='frontend'
 )
 
+ROOT_PATH = 'main_bp.root'
+SIGNUP_ROOT = 'auth_bp.signup'
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -50,14 +53,14 @@ def login():
     if not usr:
         flash('ERROR! Wrong username/password! \
               <a href="/restore" class="alert-link">Reset password?</a>')
-        return redirect(url_for('main_bp.root'))
+        return redirect(url_for(ROOT_PATH))
 
     if check_password_hash(usr.pasw, pasw):
         login_user(usr)
     else:
         flash('ERROR! Wrong username/password! \
               <a href="/restore" class="alert-link">Reset password?</a>')
-    return redirect(url_for('main_bp.root'))
+    return redirect(url_for(ROOT_PATH))
 
 
 @auth_bp.route('/signup')
@@ -73,7 +76,7 @@ def signup():
 def logout():
     """User log-out logic."""
     logout_user()
-    return redirect(url_for('main_bp.root'))
+    return redirect(url_for(ROOT_PATH))
 
 
 def new_default_list(usr_id):
@@ -103,16 +106,16 @@ def new_user():
     usr = User.query.filter_by(email=email).first()
     if usr:
         flash("ERROR! Email is already registered")
-        return redirect(url_for('auth_bp.signup'), code=303)
+        return redirect(url_for(SIGNUP_ROOT), code=303)
 
     if pasw1 != pasw2:
         flash("ERROR! Passwords don't match!")
-        return redirect(url_for('auth_bp.signup'), code=303)
+        return redirect(url_for(SIGNUP_ROOT), code=303)
 
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if not re.fullmatch(regex, email):
         flash("ERROR! The email is not correct!")
-        return redirect(url_for('auth_bp.signup'), code=303)
+        return redirect(url_for(SIGNUP_ROOT), code=303)
 
     user = User(email=email,
                 pasw=generate_password_hash(pasw1),
@@ -180,7 +183,7 @@ def del_acc():
 
     flash("Account successfully deleted!")
 
-    return redirect(url_for('main_bp.root'), code=303)
+    return redirect(url_for(ROOT_PATH), code=303)
 
 
 @login_manager.unauthorized_handler
@@ -245,4 +248,4 @@ def restore_pass():
         logging.error('Error sending email with pass recovery')
         flash('ERROR! Server experienced an internal error. We are working on fix. \
               Please, try later')
-    return redirect(url_for('main_bp.root'), code=303)
+    return redirect(url_for(ROOT_PATH), code=303)

@@ -28,6 +28,8 @@ auto_bp = Blueprint(
     static_folder='frontend'
 )
 
+DATA_FORMAT = '%Y-%m-%d'
+
 
 def check_token(funct):
     """
@@ -71,7 +73,7 @@ def load_papers():
         params['do_update'] = request.args.get('do_update')
     if 'from' in request.args:
         last_paper_date = datetime.strptime(request.args['from'],
-                                            '%Y-%m-%d'
+                                            DATA_FORMAT
                                             )
     params['last_paper_date'] = last_paper_date
 
@@ -85,7 +87,7 @@ def load_papers():
         paper_api.set_set(request.args.get('set'))
     # from argument is privelaged over last paper in the DB
     paper_api.set_from(datetime.strftime(last_paper_date,
-                                         '%Y-%m-%d'
+                                         DATA_FORMAT
                                          ))
 
     if request.args.get('until'):
@@ -105,7 +107,7 @@ def delete_papers():
     logging.info('Start paper delete')
     if 'until' in request.args:
         until_date = datetime.strptime(request.args['until'],
-                                       '%Y-%m-%d'
+                                       DATA_FORMAT
                                        )
     elif 'week' in request.args:
         n_weeks = int(request.args['week'])
@@ -223,7 +225,7 @@ def bookmark_papers():
 
     if 'from' in request.args:
         old_date = datetime.strptime(request.args['from'],
-                                     '%Y-%m-%d'
+                                     DATA_FORMAT
                                      )
 
     prev_user = -1

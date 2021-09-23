@@ -18,6 +18,8 @@ settings_bp = Blueprint(
     static_folder='frontend'
 )
 
+SET_PAGE = 'settings_bp.settings_page'
+
 
 @settings_bp.route('/settings')
 @login_required
@@ -45,7 +47,7 @@ def settings_page():
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
     else:
-        return redirect(url_for('settings_bp.settings_page',
+        return redirect(url_for(SET_PAGE,
                                 page='cat'
                                 ))
 
@@ -139,7 +141,7 @@ def no_email():
 
     db.session.commit()
     flash('Successfully unsubscribed from all tag emails.')
-    return redirect(url_for('settings_bp.settings_page', page='pref'))
+    return redirect(url_for(SET_PAGE, page='pref'))
 
 
 def new_tag(tag, order):
@@ -175,9 +177,6 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
     set_place:      settings relation. E.g. current_user.tags
     """
     new_settings = cast_args_to_dict(args)
-
-    # if len(new_settings) == 0:
-    #     new_settings = []
 
     settings = db_class.query.filter_by(user_id=current_user.id
                                         ).order_by(db_class.order).all()

@@ -8,10 +8,14 @@ from flask import url_for
 
 from app.model import Paper
 
+ROOT_LOAD = 'auto_bp.load_papers'
+ROOT_DATA = 'main_bp.data'
+ROOT_PAPERS = 'main_bp.papers_list'
+
 
 def test_load_papers(client):
     """Test paper loading."""
-    response = client.post(url_for('auto_bp.load_papers',  # nosec
+    response = client.post(url_for(ROOT_LOAD,  # nosec
                                    token='test_token',  # nosec
                                    n_papers=500,
                                    set='physics:hep-ex'
@@ -21,12 +25,12 @@ def test_load_papers(client):
 
 def test_paper_api(client, login):
     """Test paper API."""
-    response5 = client.get(url_for('main_bp.data', date='unseen'))
-    response4 = client.get(url_for('main_bp.data', date='last'))
-    response1 = client.get(url_for('main_bp.data', date='today'))
-    response2 = client.get(url_for('main_bp.data', date='week'))
-    response3 = client.get(url_for('main_bp.data', date='month'))
-    # response4 = client.get(url_for('main_bp.data', date='last'))
+    response5 = client.get(url_for(ROOT_DATA, date='unseen'))
+    response4 = client.get(url_for(ROOT_DATA, date='last'))
+    response1 = client.get(url_for(ROOT_DATA, date='today'))
+    response2 = client.get(url_for(ROOT_DATA, date='week'))
+    response3 = client.get(url_for(ROOT_DATA, date='month'))
+
     data1 = loads(response1.get_data(as_text=True))
     data2 = loads(response2.get_data(as_text=True))
     data3 = loads(response3.get_data(as_text=True))
@@ -43,12 +47,11 @@ def test_paper_api(client, login):
     assert data3.get('papers') is not None
     assert len(data3.get('papers')) > 0
     assert data4.get('papers') is not None
-    # assert len(data4.get('papers')) > 0
 
 
 def test_paper_dates(client, login):
     """Test dates of the papers in the API response."""
-    response1 = client.get(url_for('main_bp.data', date='today'))
+    response1 = client.get(url_for(ROOT_DATA, date='today'))
 
     date_list = [datetime.strptime(paper['date_up'], '%d %B %Y')
                  for paper in response1.json['papers']]
@@ -61,7 +64,7 @@ def test_paper_dates(client, login):
 
 def test_paper_dates_week(client, login):
     """Test dates of the papers in the API response."""
-    response1 = client.get(url_for('main_bp.data', date='week'))
+    response1 = client.get(url_for(ROOT_DATA, date='week'))
 
     date_list = [datetime.strptime(paper['date_up'], '%d %B %Y')
                  for paper in response1.json['papers']]
@@ -72,7 +75,7 @@ def test_paper_dates_week(client, login):
 
 def test_paper_page(client, login):
     """Test paper page load."""
-    response = client.get(url_for('main_bp.papers_list'),
+    response = client.get(url_for(ROOT_PAPERS),
                           follow_redirects=True
                           )
     assert response.status_code == 200
@@ -80,27 +83,27 @@ def test_paper_page(client, login):
 
 def test_paper_page_args(client, login):
     """Test paper page load with different date types."""
-    response1 = client.get(url_for('main_bp.papers_list',
+    response1 = client.get(url_for(ROOT_PAPERS,
                                    date='today'
                                    ),
                            follow_redirects=True
                            )
-    response2 = client.get(url_for('main_bp.papers_list',
+    response2 = client.get(url_for(ROOT_PAPERS,
                                    date='week'
                                    ),
                            follow_redirects=True
                            )
-    response3 = client.get(url_for('main_bp.papers_list',
+    response3 = client.get(url_for(ROOT_PAPERS,
                                    date='month'
                                    ),
                            follow_redirects=True
                            )
-    response4 = client.get(url_for('main_bp.papers_list',
+    response4 = client.get(url_for(ROOT_PAPERS,
                                    date='last'
                                    ),
                            follow_redirects=True
                            )
-    response5 = client.get(url_for('main_bp.papers_list',
+    response5 = client.get(url_for(ROOT_PAPERS,
                                    date='unseen'
                                    ),
                            follow_redirects=True
@@ -121,7 +124,7 @@ def test_signup_page(client):
 
 def test_paper_page_not_auth(client):
     """Test anauthorised paper access."""
-    response = client.get(url_for('main_bp.papers_list'),
+    response = client.get(url_for(ROOT_PAPERS),
                           follow_redirects=True)
     assert response.status_code == 200
     assert 'ERROR' in response.get_data(as_text=True)
@@ -186,7 +189,7 @@ def test_settings_page(client, login):
 
 def test_wrong_token(client):
     """Test access of the auto functions with wrong token."""
-    response = client.post(url_for('auto_bp.load_papers',  # nosec
+    response = client.post(url_for(ROOT_LOAD,  # nosec
                                    token='wrong_token',  # nosec
                                    ))
     assert response.status_code == 422
@@ -224,7 +227,7 @@ def test_paper_delete(client, login):
                                    week=1
                                    ))
     # download papers again for future tests
-    client.get(url_for('auto_bp.load_papers',  # nosec
+    client.get(url_for(ROOT_LOAD,  # nosec
                        token='test_token',  # nosec
                        n_papers=100,
                        set='physics:hep-ex'

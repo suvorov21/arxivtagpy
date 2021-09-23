@@ -12,6 +12,10 @@ from selenium.webdriver.chrome.options import Options
 
 import pytest
 
+ROOT = 'main_bp.root'
+ROOT_PAPERS = 'main_bp.papers_list'
+ROOT_SET = 'settings_bp.settings_page'
+
 
 @pytest.fixture(scope='session')
 def driver():
@@ -28,13 +32,13 @@ class TestLiveServer:
     """Class for tests with visual driver."""
     def test_server_is_up_and_running(self, driver):
         """Test server is up and driver is working."""
-        driver.get(url_for('main_bp.root', _external=True))
+        driver.get(url_for(ROOT, _external=True))
         alert = driver.find_element_by_id('alert')
         assert alert is not None
 
     def test_login(self, driver):
         """Test login form."""
-        driver.get(url_for('main_bp.root', _external=True))
+        driver.get(url_for(ROOT, _external=True))
         driver.find_element_by_name('i_login').send_keys(EMAIL)
         driver.find_element_by_name('i_pass').send_keys(PASS)
         driver.find_element_by_class_name('btn-primary').click()
@@ -44,7 +48,7 @@ class TestLiveServer:
 
     def test_paper_view(self, driver):
         """Test paper view."""
-        driver.get(url_for('main_bp.root', _external=True) + '/papers')
+        driver.get(url_for(ROOT_PAPERS, _external=True))
         sleep(3)
         num = driver.find_element_by_id('paper-num-0').text
         assert num == '1'
@@ -53,14 +57,14 @@ class TestLiveServer:
         """Test paper selector href."""
         driver.get(url_for('main_bp.paper_land', _external=True))
         sleep(3)
-        element = driver.find_element_by_class_name('paper-day').click()
+        driver.find_element_by_class_name('paper-day').click()
         sleep(3)
         num = driver.find_element_by_id('paper-num-0').text
         assert num == '1'
 
     def test_paper_view_month(self, driver):
         """Test paper view month."""
-        driver.get(url_for('main_bp.root', _external=True) + '/papers?date=month')
+        driver.get(url_for(ROOT, _external=True) + '/papers?date=month')
         sleep(3)
         num = driver.find_element_by_id('paper-num-0').text
         assert num == '1'
@@ -71,13 +75,13 @@ class TestLiveServer:
         sleep(3)
         title = driver.find_element_by_id('paper-list-title')
         element = driver.find_element_by_id('loading-papers')
-        display = element.value_of_css_property('display')
+        displayEl = element.value_of_css_property('display')
         assert title.text == 'Favourite'
-        assert display == 'none'
+        assert displayEl == 'none'
 
     def test_settings_view(self, driver):
         """Test settings page load properly."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='cat',
                            _external=True))
         sleep(3)
@@ -86,7 +90,7 @@ class TestLiveServer:
 
     def test_delete_cat(self, driver):
         """Test category delete."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='cat',
                            _external=True))
         sleep(3)
@@ -99,7 +103,7 @@ class TestLiveServer:
 
     def test_mod_tag(self, driver):
         """Test tag modifications."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='tag',
                            _external=True
                            ))
@@ -116,7 +120,7 @@ class TestLiveServer:
 
     def test_del_tag(self, driver):
         """Test tag modifications."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='tag',
                            _external=True
                            ))
@@ -132,7 +136,7 @@ class TestLiveServer:
 
     def test_mod_pref(self, driver):
         """Test preference modifications."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='pref',
                            _external=True
                            ))
@@ -146,7 +150,7 @@ class TestLiveServer:
 
     def test_mod_book(self, driver):
         """Test bookmarks modifications."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='bookshelf',
                            _external=True
                            ))
@@ -160,7 +164,7 @@ class TestLiveServer:
 
     def test_add_book(self, driver):
         """Test add bookmarks."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='bookshelf',
                            _external=True
                            ))
@@ -173,7 +177,7 @@ class TestLiveServer:
 
     def test_btn_save(self, driver):
         """Test if save button become active on change on settings page."""
-        driver.get(url_for('settings_bp.settings_page',
+        driver.get(url_for(ROOT_SET,
                            page='pref',
                            _external=True
                            ))
@@ -194,10 +198,10 @@ class TestLiveServer:
 
     def test_cookies(self, driver):
         """Test cookies."""
-        driver.get(url_for('main_bp.root', _external=True) + '/papers')
+        driver.get(url_for(ROOT_PAPERS, _external=True))
         sleep(3)
         assert driver.find_element_by_id('check-nov-1').is_selected()
         driver.find_element_by_id('check-nov-1').click()
-        driver.get(url_for('main_bp.root', _external=True) + '/papers')
+        driver.get(url_for(ROOT_PAPERS, _external=True))
         sleep(3)
         assert not driver.find_element_by_id('check-nov-1').is_selected()

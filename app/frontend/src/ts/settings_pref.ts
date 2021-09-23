@@ -17,9 +17,9 @@ const renderPref = (): void => {
     }
 };
 
-const fillSetForm = (): boolean => {
+const fillSetForm = (): void => {
     if ($(".btn-cancel").hasClass("disabled")) {
-        return false;
+        return;
     }
     const url = "mod_pref";
     let themeName = "light";
@@ -45,13 +45,9 @@ const fillSetForm = (): boolean => {
                 }}
             localStorage.clear();
             window.location.reload();
-            return false;
         }).fail(function(){
         raiseAlert("Settings were not saved. Please try later", "danger");
-        return false;
     });
-
-    return false;
 };
 
 window.onload = () => {

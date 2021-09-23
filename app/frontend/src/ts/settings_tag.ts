@@ -76,12 +76,12 @@ function renderTags() {
         MathJax.typesetPromise();
     }
     // new tag button
-    const tagElement = document.createElement("div");
-    tagElement.setAttribute("class", "add-set tag-label");
-    tagElement.setAttribute("id", "add-tag");
-    tagElement.textContent = "+New";
+    const newTagElement = document.createElement("div");
+    newTagElement.setAttribute("class", "add-set tag-label");
+    newTagElement.setAttribute("id", "add-tag");
+    newTagElement.textContent = "+New";
 
-    document.getElementById("tag-list").appendChild(tagElement);
+    document.getElementById("tag-list").appendChild(newTagElement);
 }
 
 const clearTagField = (): void => {
@@ -249,8 +249,8 @@ document.getElementById("test-btn").onclick = (event: MouseEvent) => {
     };
     const url = "/test_tag";
     $.get(url, data)
-        .done(function(data) {
-            if (data.includes("true")) {
+        .done(function(resp) {
+            if (resp.includes("true")) {
                 // not a good practice, but ok for the time being
                 document.getElementById("test-result").innerHTML = "<i class='fa fa-check' aria-hidden='true' style='color: #1a941a'></i>&nbsp;Paper suits the tag!";
             } else {
@@ -290,7 +290,7 @@ const makeTagEdited = () => {
     }
 };
 
-const tableRowClick = (event: MouseEvent) => {
+const tableRowClick = (event: MouseEvent): void => {
     // do nothing if tag is not edited
     let message = "Use this name and rule?";
     let newTag = false;
@@ -298,25 +298,26 @@ const tableRowClick = (event: MouseEvent) => {
         message = "Use this rule for a new tag?";
         newTag = true;
     }
-    if (confirm(message)) {
-        // assume click is done on a cell, thus the row is a parent element
-        const row = (event.target as HTMLElement).parentElement;
-        for (let childId = 0; childId < row.childNodes.length; childId++) {
-            if (newTag) {
-                document.getElementById("add-tag").click();
-            }
-            if (!row.childNodes[`${childId}`].className) {
-                continue;
-            }
-            if (row.childNodes[`${childId}`].className.includes("name")) {
-                document.forms["add-tag"]["tag_name"].value = row.childNodes[`${childId}`].textContent;
-            }
-            if (row.childNodes[`${childId}`].className.includes("rule")) {
-                document.forms["add-tag"]["tag_rule"].value = row.childNodes[`${childId}`].textContent;
-            }
-        }
-        makeTagEdited();
+    if (!confirm(message)) {
+        return;
     }
+    // assume click is done on a cell, thus the row is a parent element
+    const row = (event.target as HTMLElement).parentElement;
+    for (let childId = 0; childId < row.childNodes.length; childId++) {
+        if (newTag) {
+            document.getElementById("add-tag").click();
+        }
+        if (!row.childNodes[`${childId}`].className) {
+            continue;
+        }
+        if (row.childNodes[`${childId}`].className.includes("name")) {
+            document.forms["add-tag"]["tag_name"].value = row.childNodes[`${childId}`].textContent;
+        }
+        if (row.childNodes[`${childId}`].className.includes("rule")) {
+            document.forms["add-tag"]["tag_rule"].value = row.childNodes[`${childId}`].textContent;
+        }
+    }
+    makeTagEdited();
 };
 
 document.getElementById("show-pubtags").onclick = (event: MouseEvent) => {
@@ -391,15 +392,15 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
 
     // reset the highlight of all other tags
     const tagCol = document.getElementsByClassName("tag-label");
-    for (let id = 0; id < tagCol.length; id++) {
+    for (const col of tagCol) {
         // new tag box
-        if (tagCol[id].id === "add-tag") {
+        if (col.id === "add-tag") {
             document.getElementById("add-tag").style.borderStyle = "dashed";
             document.getElementById("add-tag").style.borderWidth = "2px";
-        } else {
-            // existing tags
-            (tagCol[id] as HTMLElement).style.borderColor =  "transparent";
+            continue;
         }
+        // existing tags
+        (col as HTMLElement).style.borderColor =  "transparent";
     }
 
     // highlight the editable tag
@@ -477,17 +478,17 @@ document.getElementById("btn-book").onclick = (event: MouseEvent) => {
     });
 };
 
+const submitTag = (event: Event): void => {
+    event.preventDefault();
+    if ($(".btn-cancel").hasClass("disabled")) {
+        return;
+    }
+    checkTag();
+};
+
 // on page load
 window.onload = () => {
     reloadTags();
     setDefaultListeners();
-    (document.getElementById("mod-tag") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
-        event.preventDefault();
-        if ($(".btn-cancel").hasClass("disabled")) {
-            // TODO remove return?
-            return false;
-        }
-        checkTag();
-        return false;
-    });
+    (document.getElementById("mod-tag") as HTMLFormElement).addEventListener("submit",  submitTag);
 };

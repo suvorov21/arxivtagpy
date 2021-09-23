@@ -99,21 +99,22 @@ document.getElementById("add-book-btn").onclick = (): void => {
     });
 };
 
+const submitList = (event: Event): void => {
+    event.preventDefault();
+    if ($(".btn-cancel").hasClass("disabled")) {
+        return;
+    }
+    const url = "mod_lists";
+    submitSetting(url, __LISTS__).then(() => {
+        const btnCollection = document.getElementsByClassName("btn-save");
+        for (let i = 0; i < btnCollection.length; i++) {
+            btnCollection[`${i}`].classList.add("disabled");
+        }
+    });
+};
+
 window.onload = () => {
     renderBookshelf();
     setDefaultListeners();
-     (document.getElementById("mod-list") as HTMLFormElement).addEventListener("submit", (event: Event) => {
-        event.preventDefault();
-        if ($(".btn-cancel").hasClass("disabled")) {
-            return false;
-        }
-        const url = "mod_lists";
-        submitSetting(url, __LISTS__).then(() => {
-            const btnCollection = document.getElementsByClassName("btn-save");
-            for (let i = 0; i < btnCollection.length; i++) {
-                btnCollection[`${i}`].classList.add("disabled");
-            }
-        });
-        return false;
-    });
+     (document.getElementById("mod-list") as HTMLFormElement).addEventListener("submit", submitList);
 };

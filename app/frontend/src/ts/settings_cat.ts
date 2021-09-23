@@ -95,21 +95,22 @@ document.getElementById("add-cat-btn").onclick = () => {
     __CATS__.push(cat);
 };
 
+const submitCat = (event: Event): void => {
+    event.preventDefault();
+    if ($(".btn-cancel").hasClass("disabled")) {
+        return;
+    }
+    submitSetting("mod_cat", __CATS__).then(() => {
+        $(".btn-save").addClass("disabled");
+    });
+};
+
+
 window.onload = () => {
     $.each(allCatsArray, (val: string, text: string) => {
         $("#catsDataList").append($("<option>").attr("value", val).text(text));
     });
-    (document.getElementById("mod-cat") as HTMLFormElement).addEventListener("submit", (event) => {
-        event.preventDefault();
-        if ($(".btn-cancel").hasClass("disabled")) {
-            return false;
-        }
-        submitSetting("mod_cat", __CATS__).then(() => {
-            $(".btn-save").addClass("disabled");
-        });
-        return false;
-    });
-
+    (document.getElementById("mod-cat") as HTMLFormElement).addEventListener("submit", submitCat);
     renderCats();
     setDefaultListeners();
 };

@@ -151,8 +151,6 @@ class ArxivOaiApi:
 
             sleep(self.DELAY)
 
-        return
-
 
 def get_arxiv_sub_start(announce_date: date,
                         offset=0

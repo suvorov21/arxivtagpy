@@ -1,10 +1,21 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/suvorov21/arxivtagpy)
+[![Deploy](https://gitlab.com/suvorov21/arxivtagpy/badges/master/pipeline.svg?key_text=deploy)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/master)
+[![Dev_test](https://gitlab.com/suvorov21/arxivtagpy/badges/develop/pipeline.svg?key_text=dev&#32;test)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/develop)
+
 [![Codacy](https://app.codacy.com/project/badge/Grade/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/manual/suvorov21/arxivtagpy?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=suvorov21/arxivtagpy&amp;utm_campaign=Badge_Grade)
 [![Coverage](https://app.codacy.com/project/badge/Coverage/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/gl/suvorov21/arxivtagpy/dashboard?utm_source=gitlab.com&utm_medium=referral&utm_content=suvorov21/arxivtagpy&utm_campaign=Badge_Coverage)
-[![Deploy](https://gitlab.com/suvorov21/arxivtagpy/badges/master/pipeline.svg?key_text=deploy)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/master)
-[![Dev_test](https://gitlab.com/suvorov21/arxivtagpy/badges/develop/pipeline.svg?key_text=dev_test)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/develop)
+![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/suvorov21/arxivtagpy)
+![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/suvorov21/arxivtagpy)
+![Sonar Tech Debt](https://img.shields.io/sonar/tech_debt/suvorov21_arxivtagpy?server=https%3A%2F%2Fsonarcloud.io&sonarVersion=6.0)
+![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/suvorov21_arxivtagpy?server=https%3A%2F%2Fsonarcloud.io&sonarVersion=6.0)
+![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&server=https%3A%2F%2Fsonarcloud.io)
+
+[![GitHub license](https://img.shields.io/github/license/suvorov21/arxivtagpy)](https://github.com/suvorov21/arxivtagpy/blob/develop/LICENSE)
 
 # arXiv tag
-A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv](https://arxiv.org/).
+Welcome to [arXivtag.tk](https://arxivtag.tk)!
+
+A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv.org](https://arxiv.org/).
 
 ![Framework flow](app/frontend/dist/img/scheme_small.png)
 

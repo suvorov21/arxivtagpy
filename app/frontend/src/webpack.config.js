@@ -1,5 +1,4 @@
 const path = require("path");
-// const webpack = require("webpack");
 
 module.exports = {
     mode: "production",
@@ -50,7 +49,3 @@ module.exports = {
         filename: "[name].bundle.js",
     },
 };
-
-// new webpack.ProvidePlugin({
-//    $: "jquery",
-// })
