@@ -31,7 +31,6 @@ const fillSetForm = (): boolean => {
     };
     $.post(url, JSON.stringify(dataSet))
         .done(function() {
-            renderPref();
             const btnCollection = document.getElementsByClassName("btn-save");
             for (let i = 0; i < btnCollection.length; i++) {
                 btnCollection[`${i}`].classList.add("disabled");
