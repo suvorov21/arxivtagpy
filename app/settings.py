@@ -141,6 +141,7 @@ def no_email():
     flash('Successfully unsubscribed from all tag emails.')
     return redirect(url_for('settings_bp.settings_page', page='pref'))
 
+
 def new_tag(tag, order):
     """Create new Tag object."""
     db_tag = Tag(name=tag['name'],

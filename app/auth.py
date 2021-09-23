@@ -177,7 +177,7 @@ def del_acc():
     logout_user()
     User.query.filter_by(email=email).delete()
     db.session.commit()
-    
+
     flash("Account successfully deleted!")
 
     return redirect(url_for('main_bp.root'), code=303)

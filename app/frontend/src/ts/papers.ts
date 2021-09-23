@@ -455,12 +455,12 @@ const checkTag = (event: MouseEvent) => {
     /** Click on tag.
      */
     let target = event.target as HTMLElement;
-    while (target.id === null) {
+    while (target.className !== "tag-label") {
         target = target.parentElement;
     }
     const number = parseInt(target.id.split("-")[2], 10);
     const thisVisible = PREF.tagsArr[number].vis;
-    const allVisible = PREF.tagsArr.every((x) => x.vis);
+    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
 
     // if this tag is selected
     if (thisVisible) {
@@ -469,7 +469,7 @@ const checkTag = (event: MouseEvent) => {
                 typeof target.style.borderColor === "undefined")) {
             // select only this tag
             // make all others invisible
-            PREF.tagsArr.forEach((tag) => {tag.vis = false;});
+            PREF.tagsArr.forEach((tag: Tag) => {tag.vis = false;});
 
             // but this one visible
             tagBorder(number, true);
@@ -477,9 +477,9 @@ const checkTag = (event: MouseEvent) => {
             // hide this tag
             PREF.tagsArr[number].vis = false;
             // if this was the only left tag
-            if (PREF.tagsArr.filter((value) => value.vis).length === 0) {
+            if (PREF.tagsArr.filter((value: Tag) => value.vis).length === 0) {
                 // make all tags visible
-                PREF.tagsArr.forEach((tag) => {tag.vis = true;});
+                PREF.tagsArr.forEach((tag: Tag) => {tag.vis = true;});
             }
             // remove border
             document.getElementById("tag-label-" + number).style.borderColor = "transparent";
@@ -625,7 +625,7 @@ const renderTags = (): void => {
 }
 
 const renderNov = (): void =>  {
-    PREF.novArr.forEach((show, num) => {
+    PREF.novArr.forEach((show: boolean, num: number) => {
         (document.getElementById("check-nov-" + num) as HTMLInputElement).checked = show;
     });
 }
