@@ -3,6 +3,7 @@ import {setDefaultListeners} from "./settings";
 import {raiseAlert} from "./layout";
 
 declare const __PREF__;
+declare const bootstrap;
 
 const renderPref = (): void => {
     if (__PREF__["tex"]) {
@@ -54,34 +55,26 @@ const fillSetForm = (): boolean => {
     return false;
 };
 
-const noEmail = (): boolean => {
-    if (confirm("Do you want to unsubscribe from all your tag email feeds?")) {
-        $.post("noEmail")
-            .done(function() {
-                raiseAlert("Successfully unsubscribed from all tag emails.", "success");
-                return false;
-            }).fail(function() {
-            raiseAlert("Settings were not saved. Please try later", "danger");
-            return false;
-        });
-        return false;
-    } else {
-        return false;
-    }
-};
-
 window.onload = () => {
     renderPref();
     setDefaultListeners();
     (document.getElementById("del-acc") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
         event.preventDefault();
-        if (confirm("Do you want to delete account completely? This action could not be undone!")) {
-            $.post("delAcc");
-        }
+        document.getElementById("modal-text").innerHTML = "Do you want to delete account completely? <br> This action could not be undone!";
+        const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
+        btn.href = "/delAcc";
+        btn.className = "btn btn-danger";
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
     });
     (document.getElementById("email-cancel") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
         event.preventDefault();
-        noEmail();
+        document.getElementById("modal-text").textContent = "Do you want to unsubscribe from all your tag email feeds?";
+        const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
+        btn.href = "/noEmail";
+        btn.className = "btn btn-warning";
+        const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+        modal.show();
     });
     (document.getElementById("mod-set") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
         event.preventDefault();

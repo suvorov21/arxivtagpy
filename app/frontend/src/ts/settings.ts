@@ -41,7 +41,10 @@ export const setDefaultListeners = (): void => {
                 const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
                 modal.show();
                 event.preventDefault();
-                (document.getElementById("btn-confirm") as HTMLLinkElement).href = (event.target as HTMLLinkElement).href;
+                document.getElementById("modal-text").textContent = "Settings will not be saved, continue?";
+                const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
+                btn.href = (event.target as HTMLLinkElement).href;
+                btn.className = "btn btn-primary";
             }
         });
     }
