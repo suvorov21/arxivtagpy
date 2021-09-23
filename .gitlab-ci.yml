@@ -4,16 +4,10 @@ stages:
   - deploy
 
 include:
-  - template: Code-Quality.gitlab-ci.yml
   - template: Security/SAST.gitlab-ci.yml
 
 sast:
   stage: test
-
-code_quality:
-  stage: test
-  artifacts:
-    paths: [gl-code-quality-report.json]
 
 syntax_test:
   stage: build
