@@ -169,7 +169,7 @@ def change_pasw():
     return redirect(url_for('settings_bp.settings_page'), code=303)
 
 
-@auth_bp.route('/delAcc', methods=["POST"])
+@auth_bp.route('/delAcc', methods=["GET", "POST"])
 @login_required
 def del_acc():
     """Delete account completely."""
@@ -177,6 +177,8 @@ def del_acc():
     logout_user()
     User.query.filter_by(email=email).delete()
     db.session.commit()
+
+    flash("Account successfully deleted!")
 
     return redirect(url_for('main_bp.root'), code=303)
 

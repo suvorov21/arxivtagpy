@@ -10,11 +10,11 @@
 
 {# If  not quthorised show jumbotron #}
 {% if not current_user.is_authenticated %}
-  <div class="jumbotron jumb">
-    <h1 class="display-4">ar<span id="chi">&#120536;</span>iv tag</h1>
-    <p class="lead">your paper monitoring secretary</p>
-    <p class="mt-5">Categorises papers submissions for you.<br>Never miss an important paper.</p>
-    <p class="lead">
+  <div class="jumb">
+    <h1 class="display-4 pt-5 ps-5">ar<span id="chi">&#120536;</span>iv tag</h1>
+    <p class="lead ps-5">your paper monitoring secretary</p>
+    <p class="mt-5 ps-5">Categorises papers submissions for you.<br>Never miss an important paper.</p>
+    <p class="lead ps-5">
       <a class="btn btn-primary btn-lg" href="/signup" role="button">Sign up</a>
     </p>
     <div class="d-flex justify-content-center">
@@ -29,7 +29,7 @@
   <div class="row pt-4 justify-content-center" class="main-row">
     <div class="col-sm-12 col-md-11">
       <div class="paper-wrapper">
-        <div class="row pt-4 pl-3 mb-5">
+        <div class="row pt-4 ps-3 mb-5">
           <div class="col-sm-12 col-md-4">
             <img class="" src="{{ url_for('main_bp.static', filename='dist/img/main.png') }}" width="100%">
           </div>
@@ -38,13 +38,13 @@
             <p>A web-service for monitoring paper submissions at <a href="https://arxiv.org/">arXiv.org</a>.</p>
             <ol class="mt-4">
               <li>View the most relevant papers on top of the list.</li>
-              <li class="ml-2 mt-2">Never miss the interesting submission with automatic bookmarks.</li>
-              <li class="ml-4 mt-2">Receive an email once the paper of your topic is submitted.</li>
+              <li class="ms-2 mt-2">Never miss the interesting submission with automatic bookmarks.</li>
+              <li class="ms-4 mt-2">Receive an email once the paper of your topic is submitted.</li>
             </ol>
           </div>
 
         </div>
-        <div class="row pt-4 pl-5 justify-content-center">
+        <div class="row pt-4 ps-5 justify-content-center">
           <div class="col-sm-12 col-md-10 col-l-8 col-xl-8 pt-4 mb-5">
             <img src="{{ url_for('main_bp.static', filename='dist/img/scheme.png')}}" width="100%">
           </div>
@@ -54,12 +54,12 @@
 
         <h2 class="pt-3" id="features">Features</h2>
 
-        <div class="row pt-5 pl-3">
+        <div class="row pt-5 ps-3">
           <div class="col-sm-12 col-md-5">
             <img class="" src="{{ url_for('main_bp.static', filename='dist/img/tags.png') }}" width="100%">
           </div>
           <div class="col-sm-12 col-md-7">
-            <h4><i class="fa fa-tags pr-3" aria-hidden="true"></i>Tags - the key feature</h4>
+            <h4><i class="fa fa-tags pe-3" aria-hidden="true"></i>Tags - the key feature</h4>
             <p>Define simple rules with keywords for the paper title, abstract and author list. <br>
             ArXiv tag assigns topic tags for each paper automatically. </p>
             <p>The tag order defines papers on top of your feed.</p>
@@ -68,7 +68,7 @@
             Some hints and examples will help with rule creation.</p>
           </div>
         </div>
-        <div class="row pl-4 pt-3">
+        <div class="row ps-4 pt-3">
           <div class="col-sm-12 col-md-12">
             <p style="font-style: italic; font-size: 1rem">Use case 1:<br>
               In high energy physics there are ~1500 submissions per month. The experiment is titled "T2K". <br>
@@ -81,9 +81,9 @@
           </div>
         </div>
         <hr>
-        <div class="row pt-5 pl-3">
+        <div class="row pt-5 ps-3">
           <div class="col-sm-12 col-md-6">
-            <h4><i class="fa fa-rss-square pr-3" aria-hidden="true"></i>Paper feed</h4>
+            <h4><i class="fa fa-rss-square pe-3" aria-hidden="true"></i>Paper feed</h4>
             <p>Easy control of the: <br>category, novelty, cross-category papers, tags.</p>
             <p>Visibility settings are saved for the session.</p>
           </div>
@@ -92,13 +92,13 @@
           </div>
         </div>
         <hr>
-        <div class="row pt-5 pl-3">
+        <div class="row pt-5 ps-3">
           <div class="col-sm-12 col-lg-3 col-xl-2">
             <img class="" src="{{ url_for('main_bp.static', filename='dist/img/book.png') }}" width="100%">
           </div>
           <div class="d-none d-xl-inline col-xl-2"></div>
           <div class="col-sm-12 col-lg-9 col-xl-8">
-            <h4><i class="fa fa-bookmark pr-3" aria-hidden="true"></i>Bookmarks</h4>
+            <h4><i class="fa fa-bookmark pe-3" aria-hidden="true"></i>Bookmarks</h4>
             <p>Papers suitable with a given tag can be bookmarked automatically.</p>
             <p>Imagine, you haven't visited arXiv for a while. What did you miss? <br>
             arXiv tag saves papers of interest for you!</p>
@@ -107,9 +107,9 @@
         </div>
         <hr>
 
-        <div class="row pt-5 pl-3">
+        <div class="row pt-5 ps-3">
           <div class="col-sm-12 col-md-7">
-            <h4><i class="fa fa-envelope pr-3" aria-hidden="true"></i>Email notification</h4>
+            <h4><i class="fa fa-envelope pe-3" aria-hidden="true"></i>Email notification</h4>
             <p>Setup the notification for the submission of the papers suitable with a given tag.</p>
           </div>
           <div class="col-sm-12 col-md-4">
@@ -118,12 +118,12 @@
         </div>
 
         <hr>
-        <div class="row pt-5 pl-3">
+        <div class="row pt-5 ps-3">
           <div class="col-sm-12 col-md-4">
             <img class="" src="{{ url_for('main_bp.static', filename='dist/img/theme.png') }}" width="100%">
           </div>
           <div class="col-sm-12 col-md-7">
-            <h4><i class="fa fa-sun-o" aria-hidden="true"></i>/<i class="fa fa-moon-o pr-3" aria-hidden="true"></i>Light and dark theme</h4>
+            <h4><i class="fa fa-sun-o" aria-hidden="true"></i>/<i class="fa fa-moon-o pe-3" aria-hidden="true"></i>Light and dark theme</h4>
             <p>Choose your favourite color scheme for the website.</p>
           </div>
         </div>
@@ -132,35 +132,62 @@
 
         <h2 class="pt-3" id="features">Screenshot galery</h2>
 
-        <div class="row pt-5 pl-3 justify-content-center">
+        <div class="row pt-5 ps-3 justify-content-center">
 
-          <div class="col-sm-12 col-md-11">
-            <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+          <div class="col-sm-12 col-md-12 col-xl-10 col-xxl-9">
+            <div id="carouselExampleControls" class="carousel slide carousel-dark" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                    <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="3" aria-label="Slide 4"></button>
+                    <button type="button" data-bs-target="#carouselExampleControls" data-bs-slide-to="4" aria-label="Slide 5"></button>
+              </div>
               <div class="carousel-inner">
                 <div class="carousel-item active">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/screen_summer.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Paper sorting</h5>
+                    <p>View the interesting papers on top of the huge heap of submissions.</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/screen_land.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Paper range selector</h5>
+                    <p>Check the viewed submissions and select the range you are interested in.</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/screen_book_dark.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Automatic bookmarks of the important papers</h5>
+                    <p>Have you noticed the dark theme?</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/set_cat.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Follow multiple categories</h5>
+                    <p>Setup multiple submission categories to aggregate all the papers.</p>
+                  </div>
                 </div>
                 <div class="carousel-item">
                   <img src="{{ url_for('main_bp.static', filename='dist/img/set_tag.png') }}" class="d-block w-100">
+                  <div class="carousel-caption d-none d-md-block">
+                    <h5>Categorize papers automatically</h5>
+                    <p>Easily setup rules with keywords to classify submissions.</p>
+                  </div>
                 </div>
               </div>
-              <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+              <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="sr-only">Previous</span>
-              </a>
-              <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="sr-only">Next</span>
-              </a>
+                <span class="visually-hidden">Next</span>
+              </button>
             </div>
           </div>
         </div>

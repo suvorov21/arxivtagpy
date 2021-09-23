@@ -10,7 +10,6 @@ let dragTarget;
 const delCatClick = (event) => {
     const name = event.target.getAttribute("id").split("_")[1];
     const element = $("#par-cat-" + name);
-    element.removeClass("d-flex");
     element.fadeOut();
     $(".btn").removeClass("disabled");
     const catId = __CATS__.indexOf(name.replace("111", "."));
@@ -24,7 +23,7 @@ const addCat = (cat) => {
     // name for JS elements
     // TODO proper escape dot with \\.
     const parent = document.createElement("div");
-    parent.className = "d-flex cat-parent";
+    parent.className = "cat-parent";
     parent.id = "par-cat-"+cat.replaceAll(".", "111");
     parent.draggable = true;
 
@@ -41,15 +40,16 @@ const addCat = (cat) => {
         dragTarget = __CATS__.indexOf(target);
     };
 
-    const close = document.createElement("button");
+    const close = document.createElement("div");
     close.id = "close_" + cat.replaceAll(".", "111");
-    close.className = "close close-btn";
+    close.className = "close-btn align-middle";
     close.innerHTML = "&times";
 
     close.addEventListener("click", delCatClick);
 
     const catElement = document.createElement("div");
-    catElement.className = "pl-2";
+    catElement.className = "ps-2 align-middle";
+    catElement.style.display = "inline";
     catElement.id = "cat-name-" + cat.replaceAll(".", "111");
     catElement.textContent = allCatsArray[`${cat}`];
 
@@ -65,7 +65,7 @@ const dropCat = (event: DragEvent): void => {
 
 const renderCats = () => {
     $("#cats-list").empty();
-    __CATS__.forEach((cat) => {
+    __CATS__.forEach((cat: string) => {
         addCat(cat);
     });
 

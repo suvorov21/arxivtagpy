@@ -5,7 +5,7 @@ from json import loads, dumps
 import logging
 
 from flask import Blueprint, render_template, session, request, \
-    current_app, redirect, url_for
+    current_app, redirect, url_for, flash
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
@@ -128,7 +128,7 @@ def mod_pref():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/noEmail', methods=["POST"])
+@settings_bp.route('/noEmail', methods=["GET", "POST"])
 @login_required
 def no_email():
     """Unsubscribe from all the tag emails."""
@@ -138,7 +138,8 @@ def no_email():
         tag.email = False
 
     db.session.commit()
-    return dumps({'success': True}), 201
+    flash('Successfully unsubscribed from all tag emails.')
+    return redirect(url_for('settings_bp.settings_page', page='pref'))
 
 
 def new_tag(tag, order):

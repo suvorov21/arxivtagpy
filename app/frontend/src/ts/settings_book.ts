@@ -21,7 +21,6 @@ const findListNumById = (id: string): string => {
 
 const delListClick = (event: MouseEvent): void => {
     const name = (event.target as HTMLElement).getAttribute("id").split("_")[1];
-    document.getElementById("par-list-" + name).classList.remove("d-flex");
     $("#par-list-" + name).fadeOut();
     $(".btn").removeClass("disabled");
     const listId = parseInt(findListNumById(name), 10);
@@ -40,7 +39,7 @@ const renderBookshelf = (): void => {
     __LISTS__.forEach((list: List) => {
         const listName = list.name;
         const parent = document.createElement("div");
-        parent.className = "d-flex cat-parent";
+        parent.className = "cat-parent";
         parent.id = "par-list-" + list.id;
         parent.draggable = true;
 
@@ -57,16 +56,17 @@ const renderBookshelf = (): void => {
             dragTarget = findListNumById(targetStr);
         };
 
-        const close = document.createElement("button");
+        const close = document.createElement("div");
         close.id = "close_" + list.id;
-        close.className = "close close-btn";
+        close.className = "close-btn align-middle";
         close.innerHTML = "&times";
 
         close.addEventListener("click", delListClick);
 
         const listElement = document.createElement("div");
-        listElement.className = "pl-2";
+        listElement.className = "ps-2 align-middle";
         listElement.id = "list-name-" + list.id;
+        listElement.style.display = "inline";
         listElement.textContent = listName;
 
         document.getElementById("book-list").appendChild(parent);

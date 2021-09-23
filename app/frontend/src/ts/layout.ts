@@ -89,17 +89,13 @@ export function raiseAlert(text = "Text", type: alertType="success"): void {
     content.textContent = text;
 
     const close = document.createElement("button");
-    close.setAttribute("class", "close");
-    close.setAttribute("data-dismiss", "alert");
+    close.className = "btn-close";
+    close.setAttribute("data-bs-dismiss", "alert");
     close.setAttribute("aria-label", "Close");
-
-    const time = document.createElement("span");
-    time.innerHTML = "&times;";
 
     document.getElementById("inner-message").appendChild(parent);
     parent.appendChild(content);
     parent.appendChild(close);
-    close.appendChild(time);
 
     setTimeout(() => {
         (<any>$(".alert")).alert("close");

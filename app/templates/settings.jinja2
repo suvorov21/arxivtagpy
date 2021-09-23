@@ -11,7 +11,7 @@
       {# TODO think about removing code duplication #}
       {# Menu #}
       <div class="col-md-4 col-lg-3 col-xl-2 d-none d-md-block" id="menu-col">
-        <div class="menu-content ml-auto" id="menu-main">
+        <div class="menu-content ms-auto" id="menu-main">
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
               <a class="nav-link {{ 'active' if data['page'] == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
@@ -50,7 +50,7 @@
       {# Settings content #}
       <div class="col-sm-12 col-md-8 col-lg-9 col-xl-9">
         <div class="paper-wrapper">
-          <div class="container pt-3">
+          <div class="container pt-3 ps-5">
             {% if data['page'] == 'cat' %}
               <p class="text-secondary">Manage your categories: add, reorder, delete.</p>
 
@@ -63,10 +63,16 @@
                 <datalist id="catsDataList"></datalist>
                 <div id="cats-list">
                 </div>
-                <form id="add-cat" name="add-cat" class="pt-4" onsubmit="return false">
-                  <label for="cat-add-input">Add new category:</label>
-                  <input list="catsDataList" id="cat-add-input" name="cat_name" class="custom-select col-6"/>
-                  <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
+                <form id="add-cat" name="add-cat" class="pt-4 row g-3" onsubmit="return false">
+                  <div class="col-auto">
+                    <label for="cat-add-input">Add new category:</label>
+                  </div>
+                  <div class="col-auto">
+                    <input list="catsDataList" id="cat-add-input" name="cat_name" class="form-control col-10" placeholder="Type to search..."/>
+                  </div>
+                  <div class="col-auto">
+                    <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
+                  </div>
                 </form>
               </div>
             {% endif %}
@@ -90,7 +96,7 @@
                     <input type="text" class="form-control tag-field" id="tag-rule" name='tag_rule' placeholder="abs{LHC}&au{ATLAS|LHCb|ALICE|CMS}" size=50>
                   </fieldset>
                 </form>
-              <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="test-rule">Test the rule</span></small>
+              <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="test-rule">Test the rule</span></div>
               <div id="tag-test" style="display: none">
                 <div>Enter imaginary paper details</div>
                 <form name="tag-test-form" class="form-group">
@@ -103,7 +109,7 @@
                   </fieldset>
                 </form>
               </div>
-              <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></small>
+              <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></div>
               <div id="tag-help">
                 <p>
                   Syntaxis:<br/>
@@ -129,7 +135,7 @@
                   <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
                 </p>
               </div>
-              <small class="rule-help form-text text-muted"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></small>
+              <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></div>
               {# Table with tags of other users #}
 
               <div id="loading-tags"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading tags...</div>
@@ -150,25 +156,25 @@
               <br/>
               <form name="add-tag2" class="form-group">
                 <fieldset id="tag-fields2">
-                  <label for="tag-color" >Tag color</label><br/>
-                    <input type="color" name="tag_color" id="tag-color" class="tag-field">
+                  <label for="tag-color">Tag color</label><br/>
+                    <input type="color" name="tag_color" id="tag-color" class="tag-field form-control form-control-color">
                   <div class="form-check mt-4">
                     <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
                     <label class="form-check-label" for="book-check">Bookmark automatically</label>
-                    <small class="form-text text-muted">
+                    <div class="form-text">
                       Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
                       <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
-                    </small>
+                    </div>
                     <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
                     <label class="form-check-label" for="email-check">Email notification</label>
-                    <small class="form-text text-muted">
+                    <div class="form-text">
                       Recieve email notifications when new papers suitable with this tag are submitted
-                    </small>
+                    </div>
                     <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
                     <label class="form-check-label" for="public-check">Publicly available</label>
-                    <small class="form-text text-muted">
+                    <div class="form-text">
                       Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible and could be used by others.
-                    </small>
+                    </div>
                   </div>
                 </fieldset>
               </form>
@@ -183,7 +189,7 @@
               <h3>Your bookshelf</h3>
               <div id="book-list"></div>
               <form class="mt-3" name="add-book-form" onsubmit="return false">
-                <div class="form-row align-items-center">
+                <div class="form row g-3 align-items-center">
                   <div class="col-auto">
                     <input type="text" class="form-control" id="new-list" name='new-list' placeholder="New list" size=25 required="required">
                   </div>
@@ -205,9 +211,9 @@
                 <div class="form-check form-block" action="/mod_pref">
                   <input class="form-check-input" type="checkbox" id="tex-check">
                   <label class="form-check-label" for="tex-check">Render TeX formulas</label>
-                  <small class="form-text text-muted">
+                  <div class="form-text">
                     Render TeX formulas may take significant amount of time.
-                  </small>
+                  </div>
                 </div>
                 <div class="form-block">
                   <label>Theme:</label>
@@ -259,6 +265,24 @@
       </div>
     </div>
   </div>
+
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="modal-text">
+            Settings will not be saved, continue?
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <a type="button" class="btn btn-primary" id="btn-confirm">Continue</a>
+          </div>
+        </div>
+      </div>
+</div>
 {% endblock %}
 
 {% block script_footer %}

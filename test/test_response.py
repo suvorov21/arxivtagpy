@@ -235,7 +235,7 @@ def test_paper_delete(client, login):
 def test_unsubscribe(client, login):
     """Test unsubscribe from all emails."""
     response = client.post(url_for('settings_bp.no_email'))
-    assert response.status_code == 201
+    assert response.status_code == 302
 
 
 def test_bookmark_user(client, login):
