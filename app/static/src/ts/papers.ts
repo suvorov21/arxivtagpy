@@ -64,7 +64,7 @@ const sortPapers = () => {
     /** Sort the papers.
      * Only papers marked as visible will be sorted.
      */
-    const sortMethod = String((document.getElementById("#sort-sel") as HTMLInputElement).value);
+    const sortMethod = String((document.getElementById("sort-sel") as HTMLInputElement).value);
     // tags
     if (sortMethod.includes("tag")) {
 
