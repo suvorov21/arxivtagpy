@@ -59,97 +59,96 @@ class ArxivOaiApi:
         """Format ref for webpage with summary."""
         return self.BASE_URL + '/abs/' + pid + version
 
-    def download_papers(self):
+    def download_papers(self, fail_attempts: int = 0, rest: int = -1):
         """Generator for paper downloading."""
-        fail_attempts = 0
-        rest = -1
 
-        while True:
-            logging.debug('Start harvesting')
+        # while True:
+        logging.debug('Start harvesting')
 
-            response = get(self.URL, self.params)
-            logging.info('Ask arxiv with %r', response.url)
+        response = get(self.URL, self.params)
+        logging.info('Ask arxiv with %r', response.url)
 
-            if response.status_code != 200:
-                fail_attempts += 1
+        if response.status_code != 200:
+            fail_attempts += 1
 
-                logging.warning('arXiv API response with %i',
-                                response.status_code
+            logging.warning('arXiv API response with %i',
+                            response.status_code
+                            )
+            if 'Retry-After' in response.headers:
+                delay = int(response.headers["Retry-After"])
+                logging.warning('Sleeping for %i',
+                                delay
                                 )
-                if 'Retry-After' in response.headers:
-                    delay = int(response.headers["Retry-After"])
-                    logging.warning('Sleeping for %i',
-                                    delay
-                                    )
-                    sleep(delay)
+                sleep(delay)
 
-                if fail_attempts > self.MAX_FAIL:
-                    logging.error('arXiv exceeds max allowed error limit')
-                    return
-
-                sleep(self.DELAY)
-                continue
-
-            lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
-            records = lor.findall(self.OAI + 'record')
-
-            if len(records) != self.BATCH_SIZE and len(records) != rest:
-                logging.warning('Download incomplete. Got %i from %i or %i',
-                                len(records),
-                                self.BATCH_SIZE,
-                                rest
-                                )
-
-            updated = 'null'
-            for record in records:
-                info = record.find(self.OAI + 'metadata').find(self.ARXIV + 'arXivRaw')
-
-                # WARNING is 'v?' tag always ordered?
-                # assume yes, but who knows...
-                versions = info.findall(self.ARXIV + 'version')
-                created = versions[0].find(self.ARXIV + 'date').text
-                created = created.split(', ')[1]
-                created = datetime.strptime(created, "%d %b %Y %H:%M:%S GMT")
-
-                updated = versions[-1].find(self.ARXIV + 'date').text
-                updated = updated.split(', ')[1]
-                updated = datetime.strptime(updated, "%d %b %Y %H:%M:%S GMT")
-
-                # use only first doi
-                doi = info.find(self.ARXIV+"doi")
-                if doi is not None:
-                    doi = doi.text.split()[0]
-
-                author = info.find(self.ARXIV + 'authors').text
-                # explicitly for people who put affiliation in author list
-                author = split(r', | \(.*?\),| and ', author)
-                author[-1] = split(r' \(.*?\)(,|\s)', author[-1])[0]
-
-                paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
-                              title=fix_xml(info.find(self.ARXIV + 'title').text),
-                              author=author,
-                              date_up=updated,
-                              date_sub=created,
-                              version=versions[-1].get('version'),
-                              doi=doi,
-                              abstract=fix_xml(info.find(self.ARXIV + 'abstract').text),
-                              cats=info.find(self.ARXIV + 'categories').text.split(' '),
-                              source=1
-                              )
-
-                yield paper
-
-            # check if the next call is required
-            token = lor.find(self.OAI + 'resumptionToken')
-            if token is None or token.text is None:
+            if fail_attempts > self.MAX_FAIL:
+                logging.error('arXiv exceeds max allowed error limit')
                 return
 
-            rest = int(token.get('completeListSize')) % self.BATCH_SIZE
-
-            logging.info('Going through resumption. Last date %r', updated)
-            self.params = {'resumptionToken': token.text}
-
             sleep(self.DELAY)
+            self.download_papers(fail_attempts=fail_attempts)
+
+        lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
+        records = lor.findall(self.OAI + 'record')
+
+        if len(records) != self.BATCH_SIZE and len(records) != rest:
+            logging.warning('Download incomplete. Got %i from %i or %i',
+                            len(records),
+                            self.BATCH_SIZE,
+                            rest
+                            )
+
+        updated = 'null'
+        for record in records:
+            info = record.find(self.OAI + 'metadata').find(self.ARXIV + 'arXivRaw')
+
+            # WARNING is 'v?' tag always ordered?
+            # assume yes, but who knows...
+            versions = info.findall(self.ARXIV + 'version')
+            created = versions[0].find(self.ARXIV + 'date').text
+            created = created.split(', ')[1]
+            created = datetime.strptime(created, "%d %b %Y %H:%M:%S GMT")
+
+            updated = versions[-1].find(self.ARXIV + 'date').text
+            updated = updated.split(', ')[1]
+            updated = datetime.strptime(updated, "%d %b %Y %H:%M:%S GMT")
+
+            # use only first doi
+            doi = info.find(self.ARXIV+"doi")
+            if doi is not None:
+                doi = doi.text.split()[0]
+
+            author = info.find(self.ARXIV + 'authors').text
+            # explicitly for people who put affiliation in author list
+            author = split(r', | \(.*?\),| and ', author)
+            author[-1] = split(r' \(.*?\)(,|\s)', author[-1])[0]
+
+            paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
+                          title=fix_xml(info.find(self.ARXIV + 'title').text),
+                          author=author,
+                          date_up=updated,
+                          date_sub=created,
+                          version=versions[-1].get('version'),
+                          doi=doi,
+                          abstract=fix_xml(info.find(self.ARXIV + 'abstract').text),
+                          cats=info.find(self.ARXIV + 'categories').text.split(' '),
+                          source=1
+                          )
+
+            yield paper
+
+        # check if the next call is required
+        token = lor.find(self.OAI + 'resumptionToken')
+        if token is None or token.text is None:
+            return
+
+        rest = int(token.get('completeListSize')) % self.BATCH_SIZE
+
+        logging.info('Going through resumption. Last date %r', updated)
+        self.params = {'resumptionToken': token.text}
+
+        sleep(self.DELAY)
+        self.download_papers(rest=rest)
 
 
 def get_arxiv_sub_start(announce_date: date,

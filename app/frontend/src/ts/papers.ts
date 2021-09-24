@@ -316,7 +316,11 @@ const filterVisiblePapers = (): void => {
 
     const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
 
-    // TODO add check if DATA.papers exist
+    if (DATA.papers.length === 0) {
+        console.warn("No papers in DATA.papers during filterVisiblePapers() call");
+        return;
+    }
+
     DATA.papersVis = DATA.papers.filter((paper: Paper) => checkPaperVis(paper,
             catsShow,
             allVisible,

@@ -111,6 +111,33 @@ def render_paper_json(paper: Paper) -> dict:
     return result
 
 
+def process_nov(paper: dict, nov_counters: list, cats: list, last_date: datetime):
+    """Check novelty of the papers. Update counters."""
+    # 1.a check if cross-ref
+    if paper['cats'][0] not in cats:
+        nov_counters[1] += 1
+        paper['nov'] += 2
+
+    # 1.b count updated papers
+    if paper['date_sub'] < last_date:
+        paper['nov'] += 4
+        nov_counters[2] += 1
+
+    if paper['nov'] == 0:
+        paper['nov'] = 1
+        nov_counters[0] += 1
+
+
+def process_tags(paper: dict,
+                 tags: dict,
+                 tag_counter):
+    """Apply tags for a given paper and increment a counter."""
+    for num, tag in enumerate(tags):
+        if tag_suitable(paper, tag['rule']):
+            paper['tags'].append(num)
+            tag_counter[num] += 1
+
+
 def process_papers(papers: dict,
                    tags: dict,
                    cats: list,
@@ -118,7 +145,7 @@ def process_papers(papers: dict,
                    do_tag: bool
                    ) -> dict:
     """
-    Papers processing.
+    Papers processing. Count papers per category, per novelty, per tag.
 
     Process:
     1. novelty. use 'bit' map
@@ -137,33 +164,40 @@ def process_papers(papers: dict,
             for cat in paper['cats']:
                 if cat in cats:
                     papers['n_cats'][cats.index(cat)] += 1
-            # 1.a check if cross-ref
-            if paper['cats'][0] not in cats:
-                papers['n_nov'][1] += 1
-                paper['nov'] += 2
 
-            # 1.b count updated papers
-            if paper['date_sub'] < papers['last_date']:
-                paper['nov'] += 4
-                papers['n_nov'][2] += 1
-
-            if paper['nov'] == 0:
-                paper['nov'] = 1
-                papers['n_nov'][0] += 1
+            process_nov(paper,papers['n_nov'], cats, papers['last_date'])
 
         # 2.
         if do_tag:
-            for num, tag in enumerate(tags):
-                if tag_suitable(paper, tag['rule']):
-                    paper['tags'].append(num)
-                    papers['n_tags'][num] += 1
+            process_tags(paper, tags, papers['n_tags'])
     return papers
+
+
+def find_or_and(rule: str) -> tuple[list[int], list[int]]:
+    """Utils function that finds positions of & and | outside {} and ()."""
+    brackets = 0
+    or_pos, and_pos = [], []
+    for pos, char in enumerate(rule):
+        if char in ['(', '{']:
+            brackets += 1
+            continue
+        if char in [')', '}']:
+            brackets -= 1
+            continue
+        if brackets == 0:
+            if char == '|':
+                or_pos.append(pos)
+            elif char == '&':
+                and_pos.append(pos)
+
+    return or_pos, and_pos
 
 
 def tag_suitable(paper: dict, rule: str) -> bool:
     """
-    Simple rules are expected in the most of th cases.
+    Checking rule for the given paper.
 
+    The function is called recursively for checking different parts of the rule.
     1. Find logic AND / OR outside curly and round brackets
     2. If no - parse rules inside curly brackets
     3. OR: and process rule parts one by one separated by |
@@ -186,20 +220,7 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     if rule[0] == '(' and rule[-1] == ')':
         rule = rule[1:-1]
 
-    brackets = 0
-    or_pos, and_pos = [], []
-    for pos, char in enumerate(rule):
-        if char in ['(', '{']:
-            brackets += 1
-            continue
-        if char in [')', '}']:
-            brackets -= 1
-            continue
-        if brackets == 0:
-            if char == '|':
-                or_pos.append(pos)
-            elif char == '&':
-                and_pos.append(pos)
+    or_pos, and_pos = find_or_and(rule)
 
     # if no AND/OR found outside brackets process a rule inside curly brackets
     if len(and_pos) == 0 and len(or_pos) == 0:
