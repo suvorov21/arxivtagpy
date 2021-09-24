@@ -3,6 +3,7 @@
 from os import linesep
 import logging
 from json import loads
+from typing import List, Dict
 
 import smtplib
 
@@ -34,7 +35,7 @@ def mail_catch(msg: Message) -> bool:
     return True
 
 
-def get_lists_for_user() -> list:
+def get_lists_for_user() -> List[Dict]:
     """Get all paper lists for a given user."""
     # get all lists for the menu (ordered)
     paper_lists = PaperList.query.filter_by(user_id=current_user.id
@@ -56,7 +57,7 @@ def get_lists_for_user() -> list:
     return lists
 
 
-def cast_args_to_dict(args) -> list:
+def cast_args_to_dict(args) -> List[Dict]:
     """Cast requests args to dictionary."""
     prefs = []
     # FIXME Fix key break with ampersand

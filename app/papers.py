@@ -9,6 +9,8 @@ from re import search, compile, IGNORECASE, error
 from datetime import datetime, timedelta
 import logging
 
+from typing import List, Tuple, Dict
+
 from .model import db, Paper
 from .paper_api import ArxivOaiApi, get_date_range, get_arxiv_sub_start
 
@@ -165,7 +167,7 @@ def process_papers(papers: dict,
                 if cat in cats:
                     papers['n_cats'][cats.index(cat)] += 1
 
-            process_nov(paper,papers['n_nov'], cats, papers['last_date'])
+            process_nov(paper, papers['n_nov'], cats, papers['last_date'])
 
         # 2.
         if do_tag:
@@ -173,7 +175,7 @@ def process_papers(papers: dict,
     return papers
 
 
-def find_or_and(rule: str) -> tuple[list[int], list[int]]:
+def find_or_and(rule: str) -> Tuple[List[int], List[int]]:
     """Utils function that finds positions of & and | outside {} and ()."""
     brackets = 0
     or_pos, and_pos = [], []
@@ -326,7 +328,7 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
 def get_json_papers(cats: list,
                     old_date: datetime,
                     new_date: datetime
-                    ) -> list:
+                    ) -> List[Dict]:
     """Get list of papers from DB in JSON format."""
     paper_query = Paper.query.filter(
                         Paper.cats.overlap(cats),
@@ -340,7 +342,7 @@ def get_json_unseen_papers(cats: list,
                            recent_visit: int,
                            recent_range: int,
                            announce_date: datetime
-                           ) -> list:
+                           ) -> List[Dict]:
     """Get unseen papers from DB in JSON format."""
     result = []
     for i in range(recent_range - 1):

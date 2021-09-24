@@ -5,6 +5,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time, date, timezone
 import logging
 from re import split
+from typing import Tuple
 
 from flask import current_app
 from requests import get
@@ -62,7 +63,6 @@ class ArxivOaiApi:
     def download_papers(self, fail_attempts: int = 0, rest: int = -1):
         """Generator for paper downloading."""
 
-        # while True:
         logging.debug('Start harvesting')
 
         response = get(self.URL, self.params)
@@ -148,7 +148,7 @@ class ArxivOaiApi:
         self.params = {'resumptionToken': token.text}
 
         sleep(self.DELAY)
-        self.download_papers(rest=rest)
+        yield from self.download_papers(rest=rest)
 
 
 def get_arxiv_sub_start(announce_date: date,
@@ -242,7 +242,7 @@ def get_annonce_date() -> datetime:
 def get_date_range(date_type: str,
                    announce_date: datetime,
                    **kwargs
-                   ) -> tuple:
+                   ) -> Tuple[datetime, datetime, datetime]:
     """Return start and end for the submission range."""
     # tmp value stores the announced date of the paper
     new_date_tmp = announce_date
