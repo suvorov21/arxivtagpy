@@ -64,7 +64,7 @@ const sortPapers = () => {
     /** Sort the papers.
      * Only papers marked as visible will be sorted.
      */
-    const sortMethod = String((document.getElementById("#sort-sel") as HTMLInputElement).value);
+    const sortMethod = String((document.getElementById("sort-sel") as HTMLInputElement).value);
     // tags
     if (sortMethod.includes("tag")) {
 
@@ -561,18 +561,18 @@ const renderTags = (): void => {
     const tagNames = __TAGS__.map((x: Tag) => x.name);
     const unusedTags = [];
 
-    __TAGS__.forEach((tag: Tag, num: number) => {
+    __TAGS__.forEach((tag: Tag, tagNum: number) => {
 
         if (!PREF.tagsArr.map((x: Tag) => x.name).includes(tag.name)) {
             PREF.tagsArr.push({"name": tag.name,
                 "vis": true,
                 "color": tag.color,
-                "order": num
+                "order": tagNum
             });
         } else {
             const cookTag = PREF.tagsArr.find((tagC: Tag) => tagC.name === tag.name);
-            if (cookTag.order !== num) {
-                cookTag.order = num;
+            if (cookTag.order !== tagNum) {
+                cookTag.order = tagNum;
             }
         }
     });

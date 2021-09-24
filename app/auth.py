@@ -32,6 +32,7 @@ auth_bp = Blueprint(
 
 ROOT_PATH = 'main_bp.root'
 SIGNUP_ROOT = 'auth_bp.signup'
+ROOT_SET = 'settings_bp.settings_page'
 
 
 @login_manager.user_loader
@@ -148,7 +149,7 @@ def new_user():
     message += '2. To see example from other users click on "Show users rules examples."<br>'
     message += 'You can modify the settings later at any time.'
     flash(message)
-    return redirect(url_for('settings_bp.settings_page', page='tag'), code=303)
+    return redirect(url_for(ROOT_SET, page='tag'), code=303)
 
 
 @auth_bp.route('/change_pasw', methods=["POST"])
@@ -160,16 +161,16 @@ def change_pasw():
     new2 = request.form.get('newPass2')
     if new != new2:
         flash("ERROR! New passwords don't match!")
-        return redirect(url_for('settings_bp.settings_page'))
+        return redirect(url_for(ROOT_SET))
 
     if not check_password_hash(current_user.pasw, old):
         flash("ERROR! Wrong old password!")
-        return redirect(url_for('settings_bp.settings_page'))
+        return redirect(url_for(ROOT_SET))
 
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
     flash('Password successfully changed!')
-    return redirect(url_for('settings_bp.settings_page'), code=303)
+    return redirect(url_for(ROOT_SET), code=303)
 
 
 @auth_bp.route('/delAcc', methods=["GET", "POST"])
