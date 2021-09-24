@@ -130,7 +130,7 @@ def mod_pref():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/noEmail', methods=["GET", "POST"])
+@settings_bp.route('/noEmail', methods=["POST"])
 @login_required
 def no_email():
     """Unsubscribe from all the tag emails."""

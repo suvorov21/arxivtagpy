@@ -87,13 +87,13 @@ document.getElementById("add-book-btn").onclick = (): void => {
     const url = "add_list";
     const dataSet = {"name": document.forms["add-book-form"]["new-list"].value};
     $.post(url, JSON.stringify(dataSet))
-        .done(function() {
-            renderBookshelf();
-            $(".btn-save").addClass("disabled");
-            raiseAlert("Settings are saved", "success");
-            window.location.reload();
-            return false;
-        }).fail(function(){
+    .done(function() {
+        renderBookshelf();
+        $(".btn-save").addClass("disabled");
+        raiseAlert("Settings are saved", "success");
+        window.location.reload();
+        return false;
+    }).fail(function() {
         raiseAlert("Settings were not saved. Please try later", "danger");
         return false;
     });

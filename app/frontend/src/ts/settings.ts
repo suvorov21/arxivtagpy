@@ -39,11 +39,13 @@ export const setDefaultListeners = (): void => {
             if (target &&
                 !target.classList.contains("disabled")) {
                 const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                document.getElementById("form-confirm").setAttribute("action", "");
                 modal.show();
                 event.preventDefault();
                 document.getElementById("modal-text").textContent = "Settings will not be saved, continue?";
                 const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
-                btn.href = (event.target as HTMLLinkElement).href;
+                btn.type = "button";
+                btn.addEventListener("click", () => {document.location.href = (event.target as HTMLLinkElement).href;})
                 btn.className = "btn btn-primary";
             }
         });

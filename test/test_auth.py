@@ -74,7 +74,7 @@ def test_new_acc(client):
 
 
 def test_del_acc(client, tmp_user):
-    """Test acount delete."""
+    """Test account delete."""
     response = client.post('/delAcc',
                            follow_redirects=True
                            )

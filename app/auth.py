@@ -173,7 +173,7 @@ def change_pasw():
     return redirect(url_for(ROOT_SET), code=303)
 
 
-@auth_bp.route('/delAcc', methods=["GET", "POST"])
+@auth_bp.route('/delAcc', methods=["POST"])
 @login_required
 def del_acc():
     """Delete account completely."""
