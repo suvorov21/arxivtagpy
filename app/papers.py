@@ -28,43 +28,45 @@ def update_papers(api_list: list, **kwargs):
     Get papers from all API with download_papers()
     and store in the DB.
     """
-    updated = 0
-    downloaded = 0
-    read = 0
-
-    n_papers = kwargs.get('n_papers')
-    last_paper_date = kwargs['last_paper_date']
-
     for api in api_list:
-        for paper in api.download_papers():
-
-            # stoppers
-            if n_papers and read > n_papers:
-                break
-
-            # too old paper. Skip
-            if paper.date_up < last_paper_date:
-                continue
-
-            paper_prev = Paper.query.filter_by(
-                            paper_id=paper.paper_id
-                            ).first()
-
-            if paper_prev:
-                if kwargs.get('do_update'):
-                    update_paper_record(paper_prev, paper)
-                    updated += 1
-            else:
-                db.session.add(paper)
-                downloaded += 1
-            read += 1
-            if read % api.COMMIT_PERIOD == 0:
-                logging.info('read %i papers', read)
-                db.session.commit()
+        update_paper_per_api(api, **kwargs)
 
     db.session.commit()
 
-    logging.info('Paper update done: %i new; %i updated',
+
+def update_paper_per_api(api, **kwargs):
+    """Update papers for a given API."""
+    n_papers = kwargs.get('n_papers')
+    last_paper_date = kwargs['last_paper_date']
+
+    updated = 0
+    downloaded = 0
+
+    for paper in api.download_papers():
+        # stoppers
+        if n_papers and updated + downloaded > n_papers:
+            break
+
+        # too old paper. Skip
+        if paper.date_up < last_paper_date:
+            continue
+
+        paper_prev = Paper.query.filter_by(paper_id=paper.paper_id).first()
+
+        if paper_prev:
+            if kwargs.get('do_update'):
+                update_paper_record(paper_prev, paper)
+                updated += 1
+        else:
+            db.session.add(paper)
+            downloaded += 1
+
+        if (updated + downloaded) % api.COMMIT_PERIOD == 0:
+            logging.info('read %i papers', updated + downloaded)
+            db.session.commit()
+
+    logging.info('Paper update %s done: %i new; %i updated',
+                 api.__class__.__name__,
                  downloaded,
                  updated
                  )
