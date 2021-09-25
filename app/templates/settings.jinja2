@@ -277,6 +277,7 @@
             Settings will not be saved, continue?
           </div>
           <form class="modal-footer" id="form-confirm" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <button type="submit" class="btn btn-primary" id="btn-confirm">Continue</button>
           </form>

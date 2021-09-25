@@ -380,6 +380,9 @@ document.getElementById("show-pubtags").onclick = (event: MouseEvent) => {
 document.getElementById("tag-list").onclick = (event: MouseEvent) => {
     // consider only tag labels click
     let target = event.target as HTMLElement;
+    if (target.id.includes("tag-list")) {
+        return;
+    }
     while(!target.classList.contains("tag-label") && target.id !== "tags-list") {
         target = target.parentElement;
     }

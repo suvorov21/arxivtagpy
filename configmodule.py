@@ -63,5 +63,6 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     """Testing (staging) config."""
     SQLALCHEMY_DATABASE_URI = environ.get('DATABASE_URL_TEST')
+    WTF_CSRF_ENABLED = False
     DEBUG = True
     TESTING = True
