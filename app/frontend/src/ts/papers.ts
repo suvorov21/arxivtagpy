@@ -417,7 +417,7 @@ const novChange = (event: MouseEvent): void => {
     /** CLick on novelty checkbox.
      */
     const number = parseInt((event.target as HTMLElement).id.split("-")[2], 10);
-    PREF.novArr[`${number}`] = (document.getElementById("check-nov-"+number) as HTMLInputElement).checked;
+    PREF.novArr[number] = (document.getElementById("check-nov-"+number) as HTMLInputElement).checked;
     PREF.save();
     pageChange();
     setTimeout(function () {
@@ -537,7 +537,7 @@ const renderTags = (): void => {
     if (__parseTex__) {
         MathJax.typesetPromise();
     }
-    unusedTags.forEach((num) => PREF.tagsArr.splice(num, 1));
+    unusedTags.forEach((numTag) => PREF.tagsArr.splice(numTag, 1));
     PREF.save();
 }
 

@@ -77,7 +77,7 @@ def get_or_create_list(user_id, name) -> PaperList:
 def cast_args_to_dict(args) -> List[Dict]:
     """Cast requests args to dictionary."""
     prefs = []
-    # FIXME Fix key break with ampersand
+    # TODO Fix key break with ampersand
     for arg in args:
         prefs.append(arg)
 

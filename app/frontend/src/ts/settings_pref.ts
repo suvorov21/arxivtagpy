@@ -57,7 +57,6 @@ window.onload = () => {
         event.preventDefault();
         document.getElementById("modal-text").innerHTML = "Do you want to delete account completely? <br> This action could not be undone!";
         const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
-        // btn.href = "/delAcc";
         btn.className = "btn btn-danger";
         btn.type = "submit";
         const form =  document.getElementById("form-confirm") as HTMLFormElement;

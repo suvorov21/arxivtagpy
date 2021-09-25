@@ -227,7 +227,7 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     or_pos, and_pos = find_or_and(rule)
 
     # if no AND/OR found outside brackets process a rule inside curly brackets
-    if len(and_pos) == 0 and len(or_pos) == 0:
+    if len(and_pos) == 0 + len(or_pos) == 0:
         return parse_simple_rule(paper, rule)
 
     # add rule length limits
@@ -249,17 +249,12 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     and_pos.append(len(rule))
 
     # process logic AND
-    if len(and_pos) > 2:
-        for num, pos in enumerate(and_pos[:-1]):
-            if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
-                return False
+    for num, pos in enumerate(and_pos[:-1]):
+        if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
+            return False
 
     # if logic AND is inside the rule but False was not found
-    if len(and_pos) > 2:
-        return True
-
-    # default safety return
-    return False
+    return True
 
 
 def parse_simple_rule(paper: dict, condition: str) -> bool:
