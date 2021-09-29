@@ -99,7 +99,7 @@
     {% else %}
       {# show login form #}
       <form id="login-form" name="f_login" action="/login" method="POST">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="form row align-items-end me-2">
           <div class="col-auto">
             <div class="input-group mb-2">

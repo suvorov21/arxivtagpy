@@ -182,7 +182,7 @@ def del_acc():
     User.query.filter_by(email=email).delete()
     db.session.commit()
 
-    flash("Account successfully deleted!")
+    flash("Account is successfully deleted!")
 
     return redirect(url_for(ROOT_PATH), code=303)
 

@@ -10,6 +10,7 @@
   <div class="container mt-4">
     <div class="row justify-content-center" style="color: var(--wrap_color)">
       <form class="col-sm-8" action="/new_user" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="form-group row mt-2">
           <label for="email" class="col-sm-4 col-form-label">Email</label>
           <div class="col-sm-8">

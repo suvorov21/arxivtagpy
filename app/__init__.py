@@ -110,4 +110,6 @@ def app_init():
         app.register_blueprint(settings.settings_bp)
         app.register_blueprint(autohooks.auto_bp)
 
+        csrf.exempt(autohooks.auto_bp)
+
         return app
