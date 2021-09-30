@@ -33,7 +33,7 @@
     <script type="text/javascript">
       Sentry.init({ dsn: "{{ data['sentry_dsn'] }}",
         release: "{{ data['version'] }}",
-        integrations: [new Integrations.BrowserTracing()],
+        integrations: [new Sentry.Integrations.BrowserTracing()],
         tracesSampleRate: 1.0,
       });
     </script>
