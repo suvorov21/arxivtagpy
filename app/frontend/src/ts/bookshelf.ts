@@ -31,7 +31,7 @@ const renderLists = (): void => {
         if (list.not_seen !== 0) {
             link.textContent += " ";
             const badge = document.createElement("span");
-            badge.className = "badge badge-light";
+            badge.className = "badge bg-light text-dark";
             badge.textContent = String(list.not_seen);
             link.appendChild(badge);
         }
