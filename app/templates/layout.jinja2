@@ -26,14 +26,14 @@
 
   {% if data['sentry'] == 'long' %}
     <script
-      src="https://browser.sentry-cdn.com/6.13.2/bundle.min.js"
-      integrity="sha384-fcgCrdIqrZ6d6fA8EfCAfdjgN9wXDp0EOkueSo3bKyI3WM4tQCE0pOA/kJoqHYoI"
+      src="https://browser.sentry-cdn.com/6.13.2/bundle.tracing.min.js"
+      integrity="sha384-g1k5bjMWKoe/N/kf+efRJQ/UkC6RMrOosoXAC23KPKv3BPSq/OU/IXfuc6X/GvSJ"
       crossorigin="anonymous"
     ></script>
     <script type="text/javascript">
       Sentry.init({ dsn: "{{ data['sentry_dsn'] }}",
         release: "{{ data['version'] }}",
-        integrations: [new Sentry.Integrations.BrowserTracing()],
+        integrations: [new Integrations.BrowserTracing()],
         tracesSampleRate: 1.0,
       });
     </script>

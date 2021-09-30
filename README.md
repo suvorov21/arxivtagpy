@@ -4,13 +4,11 @@
 
 [![Codacy](https://app.codacy.com/project/badge/Grade/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/manual/suvorov21/arxivtagpy?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=suvorov21/arxivtagpy&amp;utm_campaign=Badge_Grade)
 [![Coverage](https://app.codacy.com/project/badge/Coverage/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/gl/suvorov21/arxivtagpy/dashboard?utm_source=gitlab.com&utm_medium=referral&utm_content=suvorov21/arxivtagpy&utm_campaign=Badge_Coverage)
-![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/suvorov21/arxivtagpy)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/suvorov21/arxivtagpy)
-![Sonar Tech Debt](https://img.shields.io/sonar/tech_debt/suvorov21_arxivtagpy?server=https%3A%2F%2Fsonarcloud.io&sonarVersion=6.0)
-![Sonar Quality Gate](https://img.shields.io/sonar/quality_gate/suvorov21_arxivtagpy?server=https%3A%2F%2Fsonarcloud.io&sonarVersion=6.0)
-![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&server=https%3A%2F%2Fsonarcloud.io)
 
-[![GitHub license](https://img.shields.io/github/license/suvorov21/arxivtagpy)](https://github.com/suvorov21/arxivtagpy/blob/develop/LICENSE)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=alert_status)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
+![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&label=Sonar%20violations&server=https%3A%2F%2Fsonarcloud.io)
+
 
 # arXiv tag
 Welcome to [arXivtag.tk](https://arxivtag.tk)!
@@ -39,7 +37,7 @@ To run server locally with Docker, build and run the image with
 docker-compose build && docker-compose up
 ```
 
-The website is accesible with a browser at `http://0.0.0.0:8000/`
+The website is accessible with a browser at `http://0.0.0.0:8000/`
 
 The bulk paper download for the last month could be triggered with 
 `curl -L -X POST "http://0.0.0.0:8000/load_papers?token=test_token"`
