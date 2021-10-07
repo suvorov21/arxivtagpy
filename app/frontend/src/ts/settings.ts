@@ -6,7 +6,7 @@ type settings = Array<List> | Array<string> | Array<Tag>;
 
 declare const bootstrap;
 
-export const toggleEditState = () => {
+export const toggleEditState = (): void => {
     const btnCollection = document.getElementsByClassName("btn");
     for (let i = 0; i < btnCollection.length; i++) {
         btnCollection[`${i}`].classList.remove("disabled");

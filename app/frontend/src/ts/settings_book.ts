@@ -1,6 +1,6 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
 import {setDefaultListeners, submitSetting, dropElement, toggleEditState} from "./settings";
-import {cssVar, raiseAlert} from "./layout";
+import {raiseAlert} from "./layout";
 import {List} from "./paper_basic";
 
 declare const __LISTS__: Array<List>;
