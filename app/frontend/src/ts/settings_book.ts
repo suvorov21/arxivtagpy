@@ -1,5 +1,5 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import {setDefaultListeners, submitSetting, dropElement} from "./settings";
+import {setDefaultListeners, submitSetting, dropElement, toggleEditState} from "./settings";
 import {raiseAlert} from "./layout";
 import {List} from "./paper_basic";
 
@@ -20,6 +20,9 @@ const findListNumById = (id: string): string => {
 };
 
 const delListClick = (event: MouseEvent): void => {
+    /**
+     * Delete a list
+     */
     const name = (event.target as HTMLElement).getAttribute("id").split("_")[1];
     $("#par-list-" + name).fadeOut();
     $(".btn").removeClass("disabled");
@@ -34,7 +37,72 @@ const dropList = (event: DragEvent) => {
     renderBookshelf();
 };
 
+const dragStart = (event: DragEvent) => {
+    const target = event.target as HTMLElement;
+    const moved = target.id.split("-")[2];
+    const movedStr = findListNumById(moved);
+    event.dataTransfer.setData("Text", movedStr);
+}
+
+const confirmEdit = (event: MouseEvent) => {
+    /**
+     * Finish editing list name
+     */
+
+    const target = event.target as HTMLElement;
+    if (target.id === "") {
+        event.preventDefault();
+        return;
+    }
+
+    const num = parseInt(target.id.split("-")[2], 10);
+    const field = document.getElementById("field-list-" + num) as HTMLInputElement;
+    __LISTS__[findListNumById(String(num))].name = field.value;
+    renderBookshelf();
+    // Toggle "edited" state
+    toggleEditState();
+};
+
+const editListName = (event: MouseEvent) => {
+    /**
+     * Start editing list name
+     */
+    const target = event.target as HTMLElement;
+    if (target.id === "") {
+        event.preventDefault();
+        return;
+    }
+
+    const num = parseInt(target.id.split("-")[2], 10);
+
+    $(".btn-edit").css("display", "none");
+
+    const confirmBtn = document.createElement("i");
+    confirmBtn.className = "ps-2 fa fa-check btn-confirm";
+    confirmBtn.id = "confirm-btn-" + num;
+    confirmBtn.addEventListener("click", confirmEdit);
+
+    // hide label with list name
+    const listName =  document.getElementById("list-name-" + num) as HTMLElement;
+    listName.style.display = "none";
+
+    const field = document.createElement("input");
+    field.className = "ms-2";
+    field.type = "text";
+    field.id = "field-list-" + num;
+    field.value = __LISTS__[findListNumById(String(num))].name
+
+    const parentEle = document.getElementById("par-list-" + num) as HTMLElement;
+    parentEle.appendChild(field);
+    parentEle.appendChild(confirmBtn);
+    parentEle.draggable = false;
+    field.focus();
+};
+
 const renderBookshelf = (): void => {
+    /**
+     * Main render function
+     */
     $("#book-list").empty();
     __LISTS__.forEach((list: List) => {
         const listName = list.name;
@@ -43,12 +111,7 @@ const renderBookshelf = (): void => {
         parent.id = "par-list-" + list.id;
         parent.draggable = true;
 
-        parent.ondragstart = (event: DragEvent) => {
-            const target = event.target as HTMLElement;
-            const moved = target.id.split("-")[2];
-            const movedStr = findListNumById(moved);
-            event.dataTransfer.setData("Text", movedStr);
-        };
+        parent.addEventListener("dragstart", dragStart);
 
         parent.ondragover = (event: DragEvent) => {
             const target = event.target as HTMLElement;
@@ -69,9 +132,15 @@ const renderBookshelf = (): void => {
         listElement.style.display = "inline";
         listElement.textContent = listName;
 
+        const editBtn = document.createElement("i");
+        editBtn.className = "ps-2 fa fa-pencil btn-edit";
+        editBtn.id = "list-edit-" + list.id;
+        editBtn.addEventListener("click", editListName);
+
         document.getElementById("book-list").appendChild(parent);
         parent.appendChild(close);
         parent.appendChild(listElement);
+        parent.appendChild(editBtn);
     });
     document.getElementById("book-list").ondragover = (event: DragEvent) => {
         event.preventDefault();
@@ -84,6 +153,13 @@ const renderBookshelf = (): void => {
 };
 
 document.getElementById("add-book-btn").onclick = (): void => {
+    /**
+     * Add a new list
+     */
+    if (document.forms["add-book-form"]["new-list"].value === "") {
+        raiseAlert("Fill the list name", "danger");
+        return;
+    }
     const url = "add_list";
     const dataSet = {"name": document.forms["add-book-form"]["new-list"].value};
     $.post(url, JSON.stringify(dataSet))
@@ -100,6 +176,9 @@ document.getElementById("add-book-btn").onclick = (): void => {
 };
 
 const submitList = (event: Event): void => {
+    /**
+     * Settings saver
+     */
     event.preventDefault();
     if ($(".btn-cancel").hasClass("disabled")) {
         return;

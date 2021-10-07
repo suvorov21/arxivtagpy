@@ -14,7 +14,7 @@ declare const __TAGS__: Array<Tag>;
 declare const MathJax;
 declare const __parseTex__: boolean;
 
-export const findTagId = (param: string, paramName: string): string => {
+const findTagId = (param: string, paramName: string): string => {
     if (__TAGS__.length > 0 && !Object.prototype.hasOwnProperty.call(__TAGS__[0], paramName)) {
         console.error("Wrong tag param request " + paramName);
         return "-2";
@@ -250,12 +250,23 @@ document.getElementById("test-btn").onclick = (event: MouseEvent) => {
     const url = "/test_tag";
     $.get(url, data)
         .done(function(resp) {
+            const icon = document.createElement("i");
+            const text = document.createElement("span");
+            text.className = "ps-2";
+            const parent = document.getElementById("test-result") as HTMLElement;
+            parent.innerHTML = "";
             if (resp.includes("true")) {
-                // not a good practice, but ok for the time being
-                document.getElementById("test-result").innerHTML = "<i class='fa fa-check' aria-hidden='true' style='color: #1a941a'></i>&nbsp;Paper suits the tag!";
+                icon.className = "fa fa-check";
+                icon.style.color = cssVar("--bs-success");
+                text.textContent = "Paper suits the tag!";
+
             } else {
-                document.getElementById("test-result").innerHTML = "<i class='fa fa-times' aria-hidden='true' style='color: #941a1a'></i>&nbsp;Paper does NOT suit the tag!";
+                icon.className = "fa fa-times";
+                icon.style.color = cssVar("--bs-danger");
+                text.textContent = "Paper does NOT suit the tag!";
             }
+            parent.appendChild(icon);
+            parent.appendChild(text);
         }).fail(function() {
         raiseAlert("Server expirienced an internal error. We are working on that.", "danger");
     });
