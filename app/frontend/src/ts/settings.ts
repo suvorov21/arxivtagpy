@@ -6,6 +6,13 @@ type settings = Array<List> | Array<string> | Array<Tag>;
 
 declare const bootstrap;
 
+export const toggleEditState = () => {
+    const btnCollection = document.getElementsByClassName("btn");
+    for (let i = 0; i < btnCollection.length; i++) {
+        btnCollection[`${i}`].classList.remove("disabled");
+    }
+}
+
 // API call for settings modifications
 export const submitSetting = (url: string, set: settings): Promise<boolean> => {
     return new Promise((resolve, reject) => {
@@ -74,8 +81,5 @@ export const dropElement = (event: DragEvent, arrayToSwap: settings, dragTarget:
 
     // delete transferred element at old place
     arrayToSwap.splice(moved, 1);
-    const btnCollection = document.getElementsByClassName("btn");
-    for (let i = 0; i < btnCollection.length; i++) {
-        btnCollection[`${i}`].classList.remove("disabled");
-    }
+    toggleEditState();
 };
