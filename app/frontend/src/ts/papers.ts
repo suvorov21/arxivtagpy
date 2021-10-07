@@ -318,6 +318,8 @@ const filterVisiblePapers = (): void => {
 
     if (DATA.papers.length === 0) {
         console.warn("No papers in DATA.papers during filterVisiblePapers() call");
+        document.getElementById("no-paper").style["display"] = "block";
+        document.getElementById("loading-papers").style["display"] = "none";
         return;
     }
 
@@ -621,7 +623,7 @@ const listClick = (event: MouseEvent): void => {
 const renderLists = (): void => {
     /** Render pop-up window with page lists
      */
-    if (DATA.lists.length === 0) {
+    if (typeof DATA.lists === "undefined" || DATA.lists.length === 0) {
         return;
     }
     DATA.lists.forEach((list: List) => {
