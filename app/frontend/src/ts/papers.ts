@@ -314,7 +314,9 @@ const filterVisiblePapers = (): void => {
         tagsShow.push(tag.vis);
     });
 
-    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
+    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis) &&
+        (document.getElementById("tag-label-0") === null ||
+        document.getElementById("tag-label-0").style.borderColor === "transparent");
 
     if (DATA.papers.length === 0) {
         console.warn("No papers in DATA.papers during filterVisiblePapers() call");
@@ -505,6 +507,7 @@ const renderTags = (): void => {
     let num = 0;
     for (let tagIter = 0; tagIter < PREF.tagsArr.length; tagIter++) {
         const tag = PREF.tagsArr[`${tagIter}`];
+        // check if the unused tag is stored in cookies
         if (!tagNames.includes(tag.name)) {
             unusedTags.push(num);
             continue;
