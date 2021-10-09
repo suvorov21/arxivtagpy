@@ -1,12 +1,21 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/suvorov21/arxivtagpy)
+[![Deploy](https://gitlab.com/suvorov21/arxivtagpy/badges/master/pipeline.svg?key_text=deploy)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/master)
+[![Dev_test](https://gitlab.com/suvorov21/arxivtagpy/badges/develop/pipeline.svg?key_text=dev&#32;test)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/develop)
+
 [![Codacy](https://app.codacy.com/project/badge/Grade/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/manual/suvorov21/arxivtagpy?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=suvorov21/arxivtagpy&amp;utm_campaign=Badge_Grade)
 [![Coverage](https://app.codacy.com/project/badge/Coverage/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/gl/suvorov21/arxivtagpy/dashboard?utm_source=gitlab.com&utm_medium=referral&utm_content=suvorov21/arxivtagpy&utm_campaign=Badge_Coverage)
-[![Deploy](https://gitlab.com/suvorov21/arxivtagpy/badges/master/pipeline.svg?key_text=deploy)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/master)
-[![Dev_test](https://gitlab.com/suvorov21/arxivtagpy/badges/develop/pipeline.svg?key_text=dev_test)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/develop)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=alert_status)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
+![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&label=Sonar%20violations&server=https%3A%2F%2Fsonarcloud.io)
+
 
 # arXiv tag
-A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv](https://arxiv.org/).
+Welcome to [arXivtag.tk](https://arxivtag.tk)!
 
-![Framework flow](app/static/dist/img/scheme_small.png)
+A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv.org](https://arxiv.org/).
+
+![Framework flow](app/frontend/dist/img/scheme_small.png)
 
 ### Main features:
 1. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and/negation), regular expressions, and TeX formulas. The paper feed is sorted based on your preferences. View the most interesting papers on top!
@@ -28,7 +37,7 @@ To run server locally with Docker, build and run the image with
 docker-compose build && docker-compose up
 ```
 
-The website is accesible with a browser at `http://0.0.0.0:8000/`
+The website is accessible with a browser at `http://0.0.0.0:8000/`
 
 The bulk paper download for the last month could be triggered with 
 `curl -L -X POST "http://0.0.0.0:8000/load_papers?token=test_token"`
@@ -54,7 +63,7 @@ flask db init; flask db migrate; flask db upgrade
 The front-end is build with npm
 
 ```bash
-cd app/static/src/
+cd app/frontend/src/
 npm install
 npm run build
 ```

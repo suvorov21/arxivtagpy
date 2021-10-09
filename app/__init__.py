@@ -15,6 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 from dotenv import load_dotenv
 
@@ -28,8 +29,10 @@ db = SQLAlchemy()
 login_manager = LoginManager()
 mail = Mail()
 migrate = Migrate()
+csrf = CSRFProtect()
 
 app = Flask(__name__, instance_relative_config=True)
+csrf.init_app(app)
 
 
 @app.cli.command("create-db")
@@ -106,5 +109,7 @@ def app_init():
         app.register_blueprint(auth.auth_bp)
         app.register_blueprint(settings.settings_bp)
         app.register_blueprint(autohooks.auto_bp)
+
+        csrf.exempt(autohooks.auto_bp)
 
         return app

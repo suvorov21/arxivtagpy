@@ -5,7 +5,7 @@ from json import loads, dumps
 import logging
 
 from flask import Blueprint, render_template, session, request, \
-    current_app, redirect, url_for
+    current_app, redirect, url_for, flash
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
@@ -15,8 +15,10 @@ settings_bp = Blueprint(
     'settings_bp',
     __name__,
     template_folder='templates',
-    static_folder='static'
+    static_folder='frontend'
 )
+
+SET_PAGE = 'settings_bp.settings_page'
 
 
 @settings_bp.route('/settings')
@@ -45,7 +47,7 @@ def settings_page():
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
     else:
-        return redirect(url_for('settings_bp.settings_page',
+        return redirect(url_for(SET_PAGE,
                                 page='cat'
                                 ))
 
@@ -138,7 +140,8 @@ def no_email():
         tag.email = False
 
     db.session.commit()
-    return dumps({'success': True}), 201
+    flash('Successfully unsubscribed from all tag emails.')
+    return redirect(url_for(SET_PAGE, page='pref'))
 
 
 def new_tag(tag, order):
@@ -174,9 +177,6 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
     set_place:      settings relation. E.g. current_user.tags
     """
     new_settings = cast_args_to_dict(args)
-
-    # if len(new_settings) == 0:
-    #     new_settings = []
 
     settings = db_class.query.filter_by(user_id=current_user.id
                                         ).order_by(db_class.order).all()

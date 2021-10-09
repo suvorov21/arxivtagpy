@@ -19,14 +19,16 @@ from .model import User, Tag, db, PaperList, Paper, UpdateDate, \
     paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from .utils import mail_catch
+from .utils import mail_catch, get_or_create_list
 
 auto_bp = Blueprint(
     'auto_bp',
     __name__,
     template_folder='templates',
-    static_folder='static'
+    static_folder='frontend'
 )
+
+DATA_FORMAT = '%Y-%m-%d'
 
 
 def check_token(funct):
@@ -71,21 +73,21 @@ def load_papers():
         params['do_update'] = request.args.get('do_update')
     if 'from' in request.args:
         last_paper_date = datetime.strptime(request.args['from'],
-                                            '%Y-%m-%d'
+                                            DATA_FORMAT
                                             )
     params['last_paper_date'] = last_paper_date
 
     logging.info('Parameters: %s', params)
 
-    # initiaise paper API
+    # initialise paper API
     paper_api = ArxivOaiApi()
 
     # API cal params
     if request.args.get('set'):
         paper_api.set_set(request.args.get('set'))
-    # from argument is privelaged over last paper in the DB
+    # from argument is privileged over last paper in the DB
     paper_api.set_from(datetime.strftime(last_paper_date,
-                                         '%Y-%m-%d'
+                                         DATA_FORMAT
                                          ))
 
     if request.args.get('until'):
@@ -105,7 +107,7 @@ def delete_papers():
     logging.info('Start paper delete')
     if 'until' in request.args:
         until_date = datetime.strptime(request.args['until'],
-                                       '%Y-%m-%d'
+                                       DATA_FORMAT
                                        )
     elif 'week' in request.args:
         n_weeks = int(request.args['week'])
@@ -157,29 +159,19 @@ def bookmark_user():
 
     rule = request.form.to_dict().get('rule')
 
+    if not rule and not tag:
+        logging.error('Bad bookmark request %r', request.form)
+        return dumps({'success': False}), 422
+
     if not rule:
-        if tag:
-            rule = tag.rule
-        else:
-            logging.error('Bad bookmark request %r', request.form)
-            return dumps({'success': False}), 422
+        rule = tag.rule
 
     old_date = datetime.now() - timedelta(weeks=weeks)
     papers = Paper.query.filter(Paper.cats.overlap(usr.arxiv_cat),
                                 Paper.date_up > old_date
                                 ).order_by(Paper.date_up).all()
 
-    paper_list = PaperList.query.filter_by(user_id=usr.id,
-                                           name=name
-                                           ).first()
-
-    if not paper_list:
-        paper_list = PaperList(name=name,
-                               user_id=usr.id,
-                               not_seen=0
-                               )
-        db.session.add(paper_list)
-        db.session.commit()
+    paper_list = get_or_create_list(usr.id, name)
 
     for paper in papers:
         if tag_suitable(render_paper_json(paper), rule):
@@ -223,7 +215,7 @@ def bookmark_papers():
 
     if 'from' in request.args:
         old_date = datetime.strptime(request.args['from'],
-                                     '%Y-%m-%d'
+                                     DATA_FORMAT
                                      )
 
     prev_user = -1
@@ -243,17 +235,7 @@ def bookmark_papers():
             prev_user = tag.user_id
             n_user += 1
         # 3.1
-        paper_list = PaperList.query.filter_by(user_id=prev_user,
-                                               name=tag.name
-                                               ).first()
-        # if not --> create one
-        if not paper_list:
-            paper_list = PaperList(name=tag.name,
-                                   user_id=prev_user,
-                                   not_seen=0
-                                   )
-            db.session.add(paper_list)
-            db.session.commit()
+        paper_list = get_or_create_list(prev_user, tag.name)
 
         # 3.2
         for paper in papers:
@@ -410,7 +392,7 @@ def email_paper_update(papers: list, email: str, do_send: bool):
 
 
 def get_old_update_date() -> UpdateDate:
-    """Chech if the database record with latest update exists. If not create."""
+    """Check if the database record with latest update exists. If not create."""
     old_date_record = UpdateDate.query.first()
     if not old_date_record:
         old_date = month_start()

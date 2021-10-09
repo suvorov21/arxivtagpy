@@ -5,6 +5,9 @@ from test.conftest import EMAIL, PASS
 
 from flask import url_for
 
+ROOT_LOGIN = 'auth_bp.login'
+ROOT_PASSW = 'auth_bp.change_pasw'
+
 
 def test_general(client):
     """Test landing page."""
@@ -14,7 +17,7 @@ def test_general(client):
 
 def test_login(client):
     """Test login."""
-    response = client.post(url_for('auth_bp.login'),
+    response = client.post(url_for(ROOT_LOGIN),
                            data={'i_login': EMAIL,
                                  'i_pass': PASS
                                  },
@@ -26,7 +29,7 @@ def test_login(client):
 
 def test_wrong_login(client):
     """Test wrong login."""
-    response = client.post(url_for('auth_bp.login'),
+    response = client.post(url_for(ROOT_LOGIN),
                            data={'i_login': EMAIL + '1',
                                  'i_pass': PASS
                                  },
@@ -38,7 +41,7 @@ def test_wrong_login(client):
 
 def test_wrong_pass(client):
     """Test wrong login."""
-    response = client.post(url_for('auth_bp.login'),
+    response = client.post(url_for(ROOT_LOGIN),
                            data={'i_login': EMAIL,
                                  'i_pass': PASS + '1'
                                  },
@@ -71,7 +74,7 @@ def test_new_acc(client):
 
 
 def test_del_acc(client, tmp_user):
-    """Test acount delete."""
+    """Test account delete."""
     response = client.post('/delAcc',
                            follow_redirects=True
                            )
@@ -81,7 +84,7 @@ def test_del_acc(client, tmp_user):
 
 def test_change_pass(client, tmp_user):
     """Test password change."""
-    response = client.post('/change_pasw',
+    response = client.post(url_for(ROOT_PASSW),
                            data={'oldPass': PASS,
                                  'newPass1': 'tester_new',
                                  'newPass2': 'tester_new'
@@ -95,7 +98,7 @@ def test_change_pass(client, tmp_user):
 
 def test_unauthorised_request(client):
     """Test acccess to login restricted pages."""
-    response = client.post('/change_pasw',
+    response = client.post(url_for(ROOT_PASSW),
                            data={'oldPass': PASS,
                                  'newPass1': 'tester_new',
                                  'newPass2': 'tester_new'
@@ -108,7 +111,7 @@ def test_unauthorised_request(client):
 
 def test_change_wrong_old_pass(client, tmp_user):
     """Test login with wrong old password."""
-    response = client.post('/change_pasw',
+    response = client.post(url_for(ROOT_PASSW),
                            data={'oldPass': 'tester_wrong',
                                  'newPass1': 'tester_new',
                                  'newPass2': 'tester_new'
@@ -121,7 +124,7 @@ def test_change_wrong_old_pass(client, tmp_user):
 
 def test_change_wrong_new_pass(client, login):
     """Test login with wrong new password."""
-    response = client.post('/change_pasw',
+    response = client.post(url_for(ROOT_PASSW),
                            data={'oldPass': PASS,
                                  'newPass1': 'tester_new',
                                  'newPass2': 'tester_new_other'
@@ -133,16 +136,16 @@ def test_change_wrong_new_pass(client, login):
 
 
 def test_pass_restore(client):
-    """Test passord restore."""
-    response = client.post('/new_user',
-                           data={'email': 'tester3@gmail.com',
-                                 'pasw': 'tester2',
-                                 'pasw2': 'tester2'
-                                 },
-                           follow_redirects=True
-                           )
-    response = client.get('/logout',
-                          follow_redirects=True)
+    """Test password restore."""
+    client.post('/new_user',
+                data={'email': 'tester3@gmail.com',
+                      'pasw': 'tester2',
+                      'pasw2': 'tester2'
+                      },
+                follow_redirects=True
+                )
+    client.get('/logout',
+               follow_redirects=True)
     response = client.post(url_for('auth_bp.restore_pass'),
                            data={'email': 'tester3@gmail.com',
                                  'do_send': 'False'

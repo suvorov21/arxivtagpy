@@ -31,7 +31,7 @@ const renderLists = (): void => {
         if (list.not_seen !== 0) {
             link.textContent += " ";
             const badge = document.createElement("span");
-            badge.className = "badge badge-light";
+            badge.className = "badge bg-light text-dark";
             badge.textContent = String(list.not_seen);
             link.appendChild(badge);
         }
@@ -67,9 +67,9 @@ const deleteBookmark = (event: MouseEvent): void => {
         $("#paper-"+num).css("display", "none");
         __DATA__.papers[`${num}`].hide = true;
         let visible = 1;
-        __DATA__.papers.forEach((paper: Paper) => {
-            if (!paper.hide) {
-                const numEl = document.getElementById("paper-num-" + paper.num);
+        __DATA__.papers.forEach((paperUp: Paper) => {
+            if (!paperUp.hide) {
+                const numEl = document.getElementById("paper-num-" + paperUp.num);
                 numEl.textContent = String(visible);
                 visible += 1;
             }
@@ -85,7 +85,7 @@ const deleteBookmark = (event: MouseEvent): void => {
 const renderPapers = (): void => {
     __DATA__.papers.forEach((paper: Paper, num: number) => {
         num += __PAGE_SIZE__ * (__PAGE__ - 1);
-        const paperBase = renderPapersBase(paper as Paper, num);
+        const paperBase = renderPapersBase(paper, num);
 
         // highlight new papers
         const paperElement = paperBase[0];

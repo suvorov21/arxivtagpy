@@ -9,6 +9,8 @@ from re import search, compile, IGNORECASE, error
 from datetime import datetime, timedelta
 import logging
 
+from typing import List, Tuple, Dict
+
 from .model import db, Paper
 from .paper_api import ArxivOaiApi, get_date_range, get_arxiv_sub_start
 
@@ -26,43 +28,45 @@ def update_papers(api_list: list, **kwargs):
     Get papers from all API with download_papers()
     and store in the DB.
     """
-    updated = 0
-    downloaded = 0
-    read = 0
-
-    n_papers = kwargs.get('n_papers')
-    last_paper_date = kwargs['last_paper_date']
-
     for api in api_list:
-        for paper in api.download_papers():
-
-            # stoppers
-            if n_papers and read > n_papers:
-                break
-
-            # too old paper. Skip
-            if paper.date_up < last_paper_date:
-                continue
-
-            paper_prev = Paper.query.filter_by(
-                            paper_id=paper.paper_id
-                            ).first()
-
-            if paper_prev:
-                if kwargs.get('do_update'):
-                    update_paper_record(paper_prev, paper)
-                    updated += 1
-            else:
-                db.session.add(paper)
-                downloaded += 1
-            read += 1
-            if read % api.COMMIT_PERIOD == 0:
-                logging.info('read %i papers', read)
-                db.session.commit()
+        update_paper_per_api(api, **kwargs)
 
     db.session.commit()
 
-    logging.info('Paper update done: %i new; %i updated',
+
+def update_paper_per_api(api, **kwargs):
+    """Update papers for a given API."""
+    n_papers = kwargs.get('n_papers')
+    last_paper_date = kwargs['last_paper_date']
+
+    updated = 0
+    downloaded = 0
+
+    for paper in api.download_papers():
+        # stoppers
+        if n_papers and updated + downloaded > n_papers:
+            break
+
+        # too old paper. Skip
+        if paper.date_up < last_paper_date:
+            continue
+
+        paper_prev = Paper.query.filter_by(paper_id=paper.paper_id).first()
+
+        if paper_prev:
+            if kwargs.get('do_update'):
+                update_paper_record(paper_prev, paper)
+                updated += 1
+        else:
+            db.session.add(paper)
+            downloaded += 1
+
+        if (updated + downloaded) % api.COMMIT_PERIOD == 0:
+            logging.info('read %i papers', updated + downloaded)
+            db.session.commit()
+
+    logging.info('Paper update %s done: %i new; %i updated',
+                 api.__class__.__name__,
                  downloaded,
                  updated
                  )
@@ -111,6 +115,33 @@ def render_paper_json(paper: Paper) -> dict:
     return result
 
 
+def process_nov(paper: dict, nov_counters: list, cats: list, last_date: datetime):
+    """Check novelty of the papers. Update counters."""
+    # 1.a check if cross-ref
+    if paper['cats'][0] not in cats:
+        nov_counters[1] += 1
+        paper['nov'] += 2
+
+    # 1.b count updated papers
+    if paper['date_sub'] < last_date:
+        paper['nov'] += 4
+        nov_counters[2] += 1
+
+    if paper['nov'] == 0:
+        paper['nov'] = 1
+        nov_counters[0] += 1
+
+
+def process_tags(paper: dict,
+                 tags: dict,
+                 tag_counter):
+    """Apply tags for a given paper and increment a counter."""
+    for num, tag in enumerate(tags):
+        if tag_suitable(paper, tag['rule']):
+            paper['tags'].append(num)
+            tag_counter[num] += 1
+
+
 def process_papers(papers: dict,
                    tags: dict,
                    cats: list,
@@ -118,7 +149,7 @@ def process_papers(papers: dict,
                    do_tag: bool
                    ) -> dict:
     """
-    Papers processing.
+    Papers processing. Count papers per category, per novelty, per tag.
 
     Process:
     1. novelty. use 'bit' map
@@ -137,33 +168,40 @@ def process_papers(papers: dict,
             for cat in paper['cats']:
                 if cat in cats:
                     papers['n_cats'][cats.index(cat)] += 1
-            # 1.a check if cross-ref
-            if paper['cats'][0] not in cats:
-                papers['n_nov'][1] += 1
-                paper['nov'] += 2
 
-            # 1.b count updated papers
-            if paper['date_sub'] < papers['last_date']:
-                paper['nov'] += 4
-                papers['n_nov'][2] += 1
-
-            if paper['nov'] == 0:
-                paper['nov'] = 1
-                papers['n_nov'][0] += 1
+            process_nov(paper, papers['n_nov'], cats, papers['last_date'])
 
         # 2.
         if do_tag:
-            for num, tag in enumerate(tags):
-                if tag_suitable(paper, tag['rule']):
-                    paper['tags'].append(num)
-                    papers['n_tags'][num] += 1
+            process_tags(paper, tags, papers['n_tags'])
     return papers
+
+
+def find_or_and(rule: str) -> Tuple[List[int], List[int]]:
+    """Utils function that finds positions of & and | outside {} and ()."""
+    brackets = 0
+    or_pos, and_pos = [], []
+    for pos, char in enumerate(rule):
+        if char in ['(', '{']:
+            brackets += 1
+            continue
+        if char in [')', '}']:
+            brackets -= 1
+            continue
+        if brackets == 0:
+            if char == '|':
+                or_pos.append(pos)
+            elif char == '&':
+                and_pos.append(pos)
+
+    return or_pos, and_pos
 
 
 def tag_suitable(paper: dict, rule: str) -> bool:
     """
-    Simple rules are expected in the most of th cases.
+    Checking rule for the given paper.
 
+    The function is called recursively for checking different parts of the rule.
     1. Find logic AND / OR outside curly and round brackets
     2. If no - parse rules inside curly brackets
     3. OR: and process rule parts one by one separated by |
@@ -186,23 +224,10 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     if rule[0] == '(' and rule[-1] == ')':
         rule = rule[1:-1]
 
-    brackets = 0
-    or_pos, and_pos = [], []
-    for pos, char in enumerate(rule):
-        if char in ['(', '{']:
-            brackets += 1
-            continue
-        if char in [')', '}']:
-            brackets -= 1
-            continue
-        if brackets == 0:
-            if char == '|':
-                or_pos.append(pos)
-            elif char == '&':
-                and_pos.append(pos)
+    or_pos, and_pos = find_or_and(rule)
 
     # if no AND/OR found outside brackets process a rule inside curly brackets
-    if len(and_pos) == 0 and len(or_pos) == 0:
+    if len(and_pos) == 0 + len(or_pos) == 0:
         return parse_simple_rule(paper, rule)
 
     # add rule length limits
@@ -224,17 +249,12 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     and_pos.append(len(rule))
 
     # process logic AND
-    if len(and_pos) > 2:
-        for num, pos in enumerate(and_pos[:-1]):
-            if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
-                return False
+    for num, pos in enumerate(and_pos[:-1]):
+        if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
+            return False
 
     # if logic AND is inside the rule but False was not found
-    if len(and_pos) > 2:
-        return True
-
-    # default safety return
-    return False
+    return True
 
 
 def parse_simple_rule(paper: dict, condition: str) -> bool:
@@ -305,7 +325,7 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
 def get_json_papers(cats: list,
                     old_date: datetime,
                     new_date: datetime
-                    ) -> list:
+                    ) -> List[Dict]:
     """Get list of papers from DB in JSON format."""
     paper_query = Paper.query.filter(
                         Paper.cats.overlap(cats),
@@ -319,7 +339,7 @@ def get_json_unseen_papers(cats: list,
                            recent_visit: int,
                            recent_range: int,
                            announce_date: datetime
-                           ) -> list:
+                           ) -> List[Dict]:
     """Get unseen papers from DB in JSON format."""
     result = []
     for i in range(recent_range - 1):

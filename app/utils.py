@@ -3,6 +3,7 @@
 from os import linesep
 import logging
 from json import loads
+from typing import List, Dict
 
 import smtplib
 
@@ -11,7 +12,7 @@ from flask_login import current_user
 
 from .import mail
 
-from .model import PaperList
+from .model import PaperList, db
 
 
 def fix_xml(xml: str) -> str:
@@ -34,7 +35,7 @@ def mail_catch(msg: Message) -> bool:
     return True
 
 
-def get_lists_for_user() -> list:
+def get_lists_for_user() -> List[Dict]:
     """Get all paper lists for a given user."""
     # get all lists for the menu (ordered)
     paper_lists = PaperList.query.filter_by(user_id=current_user.id
@@ -56,10 +57,27 @@ def get_lists_for_user() -> list:
     return lists
 
 
-def cast_args_to_dict(args) -> list:
+def get_or_create_list(user_id, name) -> PaperList:
+    """Find a list for a user in DB. If no, create one."""
+    paper_list = PaperList.query.filter_by(user_id=user_id,
+                                           name=name
+                                           ).first()
+
+    if not paper_list:
+        paper_list = PaperList(name=name,
+                               user_id=user_id,
+                               not_seen=0
+                               )
+        db.session.add(paper_list)
+        db.session.commit()
+
+    return paper_list
+
+
+def cast_args_to_dict(args) -> List[Dict]:
     """Cast requests args to dictionary."""
     prefs = []
-    # FIXME Fix key break with ampersand
+    # TODO Fix key break with ampersand
     for arg in args:
         prefs.append(arg)
 

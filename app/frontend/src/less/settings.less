@@ -1,11 +1,21 @@
 @import "layout.less";
 
 .close-btn {
-  color: #f00;
+  color: #f006;
+  font-size: 1.6rem;
+  cursor: pointer;
+  display: inline;
+  font-weight: bold;
+  line-height: 1rem;
 
   &:hover {
     color: #f00;
   }
+}
+
+.modal-content {
+  background-color: var(--wrap_bg_color);
+  color: var(--wrap_color);
 }
 
 .form-block {
@@ -64,4 +74,18 @@
   text-align: center;
   font-size: 1.4rem;
   color: #888;
+}
+
+.btn-edit {
+  opacity: 10%;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 70%;
+  }
+}
+
+.btn-confirm {
+  color: var(--bs-success);
+  cursor: pointer;
 }

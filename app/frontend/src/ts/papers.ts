@@ -1,6 +1,7 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
 import {renderPapersBase, Paper, List, Data} from "./paper_basic";
 import {raiseAlert, cssVar, Tag, Preference} from "./layout";
+import {sortPapers} from "./paper_sorts";
 
 declare const MathJax;
 declare const __parseTex__: boolean;
@@ -46,91 +47,6 @@ const checkPaperVis = (paper: Paper,
     } else {
 
         return false;
-    }
-};
-
-const sortFunction = (a:number, b:number,
-                      order = true,
-                      aDate:number, bDate:number
-                      ): number => {
-    if (a !== b) {
-        return order? a - b : b - a;
-    }
-    // secondary sort always for date_up
-    return bDate - aDate;
-};
-
-const sortPapers = () => {
-    /** Sort the papers.
-     * Only papers marked as visible will be sorted.
-     */
-    const sortMethod = String((document.getElementById("sort-sel") as HTMLInputElement).value);
-    // tags
-    if (sortMethod.includes("tag")) {
-
-        DATA.papersVis.sort((a: Paper, b: Paper) => {
-            if (b.tags.length === 0 && a.tags.length !== 0) {
-                return sortMethod === "tag-as" ? -1 : 1;
-            }
-            if (b.tags.length !== 0 && a.tags.length === 0) {
-                return sortMethod === "tag-as" ? 1 : -1;
-            }
-            if (b.tags.length === 0 && a.tags.length === 0) {
-                return -1;
-            }
-            return sortFunction(a.tags[0], b.tags[0],
-                sortMethod === "tag-as",
-                (new Date(a.date_up).getTime()),
-                (new Date(b.date_up).getTime())
-            );
-        });
-    }
-    // dates
-    if (sortMethod.includes("date-up")) {
-        DATA.papersVis.sort((a: Paper, b: Paper) => {
-            const aDate = new Date(a.date_up);
-            const bDate = new Date(b.date_up);
-            return sortFunction(aDate.getTime(), bDate.getTime(),
-                sortMethod === "date-up_des",
-                aDate.getTime(), bDate.getTime());
-        });
-    }
-
-    if (sortMethod.includes("date-sub")) {
-        DATA.papersVis.sort((a: Paper, b: Paper) => {
-            const aDateSub = new Date(a["date_sub"]);
-            const bDateSub = new Date(b["date_sub"]);
-            return sortFunction(aDateSub.getTime(), bDateSub.getTime(),
-                sortMethod === "date-sub_des",
-                aDateSub.getTime(),
-                bDateSub.getTime()
-            );
-        });
-    }
-
-    // categories
-    if (sortMethod.includes("cat")) {
-        DATA.papersVis.sort((a: Paper, b: Paper) => {
-            let catA = "";
-            let catB = "";
-            for (let id = 0; id < a["cats"].length; id++) {
-                if (__CATS__.includes(a["cats"][`${id}`])) {
-                    catA = a["cats"][`${id}`];
-                    break;
-                }
-            }
-            for (let id = 0; id < b["cats"].length; id++) {
-                if (__CATS__.includes(b["cats"][`${id}`])) {
-                    catB = b["cats"][`${id}`];
-                    break;
-                }
-            }
-            return sortFunction(__CATS__.indexOf(catA), __CATS__.indexOf(catB),
-                sortMethod === "cat-as",
-                (new Date(a.date_up).getTime()),
-                (new Date(b.date_up).getTime())
-            );
-        });
     }
 };
 
@@ -265,8 +181,6 @@ const addBookmark = (event: MouseEvent): void => {
         popupContent.classList.add("full-width");
         BOOK_BTN = parseInt(target.id.split("-")[2], 10);
     }, sleep ? 200 : 0);
-
-    return;
 };
 
 document.onclick = (event: MouseEvent) => {
@@ -337,7 +251,6 @@ const pageLinkClick = (event: MouseEvent) => {
     if (target.parentElement.classList.contains("disabled")) {
         return;
     }
-    // cleanPageList();
 
     const pageStr = target.textContent;
     let page: number;
@@ -401,9 +314,17 @@ const filterVisiblePapers = (): void => {
         tagsShow.push(tag.vis);
     });
 
-    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
+    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis) &&
+        (document.getElementById("tag-label-0") === null ||
+        document.getElementById("tag-label-0").style.borderColor === "transparent");
 
-    // TODO add check if DATA.papers exist
+    if (DATA.papers.length === 0) {
+        console.warn("No papers in DATA.papers during filterVisiblePapers() call");
+        document.getElementById("no-paper").style["display"] = "block";
+        document.getElementById("loading-papers").style["display"] = "none";
+        return;
+    }
+
     DATA.papersVis = DATA.papers.filter((paper: Paper) => checkPaperVis(paper,
             catsShow,
             allVisible,
@@ -455,12 +376,12 @@ const checkTag = (event: MouseEvent) => {
     /** Click on tag.
      */
     let target = event.target as HTMLElement;
-    while (target.id === null) {
+    while (target.className !== "tag-label") {
         target = target.parentElement;
     }
     const number = parseInt(target.id.split("-")[2], 10);
     const thisVisible = PREF.tagsArr[number].vis;
-    const allVisible = PREF.tagsArr.every((x) => x.vis);
+    const allVisible = PREF.tagsArr.every((x: Tag) => x.vis);
 
     // if this tag is selected
     if (thisVisible) {
@@ -469,7 +390,7 @@ const checkTag = (event: MouseEvent) => {
                 typeof target.style.borderColor === "undefined")) {
             // select only this tag
             // make all others invisible
-            PREF.tagsArr.forEach((tag) => {tag.vis = false;});
+            PREF.tagsArr.forEach((tag: Tag) => {tag.vis = false;});
 
             // but this one visible
             tagBorder(number, true);
@@ -477,9 +398,9 @@ const checkTag = (event: MouseEvent) => {
             // hide this tag
             PREF.tagsArr[number].vis = false;
             // if this was the only left tag
-            if (PREF.tagsArr.filter((value) => value.vis).length === 0) {
+            if (PREF.tagsArr.filter((value: Tag) => value.vis).length === 0) {
                 // make all tags visible
-                PREF.tagsArr.forEach((tag) => {tag.vis = true;});
+                PREF.tagsArr.forEach((tag: Tag) => {tag.vis = true;});
             }
             // remove border
             document.getElementById("tag-label-" + number).style.borderColor = "transparent";
@@ -500,7 +421,7 @@ const novChange = (event: MouseEvent): void => {
     /** CLick on novelty checkbox.
      */
     const number = parseInt((event.target as HTMLElement).id.split("-")[2], 10);
-    PREF.novArr[`${number}`] = (document.getElementById("check-nov-"+number) as HTMLInputElement).checked;
+    PREF.novArr[number] = (document.getElementById("check-nov-"+number) as HTMLInputElement).checked;
     PREF.save();
     pageChange();
     setTimeout(function () {
@@ -515,7 +436,7 @@ const renderCats = (): void => {
     const unusedCats = Object.keys(PREF.catsArr).filter((x: string) => !__CATS__.includes(x));
     unusedCats.forEach((cat: string) => delete PREF.catsArr[`${cat}`]);
 
-    __CATS__.forEach((cat, num) => {
+    __CATS__.forEach((cat: string, num: number) => {
         // if category not in cookies visibility dictionary --> add it
         if (!(cat in PREF.catsArr)) {
             PREF.catsArr[`${cat}`] = true;
@@ -544,7 +465,7 @@ const renderCats = (): void => {
 
         // number of papers of given category
         const counter = document.createElement("div");
-        counter.className = "ml-auto counter";
+        counter.className = "ms-auto counter";
         counter.id = "cat-count-"+num;
         counter.textContent = "0";
 
@@ -560,21 +481,21 @@ const renderCats = (): void => {
 };
 
 const renderTags = (): void => {
-    const tagNames = __TAGS__.map((x) => x.name);
+    const tagNames = __TAGS__.map((x: Tag) => x.name);
     const unusedTags = [];
 
-    __TAGS__.forEach((tag, num) => {
+    __TAGS__.forEach((tag: Tag, tagNum: number) => {
 
         if (!PREF.tagsArr.map((x: Tag) => x.name).includes(tag.name)) {
             PREF.tagsArr.push({"name": tag.name,
                 "vis": true,
                 "color": tag.color,
-                "order": num
+                "order": tagNum
             });
         } else {
             const cookTag = PREF.tagsArr.find((tagC: Tag) => tagC.name === tag.name);
-            if (cookTag.order !== num) {
-                cookTag.order = num;
+            if (cookTag.order !== tagNum) {
+                cookTag.order = tagNum;
             }
         }
     });
@@ -586,6 +507,7 @@ const renderTags = (): void => {
     let num = 0;
     for (let tagIter = 0; tagIter < PREF.tagsArr.length; tagIter++) {
         const tag = PREF.tagsArr[`${tagIter}`];
+        // check if the unused tag is stored in cookies
         if (!tagNames.includes(tag.name)) {
             unusedTags.push(num);
             continue;
@@ -620,12 +542,12 @@ const renderTags = (): void => {
     if (__parseTex__) {
         MathJax.typesetPromise();
     }
-    unusedTags.forEach((num) => PREF.tagsArr.splice(num, 1));
+    unusedTags.forEach((numTag) => PREF.tagsArr.splice(numTag, 1));
     PREF.save();
 }
 
 const renderNov = (): void =>  {
-    PREF.novArr.forEach((show, num) => {
+    PREF.novArr.forEach((show: boolean, num: number) => {
         (document.getElementById("check-nov-" + num) as HTMLInputElement).checked = show;
     });
 }
@@ -657,7 +579,7 @@ document.getElementById("sort-sel").onchange = () => {
     pageChange();
     setTimeout(() => {
         // sort the papers that are supposed to be visible.
-        sortPapers();
+        sortPapers(DATA);
         // render the main page content
         // #pages is still the same, so no point of rendering from scratch
         renderPapers();
@@ -667,10 +589,10 @@ document.getElementById("sort-sel").onchange = () => {
 document.getElementById("filter-button").onclick = function() {
     if (document.getElementById("menu-col").classList.contains("d-none")) {
         document.getElementById("menu-col").classList.remove("d-none");
-        document.getElementById("menu-main").classList.remove("ml-auto");
+        document.getElementById("menu-main").classList.remove("ms-auto");
     } else {
         document.getElementById("menu-col").classList.add("d-none");
-        document.getElementById("menu-main").classList.add("ml-auto");
+        document.getElementById("menu-main").classList.add("ms-auto");
     }
 };
 
@@ -704,7 +626,7 @@ const listClick = (event: MouseEvent): void => {
 const renderLists = (): void => {
     /** Render pop-up window with page lists
      */
-    if (DATA.lists.length === 0) {
+    if (typeof DATA.lists === "undefined" || DATA.lists.length === 0) {
         return;
     }
     DATA.lists.forEach((list: List) => {
@@ -718,7 +640,6 @@ const renderLists = (): void => {
 };
 
 window.onload = () => {
-    // prefs.load();
     PREF.load();
 
     // a fix that prevent browser scrolling on "back" button
@@ -737,8 +658,8 @@ window.onload = () => {
             DATA = data as Data;
             renderCounters();
             // update page title with detailed dates
-            const element = $("#paper-list-title");
-            element.text(element.text() + DATA["title"]);
+            const elem = $("#paper-list-title");
+            elem.text(elem.text() + DATA["title"]);
             filterVisiblePapers();
             renderLists();
         }).fail(() => {

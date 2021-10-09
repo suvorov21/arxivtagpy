@@ -30,8 +30,11 @@ main_bp = Blueprint(
     'main_bp',
     __name__,
     template_folder='templates',
-    static_folder='static'
+    static_folder='frontend'
 )
+
+ROOT_LISTS = 'main_bp.papers_list'
+ROOT_BOOK = 'main_bp.bookshelf'
 
 
 @main_bp.route('/')
@@ -53,14 +56,14 @@ def papers_list():
     date_type = request.args.get('date')
     # date is obligatory argument
     if date_type is None:
-        return redirect(url_for('main_bp.papers_list',
+        return redirect(url_for(ROOT_LISTS,
                                 date='today',
                                 **request.args
                                 ))
 
     # page is obligatory for front-end rendering
     if request.args.get('page') is None:
-        return redirect(url_for('main_bp.papers_list',
+        return redirect(url_for(ROOT_LISTS,
                                 **request.args,
                                 page='1'
                                 ))
@@ -108,7 +111,7 @@ def paper_land():
         from_str = datetime.strftime(day, '%d-%m-%Y')
         until_str = datetime.strftime(day, '%d-%m-%Y')
         past_week.append({'day': datetime.strftime(day, '%A, %d %B'),
-                          'href': href.format(url=url_for('main_bp.papers_list'),
+                          'href': href.format(url=url_for(ROOT_LISTS),
                                               fr=from_str,
                                               until=until_str
                                               ),
@@ -148,9 +151,8 @@ def data():
         un=request.args.get('until')
     )
 
-    if request.args['date'] != 'last':
-        old_date = get_arxiv_sub_start(old_date_tmp.date())
-    else:
+    old_date = get_arxiv_sub_start(old_date_tmp.date())
+    if request.args['date'] == 'last':
         old_date = current_user.last_paper
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
@@ -195,7 +197,7 @@ def data():
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
         # prevent underflow by 1
-        i += 1 if i == -1 else 0
+        i = max(i, 0)
         current_user.recent_visit = current_user.recent_visit | 2 ** i
 
     # error handler
@@ -210,8 +212,7 @@ def data():
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
         # update last seen paper only if browsing papers until the last one
-        if current_user.last_paper < papers['papers'][0]['date_up']:
-            current_user.last_paper = papers['papers'][0]['date_up']
+        current_user.last_paper = max(papers['papers'][0]['date_up'], current_user.last_paper)
         logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         db.session.commit()
 
@@ -263,11 +264,11 @@ def bookshelf():
             new_default_list(current_user.id)
             fst_list = PaperList.query.filter_by(user_id=current_user.id
                                                  ).order_by(PaperList.order).first()
-        return redirect(url_for('main_bp.bookshelf', list_id=fst_list.id))
+        return redirect(url_for(ROOT_BOOK, list_id=fst_list.id))
     display_list = request.args['list_id']
 
     if 'page' not in request.args:
-        return redirect(url_for('main_bp.bookshelf',
+        return redirect(url_for(ROOT_BOOK,
                                 list_id=display_list,
                                 page=1))
 
@@ -277,7 +278,7 @@ def bookshelf():
         logging.error('Page argument is not int but: %r',
                       request.args['page']
                       )
-        return redirect(url_for('main_bp.bookshelf',
+        return redirect(url_for(ROOT_BOOK,
                                 list_id=display_list,
                                 page=1))
 
@@ -318,7 +319,7 @@ def bookshelf():
     papers['lists'] = lists
     tags_dict = render_tags_front(session['tags'])
 
-    url_base = url_for('main_bp.bookshelf',
+    url_base = url_for(ROOT_BOOK,
                        list_id=display_list
                        )
     url_base += '&page='

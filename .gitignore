@@ -3,7 +3,7 @@ __pycache__
 *.ipynb
 draft/*
 arXivTag
-app/static/.webassets-cache/*
+app/frontend/.webassets-cache/*
 app/static/dist/js/*.js
 app/static/dist/css/*.css
 varxiv/*
@@ -17,5 +17,5 @@ coverage.xml
 .vscode/*
 data/*
 HELP/*
-app/static/src/node_modules/*
-/app/static/dist/*
+app/frontend/src/node_modules/*
+/app/frontend/dist/*

@@ -4,6 +4,15 @@ import {List} from "./paper_basic";
 
 type settings = Array<List> | Array<string> | Array<Tag>;
 
+declare const bootstrap;
+
+export const toggleEditState = (): void => {
+    const btnCollection = document.getElementsByClassName("btn");
+    for (let i = 0; i < btnCollection.length; i++) {
+        btnCollection[`${i}`].classList.remove("disabled");
+    }
+}
+
 // API call for settings modifications
 export const submitSetting = (url: string, set: settings): Promise<boolean> => {
     return new Promise((resolve, reject) => {
@@ -36,9 +45,15 @@ export const setDefaultListeners = (): void => {
             const target = document.getElementsByClassName("btn-cancel")[0] as HTMLElement;
             if (target &&
                 !target.classList.contains("disabled")) {
-                if (!confirm("Settings will not be saved. Continue?")) {
-                    event.preventDefault();
-                }
+                const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+                document.getElementById("form-confirm").setAttribute("action", "");
+                modal.show();
+                event.preventDefault();
+                document.getElementById("modal-text").textContent = "Settings will not be saved, continue?";
+                const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
+                btn.type = "button";
+                btn.addEventListener("click", () => {document.location.href = (event.target as HTMLLinkElement).href;})
+                btn.className = "btn btn-primary";
             }
         });
     }
@@ -66,8 +81,5 @@ export const dropElement = (event: DragEvent, arrayToSwap: settings, dragTarget:
 
     // delete transferred element at old place
     arrayToSwap.splice(moved, 1);
-    const btnCollection = document.getElementsByClassName("btn");
-    for (let i = 0; i < btnCollection.length; i++) {
-        btnCollection[`${i}`].classList.remove("disabled");
-    }
+    toggleEditState();
 };

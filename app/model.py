@@ -85,7 +85,6 @@ class Tag(db.Model):
                      nullable=False
                      )
 
-    # TODO consider HEX format?
     color = db.Column(db.String(),
                       nullable=False
                       )

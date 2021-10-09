@@ -1,6 +1,4 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import "../css/wheelcolorpicker.css";
-import "../js/jquery.wheelcolorpicker";
 import {submitSetting, setDefaultListeners, dropElement} from "./settings";
 import {cssVar, raiseAlert, Tag} from "./layout";
 
@@ -16,7 +14,7 @@ declare const __TAGS__: Array<Tag>;
 declare const MathJax;
 declare const __parseTex__: boolean;
 
-export const findTagId = (param: string, paramName: string): string => {
+const findTagId = (param: string, paramName: string): string => {
     if (__TAGS__.length > 0 && !Object.prototype.hasOwnProperty.call(__TAGS__[0], paramName)) {
         console.error("Wrong tag param request " + paramName);
         return "-2";
@@ -78,18 +76,13 @@ function renderTags() {
         MathJax.typesetPromise();
     }
     // new tag button
-    const tagElement = document.createElement("div");
-    tagElement.setAttribute("class", "add-set tag-label");
-    tagElement.setAttribute("id", "add-tag");
-    tagElement.textContent = "+New";
+    const newTagElement = document.createElement("div");
+    newTagElement.setAttribute("class", "add-set tag-label");
+    newTagElement.setAttribute("id", "add-tag");
+    newTagElement.textContent = "+New";
 
-    document.getElementById("tag-list").appendChild(tagElement);
+    document.getElementById("tag-list").appendChild(newTagElement);
 }
-
-const updateColorField = () => {
-    const colorEl = document.getElementById("tag-color") as HTMLInputElement;
-    colorEl.style.backgroundColor =  colorEl.value;
-};
 
 const clearTagField = (): void => {
     document.forms["add-tag"]["tag_name"].value = "";
@@ -99,7 +92,6 @@ const clearTagField = (): void => {
     document.getElementById("btn-book").classList.add("disabled");
     document.forms["add-tag2"]["email-check"].checked = false;
     document.forms["add-tag2"]["public-check"].checked = false;
-    updateColorField();
 };
 
 const reloadTags = (hardReload = false): void => {
@@ -257,13 +249,24 @@ document.getElementById("test-btn").onclick = (event: MouseEvent) => {
     };
     const url = "/test_tag";
     $.get(url, data)
-        .done(function(data) {
-            if (data.includes("true")) {
-                // not a good practice, but ok for the time being
-                document.getElementById("test-result").innerHTML = "<i class='fa fa-check' aria-hidden='true' style='color: #1a941a'></i>&nbsp;Paper suits the tag!";
+        .done(function(resp) {
+            const icon = document.createElement("i");
+            const text = document.createElement("span");
+            text.className = "ps-2";
+            const parent = document.getElementById("test-result") as HTMLElement;
+            parent.innerHTML = "";
+            if (resp.includes("true")) {
+                icon.className = "fa fa-check";
+                icon.style.color = cssVar("--bs-success");
+                text.textContent = "Paper suits the tag!";
+
             } else {
-                document.getElementById("test-result").innerHTML = "<i class='fa fa-times' aria-hidden='true' style='color: #941a1a'></i>&nbsp;Paper does NOT suit the tag!";
+                icon.className = "fa fa-times";
+                icon.style.color = cssVar("--bs-danger");
+                text.textContent = "Paper does NOT suit the tag!";
             }
+            parent.appendChild(icon);
+            parent.appendChild(text);
         }).fail(function() {
         raiseAlert("Server expirienced an internal error. We are working on that.", "danger");
     });
@@ -298,7 +301,7 @@ const makeTagEdited = () => {
     }
 };
 
-const tableRowClick = (event: MouseEvent) => {
+const tableRowClick = (event: MouseEvent): void => {
     // do nothing if tag is not edited
     let message = "Use this name and rule?";
     let newTag = false;
@@ -306,25 +309,26 @@ const tableRowClick = (event: MouseEvent) => {
         message = "Use this rule for a new tag?";
         newTag = true;
     }
-    if (confirm(message)) {
-        // assume click is done on a cell, thus the row is a parent element
-        const row = (event.target as HTMLElement).parentElement;
-        for (let childId = 0; childId < row.childNodes.length; childId++) {
-            if (newTag) {
-                document.getElementById("add-tag").click();
-            }
-            if (!row.childNodes[`${childId}`].className) {
-                continue;
-            }
-            if (row.childNodes[`${childId}`].className.includes("name")) {
-                document.forms["add-tag"]["tag_name"].value = row.childNodes[`${childId}`].textContent;
-            }
-            if (row.childNodes[`${childId}`].className.includes("rule")) {
-                document.forms["add-tag"]["tag_rule"].value = row.childNodes[`${childId}`].textContent;
-            }
-        }
-        makeTagEdited();
+    if (!confirm(message)) {
+        return;
     }
+    // assume click is done on a cell, thus the row is a parent element
+    const row = (event.target as HTMLElement).parentElement;
+    for (let childId = 0; childId < row.childNodes.length; childId++) {
+        if (newTag) {
+            document.getElementById("add-tag").click();
+        }
+        if (!row.childNodes[`${childId}`].className) {
+            continue;
+        }
+        if (row.childNodes[`${childId}`].className.includes("name")) {
+            document.forms["add-tag"]["tag_name"].value = row.childNodes[`${childId}`].textContent;
+        }
+        if (row.childNodes[`${childId}`].className.includes("rule")) {
+            document.forms["add-tag"]["tag_rule"].value = row.childNodes[`${childId}`].textContent;
+        }
+    }
+    makeTagEdited();
 };
 
 document.getElementById("show-pubtags").onclick = (event: MouseEvent) => {
@@ -387,6 +391,9 @@ document.getElementById("show-pubtags").onclick = (event: MouseEvent) => {
 document.getElementById("tag-list").onclick = (event: MouseEvent) => {
     // consider only tag labels click
     let target = event.target as HTMLElement;
+    if (target.id.includes("tag-list")) {
+        return;
+    }
     while(!target.classList.contains("tag-label") && target.id !== "tags-list") {
         target = target.parentElement;
     }
@@ -399,15 +406,15 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
 
     // reset the highlight of all other tags
     const tagCol = document.getElementsByClassName("tag-label");
-    for (let id = 0; id < tagCol.length; id++) {
+    for (const col of tagCol) {
         // new tag box
-        if (tagCol[id].id === "add-tag") {
+        if (col.id === "add-tag") {
             document.getElementById("add-tag").style.borderStyle = "dashed";
             document.getElementById("add-tag").style.borderWidth = "2px";
-        } else {
-            // existing tags
-            (tagCol[id] as HTMLElement).style.borderColor =  "transparent";
+            continue;
         }
+        // existing tags
+        (col as HTMLElement).style.borderColor =  "transparent";
     }
 
     // highlight the editable tag
@@ -434,7 +441,6 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
         changeBookBtnStatus(tag.bookmark);
         document.forms["add-tag2"]["email-check"].checked = tag.email;
         document.forms["add-tag2"]["public-check"].checked = tag.public;
-        updateColorField();
 
         // make delete possible
         document.getElementById("btn-del").classList.remove("disabled");
@@ -451,11 +457,6 @@ $(".tag-field").on("input", function() {
 $(".tag-field").on("change", function() {
     makeTagEdited();
 });
-
-document.getElementById("tag-color").onchange = () => {
-    updateColorField();
-    $(".btn-save").removeClass("disabled");
-};
 
 document.getElementById("book-check").onchange = () => {
     changeBookBtnStatus(document.forms["add-tag2"]["book-check"].checked);
@@ -491,17 +492,17 @@ document.getElementById("btn-book").onclick = (event: MouseEvent) => {
     });
 };
 
+const submitTag = (event: Event): void => {
+    event.preventDefault();
+    if ($(".btn-cancel").hasClass("disabled")) {
+        return;
+    }
+    checkTag();
+};
+
 // on page load
 window.onload = () => {
     reloadTags();
     setDefaultListeners();
-    (document.getElementById("mod-tag") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
-        event.preventDefault();
-        if ($(".btn-cancel").hasClass("disabled")) {
-            // TODO remove return?
-            return false;
-        }
-        checkTag();
-        return false;
-    });
+    (document.getElementById("mod-tag") as HTMLFormElement).addEventListener("submit",  submitTag);
 };
