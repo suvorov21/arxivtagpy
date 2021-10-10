@@ -87,7 +87,7 @@ const selectActivePage = (): void => {
         document.getElementById("prev").classList.remove("disabled");
     }
 
-    const nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+    const nPages = Math.floor((VISIBLE-1)/PAPERS_PER_PAGE) + 1;
     if (PAGE !== nPages) {
         document.getElementById("next").classList.remove("disabled");
     }
@@ -271,7 +271,7 @@ const doRenderPagination = (): void => {
     /** Render all the page links at the bottom of the page.
      */
 
-    const nPages = Math.floor(VISIBLE/PAPERS_PER_PAGE) + 1;
+    const nPages = Math.floor((VISIBLE-1)/PAPERS_PER_PAGE) + 1;
     for (let i = 2; i <= nPages; i++) {
         const newPageItem = document.createElement("li");
         newPageItem.className = "page-item pageTmp";
