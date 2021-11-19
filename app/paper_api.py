@@ -9,6 +9,7 @@ from typing import Tuple
 
 from flask import current_app
 from requests import get
+import urllib3
 
 from .model import Paper
 from .utils import fix_xml
@@ -63,9 +64,21 @@ class ArxivOaiApi:
     def download_papers(self, fail_attempts: int = 0, rest: int = -1):
         """Generator for paper downloading."""
 
+        if fail_attempts > self.MAX_FAIL:
+            logging.error('arXiv exceeds max allowed error limit')
+            return
+
         logging.debug('Start harvesting')
 
-        response = get(self.URL, self.params)
+        try:
+            response = get(self.URL, self.params)
+        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.NewConnectionError) as e:
+            logging.warning('urllib3 exception')
+            fail_attempts += 1
+            sleep(self.DELAY)
+            self.download_papers(fail_attempts=fail_attempts)
+            yield from self.download_papers(rest=rest)
+
         logging.info('Ask arxiv with %r', response.url)
 
         if response.status_code != 200:
@@ -81,12 +94,9 @@ class ArxivOaiApi:
                                 )
                 sleep(delay)
 
-            if fail_attempts > self.MAX_FAIL:
-                logging.error('arXiv exceeds max allowed error limit')
-                return
-
             sleep(self.DELAY)
             self.download_papers(fail_attempts=fail_attempts)
+            yield from self.download_papers(rest=rest)
 
         lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
         records = lor.findall(self.OAI + 'record')
