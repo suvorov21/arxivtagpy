@@ -15,7 +15,7 @@ from flask import Blueprint, current_app, request, render_template
 from flask_mail import Message
 from flask_login import current_user
 
-from .model import User, Tag, db, PaperList, Paper, UpdateDate, \
+from .model import User, Tag, db, Paper, UpdateDate, \
     paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
@@ -35,7 +35,7 @@ def check_token(funct):
     """
     Decorator that checks the token.
 
-    Used in the autometic functions for verifications.
+    Used in the automatic functions for verifications.
     """
 
     @wraps(funct)
@@ -194,7 +194,7 @@ def bookmark_papers():
     """
     Auto bookmark new submissions.
 
-    1. Start with quering all the tags with bookmark==True
+    1. Start with querying all the tags with bookmark==True
         sort by user id
     2. User by user:
         2.1 Get a user that owns this tag
@@ -240,7 +240,7 @@ def bookmark_papers():
         # 3.2
         for paper in papers:
             if tag_suitable(render_paper_json(paper), tag.rule):
-                # check if paper is already there to prevent dublicatiopn
+                # check if paper is already there to prevent duplication
                 result = db.session.query(paper_associate
                                           ).filter_by(list_ref_id=paper_list.id,
                                                       paper_ref_id=paper.id
