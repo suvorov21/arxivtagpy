@@ -24,7 +24,6 @@ from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
 RECENT_PAPER_RANGE = 10
-DATE_TYPES = ['today', 'week', 'month', 'last', 'range']
 
 main_bp = Blueprint(
     'main_bp',
@@ -182,6 +181,9 @@ def data():
                                                   RECENT_PAPER_RANGE,
                                                   announce_date)
 
+    if request.args['date'] == 'last':
+        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
+
     # update "seen" papers
     it_start = (announce_date -
                 new_date_tmp.replace(tzinfo=timezone.utc)).days
@@ -226,9 +228,6 @@ def data():
 
     # lists are required at front-end as there is an interface to add paper to any one
     lists = get_lists_for_user()
-
-    if request.args['date'] == 'last':
-        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
 
     result = {'papers': papers['papers'],
               'ncat': papers['n_cats'],
