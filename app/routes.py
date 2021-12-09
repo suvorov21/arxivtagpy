@@ -133,11 +133,6 @@ def paper_land():
 @login_required
 def data():
     """API for paper download and process."""
-    last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-    if not last_paper:
-        logging.error('Paper table is empty')
-        return dumps({'success': False}), 422
-
     announce_date = get_annonce_date()
 
     # update the information about "seen" papers since the last visit
