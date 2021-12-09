@@ -4,6 +4,7 @@ from os import linesep
 import logging
 from json import loads
 from typing import List, Dict
+from datetime import datetime, timedelta
 
 import smtplib
 
@@ -12,7 +13,7 @@ from flask_login import current_user
 
 from .import mail
 
-from .model import PaperList, db
+from .model import PaperList, db, UpdateDate
 
 
 def fix_xml(xml: str) -> str:
@@ -93,3 +94,26 @@ def cast_args_to_dict(args) -> List[Dict]:
         prefs = [prefs]
 
     return prefs
+
+
+def month_start() -> datetime:
+    """Return the first day of the month."""
+    today_date = datetime.now()
+    # if month just stated --> take the previous one
+    if today_date.day < 3:
+        today_date -= timedelta(days=4)
+    return today_date - timedelta(days=today_date.day)
+
+
+def get_old_update_date() -> UpdateDate:
+    """Check if the database record with latest update exists. If not create."""
+    old_date_record = UpdateDate.query.first()
+    if not old_date_record:
+        old_date = month_start()
+        old_date_record = UpdateDate(last_bookmark=old_date,
+                                     last_email=old_date
+                                     )
+        db.session.add(old_date_record)
+        db.session.commit()
+
+    return old_date_record

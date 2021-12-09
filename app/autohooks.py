@@ -15,11 +15,11 @@ from flask import Blueprint, current_app, request, render_template
 from flask_mail import Message
 from flask_login import current_user
 
-from .model import User, Tag, db, Paper, UpdateDate, \
+from .model import User, Tag, db, Paper, \
     paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from .utils import mail_catch, get_or_create_list
+from .utils import mail_catch, get_or_create_list, get_old_update_date, month_start
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -343,15 +343,6 @@ def email_papers():
     return dumps({'success': True}), 201
 
 
-def month_start() -> datetime:
-    """Return the first day of the month."""
-    today_date = datetime.now()
-    # if month just stated --> take the previous one
-    if today_date.day < 3:
-        today_date -= timedelta(days=4)
-    return today_date - timedelta(days=today_date.day)
-
-
 def email_paper_update(papers: list, email: str, do_send: bool):
     """Send the papers update."""
     body = 'Hello,\n\nWe created a daily paper feed based on your preferences.'
@@ -389,16 +380,3 @@ def email_paper_update(papers: list, email: str, do_send: bool):
 
     if do_send:
         mail_catch(msg)
-
-
-def get_old_update_date() -> UpdateDate:
-    """Check if the database record with latest update exists. If not create."""
-    old_date_record = UpdateDate.query.first()
-    if not old_date_record:
-        old_date = month_start()
-        old_date_record = UpdateDate(last_bookmark=old_date,
-                                     last_email=old_date)
-        db.session.add(old_date_record)
-        db.session.commit()
-
-    return old_date_record
