@@ -313,7 +313,10 @@ def email_papers():
             if any([len(tags['papers']) > 0 for tags in papers_to_send]) \
                     and user:
                 logging.debug('Send email for user %i', user.id)
-                email_paper_update(papers_to_send, user.email, bool(do_send == "True"))
+                email_paper_update(papers_to_send,
+                                   user.email,
+                                   bool(do_send == "True") and user.verify_email
+                                   )
 
             user = User.query.filter_by(id=tag.user_id).first()
             logging.debug('Form the email for user %i', user.id)
@@ -338,7 +341,10 @@ def email_papers():
     # for the last user
     if any([len(tags['papers']) > 0 for tags in papers_to_send]):
         logging.debug('Send email for user %i', user.id)
-        email_paper_update(papers_to_send, user.email, bool(do_send == "True"))
+        email_paper_update(papers_to_send,
+                           user.email,
+                           bool(do_send == "True") and user.verify_email
+                           )
 
     # store the last checked paper
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()

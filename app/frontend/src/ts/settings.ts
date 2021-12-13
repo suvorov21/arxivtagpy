@@ -27,6 +27,37 @@ export const submitSetting = (url: string, set: settings): Promise<boolean> => {
     });
 };
 
+export const raiseModal = (event: Event,
+                           questionText: string,
+                           btnClass: string,
+                           confirmHref: string,
+                           formAction: string
+                           ): void => {
+    /**
+     * Raise modal window with confirmation request
+     */
+    if (formAction !== "" && confirmHref !== "") {
+        console.error("raiseModal error. both formAction and confirmHref are specified");
+        return;
+    }
+    event.preventDefault();
+
+    const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
+    document.getElementById("form-confirm").setAttribute("action", formAction);
+    modal.show();
+    document.getElementById("modal-text").innerHTML = questionText;
+
+    const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
+    btn.addEventListener("click", () => {document.location.href = confirmHref;})
+    btn.className = btnClass;
+
+    if (formAction !== "") {
+        btn.type = "submit";
+    } else {
+        btn.type = "button";
+    }
+}
+
 export const setDefaultListeners = (): void => {
     let btnCollection = document.getElementsByClassName("btn-cancel");
     for (let i = 0; i < btnCollection.length; i++) {
@@ -45,15 +76,12 @@ export const setDefaultListeners = (): void => {
             const target = document.getElementsByClassName("btn-cancel")[0] as HTMLElement;
             if (target &&
                 !target.classList.contains("disabled")) {
-                const modal = new bootstrap.Modal(document.getElementById("confirmModal"));
-                document.getElementById("form-confirm").setAttribute("action", "");
-                modal.show();
-                event.preventDefault();
-                document.getElementById("modal-text").textContent = "Settings will not be saved, continue?";
-                const btn = document.getElementById("btn-confirm") as HTMLLinkElement;
-                btn.type = "button";
-                btn.addEventListener("click", () => {document.location.href = (event.target as HTMLLinkElement).href;})
-                btn.className = "btn btn-primary";
+                raiseModal(event,
+                    "Settings will not be saved, continue?",
+                    "btn btn-primary",
+                    (event.target as HTMLLinkElement).href,
+                    ""
+                );
             }
         });
     }

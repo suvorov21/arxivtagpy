@@ -14,13 +14,17 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer,
                    primary_key=True
                    )
-    pasw = db.Column(db.String(),
-                     nullable=False
-                     )
-    email = db.Column(db.String(),
-                      nullable=False,
+    pasw = db.Column(db.String())
+    orcid = db.Column(db.String,
                       unique=True
                       )
+    email = db.Column(db.String(),
+                      unique=True
+                      )
+    verified_email = db.Column(db.Boolean,
+                               nullable=False,
+                               default=False
+                               )
     created = db.Column(db.DateTime(),
                         nullable=False
                         )

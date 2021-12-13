@@ -1,10 +1,12 @@
 """Authority utilities: login, pass check, account managment."""
 
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import secrets
 import string
 import logging
 import re
+from jwt import decode, encode, InvalidTokenError, ExpiredSignatureError
+import requests
 
 from werkzeug.security import check_password_hash, \
     generate_password_hash
@@ -97,6 +99,31 @@ def new_default_list(usr_id):
     db.session.commit()
 
 
+def new_user_routine(user: User):
+    """Create and add default tag to user."""
+    tag = Tag(name='example',
+              rule='abs{physics|math}',
+              color='#fff2bd',
+              order=0,
+              public=False,
+              email=False,
+              bookmark=False
+              )
+    user.tags.append(tag)
+    db.session.add(user)
+    db.session.commit()
+
+    new_default_list(user.id)
+
+    login_user(user)
+    message = 'Welcome to arXiv tag! Please setup rules to classify papers.<br>'
+    message += '1. To check the syntax click on "Show rules hints"<br>'
+    message += '2. To see example from other users click on "Show users rules examples."<br>'
+    message += 'You can modify the settings later at any time.'
+    flash(message)
+    return redirect(url_for(ROOT_SET, page='tag'), code=303)
+
+
 @auth_bp.route('/new_user', methods=["POST"])
 def new_user():
     """New user creation."""
@@ -119,6 +146,7 @@ def new_user():
         return redirect(url_for(SIGNUP_ROOT), code=303)
 
     user = User(email=email,
+                verified_email=False,
                 pasw=generate_password_hash(pasw1),
                 arxiv_cat=['hep-ex'],
                 created=datetime.now(),
@@ -128,28 +156,7 @@ def new_user():
                 recent_visit=0
                 )
 
-    tag = Tag(name='example',
-              rule='abs{physics|math}',
-              color='#fff2bd',
-              order=0,
-              public=False,
-              email=False,
-              bookmark=False
-              )
-
-    user.tags.append(tag)
-    db.session.add(user)
-    db.session.commit()
-
-    new_default_list(user.id)
-
-    login_user(user)
-    message = 'Welcome to arXiv tag! Please setup rules to classify papers.<br>'
-    message += '1. To check the syntax click on "Show rules hints"<br>'
-    message += '2. To see example from other users click on "Show users rules examples."<br>'
-    message += 'You can modify the settings later at any time.'
-    flash(message)
-    return redirect(url_for(ROOT_SET, page='tag'), code=303)
+    return new_user_routine(user)
 
 
 @auth_bp.route('/change_pasw', methods=["POST"])
@@ -161,16 +168,18 @@ def change_pasw():
     new2 = request.form.get('newPass2')
     if new != new2:
         flash("ERROR! New passwords don't match!")
-        return redirect(url_for(ROOT_SET))
+        return redirect(url_for(ROOT_SET, page='pref'))
 
-    if not check_password_hash(current_user.pasw, old):
-        flash("ERROR! Wrong old password!")
-        return redirect(url_for(ROOT_SET))
+    # check for the old password only if any (3rd party OAth may be used)
+    if current_user.pasw:
+        if not check_password_hash(current_user.pasw, old):
+            flash("ERROR! Wrong old password!")
+            return redirect(url_for(ROOT_SET, page='pref'))
 
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
     flash('Password successfully changed!')
-    return redirect(url_for(ROOT_SET), code=303)
+    return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
 
 @auth_bp.route('/delAcc', methods=["POST"])
@@ -219,7 +228,7 @@ def restore_pass():
         db.session.commit()
 
         # create an email
-        body = 'Hello,\n\nYour password for the website arxivtag.tk'
+        body = 'Hello,\n\nYour password for the website' + request.headers['Host']
         body += ' was reset. The new password is provided below.\n'
         body += 'Please, consider password change immediately after login'
         body += ' at the settings page.'
@@ -250,3 +259,220 @@ def restore_pass():
         flash('ERROR! Server experienced an internal error. We are working on fix. \
               Please, try later')
     return redirect(url_for(ROOT_PATH), code=303)
+
+
+@auth_bp.route('/oath',  methods=['GET'])
+def oath():
+    """Authentication with ORCID API."""
+    code = request.args.get('code')
+    headers = {'Accept': 'application/json'}
+    data = {'client_id': 'APP-CUS94SZ4NVHZ1IFS',
+            'client_secret': 'c73364d5-2602-43a5-a9c5-e0a50033243e',
+            'grant_type': 'authorization_code',
+            # TODO upate with HTTPS
+            'redirect_uri': 'http://' + request.headers['Host'] + '/oath',
+            'code': str(code)
+            }
+
+    # Because of some black magic requests.post() is not working, and we have to use requests.Request()
+    # The possible reason is some additional headers requests adds to POST by default.
+    # response = requests.post('https://sandbox.orcid.org/oauth/token', headers=headers, data=data)
+    # print(response.headers)
+
+    req = requests.Request('POST', 'https://sandbox.orcid.org/oauth/token', data=data, headers=headers)
+    prepared = req.prepare()
+    s = requests.Session()
+    response = s.send(prepared)
+
+    if response.status_code != 200 or 'orcid' not in response.json():
+        logging.error('Error with ORCID OAth. Code %i', response.status_code)
+        message = 'ERROR! ORCID respond with error.<br>'
+        message += 'We are notified and investigating the problem.<br>'
+        message += 'You can try login with email/password.'
+        flash(message)
+        return redirect(url_for(ROOT_PATH), code=303)
+
+    user = User.query.filter_by(orcid=response.json()['orcid']).first()
+
+    if not user:
+        # create a new one
+        user = User(orcid=response.json()['orcid'],
+                    arxiv_cat=['hep-ex'],
+                    created=datetime.now(),
+                    login=datetime.now(),
+                    last_paper=datetime.now(),
+                    pref='{"tex":"True", "theme":"light"}',
+                    recent_visit=0,
+                    verified_email=False
+                    )
+
+        return new_user_routine(user)
+    else:
+        login_user(user)
+
+    return redirect(url_for(ROOT_PATH), code=303)
+
+
+@auth_bp.route('/email_change',  methods=['POST'])
+@login_required
+def email_change():
+    """Change email for the current user."""
+    new = request.form.get('newEmail')
+    if not current_user.email:
+        print('catch')
+        current_user.email = new
+        db.session.commit()
+        message = 'Email changed successfully! You can verify it now.'
+        flash(message)
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    user = User.query.filter_by(email=new).first()
+    if user:
+        flash("ERROR!  User with new email is already registered.")
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    payload = {'exp': datetime.now(tz=timezone.utc) + timedelta(days=1),
+               'from': current_user.email,
+               'to': new}
+    token = encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+    # create an email
+    body = 'Hello,\n\nYour email in the account at the website' + request.headers['Host']
+    body += f'was requested to be changed to {new}.\n'
+    body += 'If it was not you - ignore the message.'
+    body += ' If you are sure you want to change the email use the link below\n\n'
+    body += f'http://{request.headers["Host"]}/change_email_confirm?data={token}'
+
+    html = render_template('mail_email_change.jinja2',
+                           host=request.headers['Host'],
+                           new_emal=new,
+                           href=f'http://{request.headers["Host"]}/change_email_confirm?data={token}'
+                           )
+    msg = Message(body=body,
+                  html=html,
+                  sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                  recipients=[current_user.email],
+                  subject="arXiv tag email change"
+                  )
+
+    success = mail_catch(msg)
+
+    message = 'ERROR! Confirmation email is not send. Please try later.'
+    if success:
+        message = f'Email with confirmation link was sent to your email {current_user.email}'
+        message += '<br>Until confirmation, the old email will be used.'
+    else:
+        logging.error('Error while sending email change confirmation')
+
+    flash(message)
+    return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+
+@auth_bp.route('/verify_email',  methods=['GET'])
+@login_required
+def verify_email():
+    """Verify email for the current user."""
+    payload = {'exp': datetime.now(tz=timezone.utc) + timedelta(days=1),
+               'email': current_user.email
+               }
+    token = encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+    # create an email
+    body = 'Hello,\n\nplease verrify your email for the website' + request.headers['Host']
+    body += '\n with the link below\n\n'
+    body += f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
+
+    html = render_template('mail_email_verification.jinja2',
+                           host=request.headers['Host'],
+                           href=f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
+                           )
+    msg = Message(body=body,
+                  html=html,
+                  sender=current_app.config['MAIL_DEFAULT_SENDER'],
+                  recipients=[current_user.email],
+                  subject="arXiv tag email verification"
+                  )
+
+    success = mail_catch(msg)
+
+    message = 'ERROR! Confirmation email is not send. Please try later.'
+    if success:
+        message = f'Email with confirmation link was sent to your email {current_user.email}'
+    else:
+        logging.error('Error while sending email verification')
+
+    flash(message)
+    return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+
+@auth_bp.route('/change_email_confirm',  methods=['GET'])
+def change_email_confirm():
+    token = request.args.get('data')
+    try:
+        decoded = decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+    except ExpiredSignatureError:
+        flash('ERROR! Link is expired, please try again.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+    except InvalidTokenError:
+        flash('ERROR! Invalid link, please try again.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    if 'to' not in decoded:
+        flash('ERROR! Invalid link, please try again.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    user = User.query.filter_by(email=decoded['from']).first()
+    if not user:
+        logging.error('User not found during email change')
+        flash('ERROR! User not found!')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    user.email = decoded['to']
+    db.session.commit()
+
+    flash('Email changed successfully!')
+    return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+
+@auth_bp.route('/verify_email_confirm',  methods=['GET'])
+def verify_email_confirm():
+    """Verification of the email with token."""
+    token = request.args.get('data')
+    try:
+        decoded = decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+    except ExpiredSignatureError:
+        flash('ERROR! Link is expired, please try again.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+    except InvalidTokenError:
+        flash('ERROR! Invalid link, please try again.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    if 'email' not in decoded:
+        flash('ERROR! Invalid link, please try again.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    user = User.query.filter_by(email=decoded['email']).first()
+    if not user:
+        logging.error('User not found during email verification')
+        flash('ERROR! User not found!')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    user.verified_email = True
+    db.session.commit()
+
+    flash('Email verified successfully!')
+    return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+
+@auth_bp.route('/orcid', methods=['GET'])
+def orcid():
+    """Redirect to ORCID authentication page."""
+    href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
+                                   '/oauth/authorize?client_id=',
+                                   current_app.config['ORCID_APP'],
+                                   '&response_type=code&scope=/authenticate',
+                                   '&redirect_uri=',
+                                   # TODO UPDATE with HTTPS
+                                   'http://' + request.headers['Host'] + '/oath'
+                                   )
+    return redirect(href, code=303)

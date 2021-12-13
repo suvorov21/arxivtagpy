@@ -403,7 +403,7 @@ def public_tags():
 @login_required
 def collect_feedback():
     """Send feedback by email to the admin."""
-    sender = current_user.email
+    sender = current_user.email if current_user.email else current_user.orcid
     text = request.form.get('body')
 
     body = f'Feedback from {sender}\n\n'

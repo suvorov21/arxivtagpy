@@ -27,10 +27,10 @@
           </ul>
         </div>
       </div>
-    {# Mobile friendly menu #}
+      {# Mobile friendly menu #}
 
-    <div class="container pb-3 d-md-none">
-      <ul class="nav nav-pills">
+      <div class="container pb-3 d-md-none">
+        <ul class="nav nav-pills">
           <li class="nav-item">
             <a class="nav-link {{ 'active' if data['page'] == 'cat' else 'none' }}" id="cats-link" href="settings?page=cat">Categories</a>
           </li>
@@ -95,89 +95,100 @@
                     <input type="text" class="form-control tag-field" id="tag-rule" name='tag_rule' placeholder="abs{LHC}&au{ATLAS|LHCb|ALICE|CMS}" size=50>
                   </fieldset>
                 </form>
-              <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="test-rule">Test the rule</span></div>
-              <div id="tag-test" style="display: none">
-                <div>Enter imaginary paper details</div>
-                <form name="tag-test-form" class="form-group">
-                  <fieldset id="tag-test">
-                    <input type="text" class="form-control mt-2" name="paper_title" placeholder="Paper title">
-                    <input type="text" class="form-control mt-2" name="paper_author" placeholder="Authors">
-                    <input type="text" class="form-control mt-2" name="paper_abs" placeholder="Abstract">
-                    <button class="btn btn-primary mt-2" id="test-btn">Test</button>
-                    <div id="test-result" class="mt-2"></div>
-                  </fieldset>
-                </form>
-              </div>
-              <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></div>
-              <div id="tag-help">
-                <p>
-                  Syntaxis:<br/>
-                  <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
-                  <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
-                  <code>cat{hep-ex}</code> - for papers with category "hep-ex" <br/>
-                  <code>au{John Doe}</code> - for papers with "John Doe" in author list
-                </p>
-                <p>
-                  Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. Parentheses (if any) will be taken into account.<br/>
-                  <code>!</code> sign can be placed inside curly brackets to invert the whole rule. <br /><br />
-                  Parentheses INSIDE curly brackets will be treated in the RegExp way. If you don't know what it is, please refrain from using ones. <br />
+                <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="test-rule">Test the rule</span></div>
+                <div id="tag-test" style="display: none">
+                  <div>Enter imaginary paper details</div>
+                  <form name="tag-test-form" class="form-group">
+                    <fieldset id="tag-test">
+                      <input type="text" class="form-control mt-2" name="paper_title" placeholder="Paper title">
+                      <input type="text" class="form-control mt-2" name="paper_author" placeholder="Authors">
+                      <input type="text" class="form-control mt-2" name="paper_abs" placeholder="Abstract">
+                      <button class="btn btn-primary mt-2" id="test-btn">Test</button>
+                      <div id="test-result" class="mt-2"></div>
+                    </fieldset>
+                  </form>
+                </div>
+                <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-rules">Show rules hints</span></div>
+                <div id="tag-help">
+                  <p>
+                    Syntaxis:<br/>
+                    <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
+                    <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
+                    <code>cat{hep-ex}</code> - for papers with category "hep-ex" <br/>
+                    <code>au{John Doe}</code> - for papers with "John Doe" in author list
+                  </p>
+                  <p>
+                    Logic operators <code>&</code> and <code>|</code> can be placed inside and outside curly brackets. Parentheses (if any) will be taken into account.<br/>
+                    <code>!</code> sign can be placed inside curly brackets to invert the whole rule. <br /><br />
+                    Parentheses INSIDE curly brackets will be treated in the RegExp way. If you don't know what it is, please refrain from using ones. <br />
 
-                  Regular expressions can be used inside curly brackets. <br/>
-                  $\\LaTeX$ is supported starting with \\\\. E.g. "\\\\chi".<br/>
-                  Rules are case insensitive.
-                </p>
-                <p>
-                  Examples:<br />
-                  <code>ti{Breakthrough}|au{Nobel Winner} </code><br />
-                  <code>ti{quantum}&abs{\\Delta x\\Delta p>\\hbar} </code><br />
-                  <code>ti{cellular}&ti{!biology}</code><br />
-                  <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
-                </p>
-              </div>
-              <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></div>
-              {# Table with tags of other users #}
+                    Regular expressions can be used inside curly brackets. <br/>
+                    $\\LaTeX$ is supported starting with \\\\. E.g. "\\\\chi".<br/>
+                    Rules are case insensitive.
+                  </p>
+                  <p>
+                    Examples:<br />
+                    <code>ti{Breakthrough}|au{Nobel Winner} </code><br />
+                    <code>ti{quantum}&abs{\\Delta x\\Delta p>\\hbar} </code><br />
+                    <code>ti{cellular}&ti{!biology}</code><br />
+                    <code>abs{neutrino}&ti{neutrino|\nu}&(ti{breakthrough}|au{Pauli})</code> <br />
+                  </p>
+                </div>
+                <div class="rule-help form-text"><i class="fa fa-question" aria-hidden="true"></i>&nbsp;<span id="show-pubtags">Show users rules examples</span></div>
+                {# Table with tags of other users #}
 
-              <div id="loading-tags"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading tags...</div>
-              <div class="table-responsive" style="height: 400px;" id="table-wrapper">
-                <small class="form-text text-muted">Click on the row to fill the fields above</small>
-                <table class="table table-hover {% if data['theme'] == 'dark' %}table-dark{% endif %}" id="tag-table">
-                  <thead>
+                <div id="loading-tags"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading tags...</div>
+                <div class="table-responsive" style="height: 400px;" id="table-wrapper">
+                  <small class="form-text text-muted">Click on the row to fill the fields above</small>
+                  <table class="table table-hover {% if data['theme'] == 'dark' %}table-dark{% endif %}" id="tag-table">
+                    <thead>
                     <tr>
                       <th scope="col">#</th>
                       <th scope="col">name</th>
                       <th scope="col">rule</th>
                     </tr>
-                  </thead>
-                  <tbody id="table-body">
-                  </tbody>
-                </table>
-              </div>
-              <br/>
-              <form name="add-tag2" class="form-group">
-                <fieldset id="tag-fields2">
-                  <label for="tag-color">Tag color</label><br/>
+                    </thead>
+                    <tbody id="table-body">
+                    </tbody>
+                  </table>
+                </div>
+                <br/>
+                <form name="add-tag2" class="form-group">
+                  <fieldset id="tag-fields2">
+                    <label for="tag-color">Tag color</label><br/>
                     <input type="color" name="tag_color" id="tag-color" class="tag-field form-control form-control-color">
-                  <div class="form-check mt-4">
-                    <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
-                    <label class="form-check-label" for="book-check">Bookmark automatically</label>
-                    <div class="form-text">
-                      Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
-                      <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
+                    <div class="form-check mt-4">
+                      <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
+                      <label class="form-check-label" for="book-check">Bookmark automatically</label>
+                      <div class="form-text">
+                        Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
+                        <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
+                      </div>
                     </div>
-                    <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
-                    <label class="form-check-label" for="email-check">Email notification</label>
-                    <div class="form-text">
-                      Recieve email notifications when new papers suitable with this tag are submitted
+                    <div class="form-check">
+                      {% if not data['verified_email'] %}
+                        <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check" disabled>
+                      {% else %}
+                        <input class="form-check-input tag-field" type="checkbox" id="email-check" name="email-check">
+                      {% endif %}
+                      <label class="form-check-label" for="email-check">Email notification</label>
+                      <div class="form-text">
+                        Recieve email notifications when new papers suitable with this tag are submitted
+                        {% if not data['verified_email'] %}
+                          <br><span class="sub-alert shade">Verify your email to use this option.</span>
+                        {% endif %}
+                      </div>
                     </div>
-                    <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
-                    <label class="form-check-label" for="public-check">Publicly available</label>
-                    <div class="form-text">
-                      Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible and could be used by others.
+                    <div class="form-check">
+                      <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
+                      <label class="form-check-label" for="public-check">Publicly available</label>
+                      <div class="form-text">
+                        Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will be visible and could be used by others.
+                      </div>
                     </div>
-                  </div>
-                </fieldset>
-              </form>
-            </div>
+                  </fieldset>
+                </form>
+              </div>
             {% endif %}
             {% if data['page'] == 'bookshelf' %}
               <p class="text-secondary">Manage paper lists: create new, reorder, delete.</p>
@@ -227,14 +238,28 @@
                 </div>
 
                 <h3>Account settings</h3>
-                <h4> Password change</h4>
+                <h4 class="mt-4">
+                  Email
+                </h4>
+                <span id="email">{% if data['email'] %}{{ data['email'] }}{% else %}no one{% endif %}</span>
+                <i class="ps-2 fa fa-pencil btn-edit" id="emailChange"></i>
+                <span id="verification" class="ms-5">
+                  {% if data['verified_email'] %}
+                    <i class="ps-2 fa fa-check-circle-o success" id="confirm-btn"></i> Verified!
+                  {% else %}
+                    <a class="non-standard-link link-under {% if not data['email'] %}disabled{% endif %}" href="/verify_email">
+                      <i class="ps-2 fa fa-exclamation-triangle problem" id="confirm-btn"></i> Verify now!
+                    </a>
+                  {% endif %}
+                </span>
+                <h4 class="mt-4"> Password change</h4>
                 <form action="/change_pasw" method="POST" onsubmit="return changePasw()">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <div class="form-group row pt-2">
                     <input type="hidden" autocomplete="username">
                     <label for="oldPass" class="col-sm-4 col-form-label">Old password</label>
                     <div class="col-sm-8">
-                      <input type="password" class="form-control" name="oldPass" size="20" autocomplete="current-password">
+                      <input type="password" class="form-control" name="oldPass" size="20" autocomplete="current-password" {% if not data['pass'] %} disabled {% endif %}>
                     </div>
                   </div>
                   <div class="form-group row">
@@ -266,24 +291,24 @@
     </div>
   </div>
 
-    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body" id="modal-text">
-            Settings will not be saved, continue?
-          </div>
-          <form class="modal-footer" id="form-confirm" method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="btn-confirm">Continue</button>
-          </form>
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">Confirmation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
+        <div class="modal-body" id="modal-text">
+          Settings will not be saved, continue?
+        </div>
+        <form class="modal-footer" id="form-confirm" method="POST">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-confirm">Continue</button>
+        </form>
       </div>
-</div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block script_footer %}
@@ -293,18 +318,18 @@
   {% endif %}
 
   {% if 'cats' in data %}
-      <script type="text/javascript">__CATS__ = {{ data['cats'] }};</script>
-      <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
+    <script type="text/javascript">__CATS__ = {{ data['cats'] }};</script>
+    <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'lists' in data %}
-      <script type="text/javascript">__LISTS__ = {{ data['lists'] }};</script>
-      <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
+    <script type="text/javascript">__LISTS__ = {{ data['lists'] }};</script>
+    <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'pref' in data %}
-      <script type="text/javascript">__PREF__ = {{ data['pref'] }};</script>
-      <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
+    <script type="text/javascript">__PREF__ = {{ data['pref'] }}; __EMAIL__ = "{{ data['email'] }}";</script>
+    <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   <script type="text/javascript">
-    document.getElementById("set-nav").classList.add("active");
+      document.getElementById("set-nav").classList.add("active");
   </script>
 {% endblock %}
