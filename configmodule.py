@@ -39,12 +39,15 @@ class Config:
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
 
-    time_str = '6:30'
-    if environ.get('UPDATE_TIME'):
-        time_str = environ.get('UPDATE_TIME')
-    UPDATE_TIME = datetime.strptime(time_str,
-                                    '%H:%M'
-                                    ).time()
+    # arXiv timing
+    time_str = environ.get('ARXIV_UPDATE_TIME', '6:30')
+    ARXIV_UPDATE_TIME = datetime.strptime(time_str,
+                                          '%H:%M'
+                                          ).time()
+    time_str = environ.get('ARXIV_DEADLINE_TIME', '19:00')
+    ARXIV_DEADLINE_TIME = datetime.strptime(time_str,
+                                            '%H:%M'
+                                            ).time()
 
 
 class ProductionConfig(Config):
