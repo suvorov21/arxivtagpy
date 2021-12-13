@@ -10,13 +10,14 @@
   <div class="container mt-4">
     <div class="row justify-content-center">
       <form class="col-sm-8" action="/restore_pass?do_send=True" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="form-group row">
           <label for="email" class="col-sm-2 col-form-label">Email</label>
           <div class="col-sm-10">
             <input type="email" class="form-control" id="email" name="email" placeholder="Email">
           </div>
         </div>
-        <button class="btn btn-primary float-right" type="submit">Send new password</button>
+        <button class="btn btn-primary float-right mt-4" type="submit">Send new password</button>
       </form>
     </div>
   </div>
