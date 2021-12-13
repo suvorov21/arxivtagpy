@@ -165,11 +165,12 @@ def get_arxiv_sub_start(announce_date: date,
                         offset=0
                         ) -> datetime:
     """Get arxiv submission start time for a given announcement date."""
+    deadline_time = current_app.config['ARXIV_DEADLINE_TIME']
     sub_date_begin = announce_date
     # papers announced on day N are submitted between day N-2 and N-1
     sub_date_begin -= timedelta(days=2 + offset)
     # over weekend cross
-    # if the announce date is on weekend
+    # if the announcement date is on weekend
     # the situation is equivalent to Friday announcements
     # From Wednesday to Thursday
     if announce_date.weekday() > 4:
@@ -185,7 +186,10 @@ def get_arxiv_sub_start(announce_date: date,
 
     # arxiv submission deadline is at 17:59
     sub_date_begin = datetime.combine(sub_date_begin,
-                                      time(hour=17, minute=59, second=59)
+                                      time(hour=deadline_time.hour - 1,
+                                           minute=59,
+                                           second=59
+                                           )
                                       )
 
     return sub_date_begin
@@ -193,13 +197,14 @@ def get_arxiv_sub_start(announce_date: date,
 
 def get_arxiv_sub_end(announce_date: date) -> datetime:
     """Get arxiv submission end time for a given announcement date."""
+    deadline_time = current_app.config['ARXIV_DEADLINE_TIME']
     sub_date_end = announce_date
 
     # papers announced on day N are submitted between day N-2 and N-1
     sub_date_end -= timedelta(days=1)
 
     # over weekend cross
-    # if the announce date is on weekend
+    # if the announcement date is on weekend
     # the situation is equivalent to Friday announcements
     # From Wednesday to Thursday
     if announce_date.weekday() > 4:
@@ -210,17 +215,21 @@ def get_arxiv_sub_end(announce_date: date) -> datetime:
 
     # arxiv submission deadline is at 17:59
     sub_date_end = datetime.combine(sub_date_end,
-                                    time(hour=17, minute=59, second=59)
+                                    time(hour=deadline_time.hour-1,
+                                         minute=59,
+                                         second=59
+                                         )
                                     )
 
     return sub_date_end
 
 
 def get_arxiv_announce_date(paper_sub: datetime) -> datetime:
-    """Get the announce date for a given paper."""
+    """Get the announcement date for a given paper."""
+    deadline_time = current_app.config['ARXIV_DEADLINE_TIME']
     announce_date = paper_sub
     announce_date = announce_date \
-        + timedelta(days=1 if paper_sub.hour < 18 else 2)
+        + timedelta(days=1 if paper_sub.hour < deadline_time.hour else 2)
     if announce_date.weekday() > 4:
         announce_date = announce_date \
             + timedelta(days=7-announce_date.weekday())
@@ -236,7 +245,7 @@ def get_annonce_date() -> datetime:
     the announcement time is parametrized in UTC in .env file.
     """
     announce_date = datetime.now(timezone.utc)
-    sub_update_time = current_app.config['UPDATE_TIME']
+    sub_update_time = current_app.config['ARXIV_UPDATE_TIME']
     sub_update_time = datetime.combine(announce_date.date(),
                                        time(hour=sub_update_time.hour,
                                             minute=sub_update_time.minute,
