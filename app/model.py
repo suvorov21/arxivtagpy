@@ -15,7 +15,7 @@ class User(UserMixin, db.Model):
                    primary_key=True
                    )
     pasw = db.Column(db.String())
-    orcid = db.Column(db.String,
+    orcid = db.Column(db.String(),
                       unique=True
                       )
     email = db.Column(db.String(),
