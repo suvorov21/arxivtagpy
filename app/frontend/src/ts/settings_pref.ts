@@ -52,20 +52,29 @@ const fillSetForm = (): void => {
 };
 
 const confirmEditEmail = (event): void => {
+    const newEmailText = (document.getElementById("emailInput") as HTMLInputElement).value;
+    // check if the input is valid
+    if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(newEmailText)) {
+        raiseAlert("Check your email to match format name@domain.zone!");
+        return;
+    }
     let optional = "";
     if (__EMAIL__ !== "None") {
         optional = "<br>Confirmation email will be sent to the old email " + __EMAIL__;
     }
-    const newEmailText = (document.getElementById("emailInput") as HTMLInputElement).value;
     const form = document.getElementById("form-confirm");
 
-    const newEmail = document.createElement("input");
-    newEmail.hidden = true;
-    newEmail.type = "text";
-    newEmail.name = "newEmail";
-    newEmail.value = newEmailText;
-
-    form.appendChild(newEmail);
+    const probe = form.querySelector("input[name='newEmail']") as HTMLInputElement;
+    if (probe) {
+        probe.value = newEmailText;
+    } else {
+        const newEmail = document.createElement("input");
+        newEmail.hidden = true;
+        newEmail.type = "text";
+        newEmail.name = "newEmail";
+        newEmail.value = newEmailText;
+        form.appendChild(newEmail);
+    }
 
     raiseModal(event,
         "Are you sure to change email to <b>" + newEmailText + "</b>?" + optional,
@@ -87,7 +96,7 @@ document.getElementById("emailChange").onclick = () : void => {
 
     const field = document.createElement("input");
     field.className = "ms-2";
-    field.type = "text";
+    field.type = "email";
     field.id = "emailInput";
     field.autocomplete = "email";
     const email = document.getElementById("email").textContent;

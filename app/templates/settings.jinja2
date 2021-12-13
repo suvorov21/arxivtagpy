@@ -252,6 +252,13 @@
                     </a>
                   {% endif %}
                 </span>
+                <div id="orcidWidget" class="w-50">
+                  <a id="orcidAuthButton" href="/orcid">
+                    <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_32x32.png">
+                    {% if data['orcid'] %}Unl{% else %}L{% endif %}ink your ORCID iD
+                    {% if data['orcid'] %}{{ data['orcid'] }}{% endif %}
+                  </a>
+                </div>
                 <h4 class="mt-4"> Password change</h4>
                 <form action="/change_pasw" method="POST" onsubmit="return changePasw()">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

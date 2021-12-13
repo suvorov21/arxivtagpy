@@ -295,7 +295,14 @@ def oath():
     user = User.query.filter_by(orcid=response.json()['orcid']).first()
 
     if not user:
-        # create a new one
+        # ORCID record is not found, but current user is authenticated
+        # add ORCID to his record
+        if current_user and current_user.is_authenticated:
+            current_user.orcid = response.json()['orcid']
+            db.session.commit()
+            flash('ORCID linked successfully')
+            return redirect(url_for(ROOT_PATH), code=303)
+        # if no current_user --> create a new one
         user = User(orcid=response.json()['orcid'],
                     arxiv_cat=['hep-ex'],
                     created=datetime.now(),
@@ -308,6 +315,12 @@ def oath():
 
         return new_user_routine(user)
     else:
+        # ORCID record is found, but user is authenticated
+        # throw an error as ORCID num is unique in users table
+        if current_user and current_user.is_authenticated:
+            flash('ERROR! User with this orcid is already registered!')
+            return redirect(url_for(ROOT_PATH), code=303)
+        # if no current_user, but ORCID record is in the DB --> authenticate
         login_user(user)
 
     return redirect(url_for(ROOT_PATH), code=303)
@@ -428,6 +441,7 @@ def change_email_confirm():
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     user.email = decoded['to']
+    user.verified_email = False
     db.session.commit()
 
     flash('Email changed successfully!')
@@ -467,12 +481,26 @@ def verify_email_confirm():
 @auth_bp.route('/orcid', methods=['GET'])
 def orcid():
     """Redirect to ORCID authentication page."""
+    if current_user and current_user.is_authenticated:
+        # unlink ORCID
+        if current_user.orcid:
+            # check if alternative authentication is available
+            if not current_user.email or not current_user.pasw:
+                flash('ERROR! Could not unlink ORCID this is your only authentication method')
+                return redirect(url_for(ROOT_SET, page='pref'), code=303)
+            else:
+                # unlink orcid
+                current_user.orcid = ''
+                db.session.commit()
+                flash('ORCID unlinked successfully')
+                return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
     href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
-                                   '/oauth/authorize?client_id=',
-                                   current_app.config['ORCID_APP'],
-                                   '&response_type=code&scope=/authenticate',
-                                   '&redirect_uri=',
-                                   # TODO UPDATE with HTTPS
-                                   'http://' + request.headers['Host'] + '/oath'
-                                   )
+                                 '/oauth/authorize?client_id=',
+                                 current_app.config['ORCID_APP'],
+                                 '&response_type=code&scope=/authenticate',
+                                 '&redirect_uri=',
+                                 # TODO UPDATE with HTTPS
+                                 'http://' + request.headers['Host'] + '/oath'
+                                 )
     return redirect(href, code=303)

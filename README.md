@@ -24,6 +24,7 @@ A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the pa
 4. Add any number of arXiv sections and further toggle them easily with check boxes. Control paper novelty (new/updated) and papers from the cross-categories with the checkboxes as well.
 5. Select a date range of submissions: today/this week/this month/**since your last visit**. Check easily what submissions you have been already overviewed.
 6. Dark and light theme of the website.
+7. Authorization with ORCID
 
 Detailed features description and screenshot gallery at [arxivtag.tk](https://arxivtag.tk)
 

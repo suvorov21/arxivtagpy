@@ -205,8 +205,8 @@ class Paper(db.Model):
                      nullable=True
                      )
 
-    # integer source numeration is cheaper then additianal table
-    # Actualy, no need of additianal table so far
+    # integer source numeration is cheaper than additional table
+    # Actually, no need of additional table so far
     # by convention:
     # 1 := arXiv
     source = db.Column(db.Integer,
