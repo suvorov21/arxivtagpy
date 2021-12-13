@@ -228,7 +228,8 @@
 
                 <h3>Account settings</h3>
                 <h4> Password change</h4>
-                <form action="/change_pasw" method="POST" onsubmit="return changePasw()">
+                <form action="/change_pasw" method="POST">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                   <div class="form-group row pt-2">
                     <input type="hidden" autocomplete="username">
                     <label for="oldPass" class="col-sm-4 col-form-label">Old password</label>

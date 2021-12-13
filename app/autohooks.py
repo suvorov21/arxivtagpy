@@ -56,7 +56,7 @@ def load_papers():
     logging.info('Start paper table update')
 
     # last paper in the DB
-    last_paper = Paper.query.order_by(Paper.date_up.desc()).first()
+    last_paper = Paper.query.order_by(Paper.date_up.desc()).limit(1).first()
 
     if not last_paper:
         # if no last paper download for this month
@@ -96,6 +96,15 @@ def load_papers():
     # further code is paper source independent.
     # Any API can be defined above
     update_papers([paper_api], **params)
+
+    # TODO move it to particular API
+    last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
+    if abs(last_paper_date.hour - current_app.config['ARXIV_DEADLINE_TIME'].hour) > 1:
+        logging.error('Last paper exceeds deadline limit! Consider deadline revision')
+        logging.error('Last paper: %r\tDeadline: %r',
+                      last_paper_date,
+                      current_app.config['ARXIV_DEADLINE_TIME']
+                      )
 
     return dumps({'success': True}), 201
 
