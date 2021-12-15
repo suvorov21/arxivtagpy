@@ -278,7 +278,7 @@ def oath():
     # response = requests.post('https://sandbox.orcid.org/oauth/token', headers=headers, data=data)
     # print(response.headers)
 
-    req = requests.Request('POST', f'{current_app["ORCID_URL"]}/oauth/token', data=data, headers=headers)
+    req = requests.Request('POST', f'{current_app.config["ORCID_URL"]}/oauth/token', data=data, headers=headers)
     prepared = req.prepare()
     s = requests.Session()
     response = s.send(prepared)
