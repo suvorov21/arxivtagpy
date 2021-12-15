@@ -5,9 +5,11 @@ import logging
 from json import loads
 from typing import List, Dict
 from datetime import datetime, timedelta
+from jwt import decode, encode, InvalidTokenError, ExpiredSignatureError
 
 import smtplib
 
+from flask import current_app, flash
 from flask_mail import Message
 from flask_login import current_user
 
@@ -78,7 +80,7 @@ def get_or_create_list(user_id, name) -> PaperList:
 def cast_args_to_dict(args) -> List[Dict]:
     """Cast requests args to dictionary."""
     prefs = []
-    # TODO Fix key break with ampersand
+    # WARNING Fix key break with ampersand
     for arg in args:
         prefs.append(arg)
 
@@ -117,3 +119,30 @@ def get_old_update_date() -> UpdateDate:
         db.session.commit()
 
     return old_date_record
+
+
+class DecodeException(Exception):
+    """Custom exception for token decode error."""
+    pass
+
+
+def encode_token(payload: Dict) -> str:
+    """Helper for token creation."""
+    return encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+
+def decode_token(token: str, **kwargs) -> Dict:
+    """Helper for token decode."""
+    try:
+        decoded = decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+    except ExpiredSignatureError:
+        flash('ERROR! Link is expired, please try again.')
+        raise DecodeException
+    except InvalidTokenError:
+        flash('ERROR! Invalid link, please try again.')
+        raise DecodeException
+
+    if 'key' in kwargs and kwargs.get('key') not in decoded:
+        raise DecodeException
+
+    return decoded

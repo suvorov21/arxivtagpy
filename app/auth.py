@@ -5,7 +5,6 @@ import secrets
 import string
 import logging
 import re
-from jwt import decode, encode, InvalidTokenError, ExpiredSignatureError
 import requests
 
 from werkzeug.security import check_password_hash, \
@@ -20,7 +19,7 @@ from flask_mail import Message
 from .import login_manager
 
 from .model import db, User, PaperList, Tag
-from .utils import mail_catch
+from .utils import mail_catch, encode_token, decode_token, DecodeException
 from .settings import default_data
 
 DEFAULT_LIST = 'Favourite'
@@ -279,7 +278,7 @@ def oath():
     # response = requests.post('https://sandbox.orcid.org/oauth/token', headers=headers, data=data)
     # print(response.headers)
 
-    req = requests.Request('POST', 'https://sandbox.orcid.org/oauth/token', data=data, headers=headers)
+    req = requests.Request('POST', f'{current_app["ORCID_URL"]}/oauth/token', data=data, headers=headers)
     prepared = req.prepare()
     s = requests.Session()
     response = s.send(prepared)
@@ -347,7 +346,7 @@ def email_change():
     payload = {'exp': datetime.now(tz=timezone.utc) + timedelta(days=1),
                'from': current_user.email,
                'to': new}
-    token = encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+    token = encode_token(payload)
 
     # create an email
     body = 'Hello,\n\nYour email in the account at the website' + request.headers['Host']
@@ -385,13 +384,17 @@ def email_change():
 @login_required
 def verify_email():
     """Verify email for the current user."""
+    if not current_user.email:
+        flash('ERROR! No email is registered for your account!')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
     payload = {'exp': datetime.now(tz=timezone.utc) + timedelta(days=1),
                'email': current_user.email
                }
-    token = encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')
+    token = encode_token(payload)
 
     # create an email
-    body = 'Hello,\n\nplease verrify your email for the website' + request.headers['Host']
+    body = 'Hello,\n\nplease verify your email for the website' + request.headers['Host']
     body += '\n with the link below\n\n'
     body += f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
 
@@ -421,18 +424,7 @@ def verify_email():
 @auth_bp.route('/change_email_confirm',  methods=['GET'])
 def change_email_confirm():
     token = request.args.get('data')
-    try:
-        decoded = decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-    except ExpiredSignatureError:
-        flash('ERROR! Link is expired, please try again.')
-        return redirect(url_for(ROOT_SET, page='pref'), code=303)
-    except InvalidTokenError:
-        flash('ERROR! Invalid link, please try again.')
-        return redirect(url_for(ROOT_SET, page='pref'), code=303)
-
-    if 'to' not in decoded:
-        flash('ERROR! Invalid link, please try again.')
-        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+    decoded = decode_token(token, key='to')
 
     user = User.query.filter_by(email=decoded['from']).first()
     if not user:
@@ -453,19 +445,11 @@ def verify_email_confirm():
     """Verification of the email with token."""
     token = request.args.get('data')
     try:
-        decoded = decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-    except ExpiredSignatureError:
-        flash('ERROR! Link is expired, please try again.')
-        return redirect(url_for(ROOT_SET, page='pref'), code=303)
-    except InvalidTokenError:
-        flash('ERROR! Invalid link, please try again.')
+        decoded = decode_token(token, key='email')
+    except DecodeException:
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
-    if 'email' not in decoded:
-        flash('ERROR! Invalid link, please try again.')
-        return redirect(url_for(ROOT_SET, page='pref'), code=303)
-
-    user = User.query.filter_by(email=decoded['email']).first()
+    user = User.query.filter_by(email=decoded.get('email')).first()
     if not user:
         logging.error('User not found during email verification')
         flash('ERROR! User not found!')
@@ -481,8 +465,9 @@ def verify_email_confirm():
 @auth_bp.route('/orcid', methods=['GET'])
 def orcid():
     """Redirect to ORCID authentication page."""
+    # if user exists and authenticated
     if current_user and current_user.is_authenticated:
-        # unlink ORCID
+        # if ORCID is already linked -> unlink ORCID
         if current_user.orcid:
             # check if alternative authentication is available
             if not current_user.email or not current_user.pasw:

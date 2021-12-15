@@ -318,6 +318,7 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
     found = re_cond.search(search_target) is not None
 
     if found != inversion:
+        logging.debug('Simple rule OK for %r', search_target)
         return True
     return False
 
