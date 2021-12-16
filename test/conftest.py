@@ -10,13 +10,13 @@ from werkzeug.security import generate_password_hash
 from flask import url_for
 import pytest
 
-from app import app_init, db
+from app import app_init, db, mail
 from app.model import User, Tag
 
-EMAIL = 'tester@gmail.com'
+EMAIL = 'arxiv_tester@mailinator.com'
 PASS = 'tester'  # nosec
 
-TMP_EMAIL = 'tmp_tester@gmail.com'
+TMP_EMAIL = 'arxiv_tester2@mailinator.com'
 
 DEFAULT_LIST = 'Favourite'
 
@@ -46,12 +46,13 @@ def make_user(email):
 
 @pytest.fixture(scope='session', autouse=True)
 def app():
-    """Initialize app + user recrod in db."""
+    """Initialize app + user record in db."""
     multiprocessing.set_start_method("fork")
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
     with app.app_context():
+        mail.init_app(app)
         db.drop_all()
         db.create_all()
         user = make_user(EMAIL)

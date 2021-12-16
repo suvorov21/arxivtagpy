@@ -7,6 +7,7 @@ from datetime import datetime
 from flask import url_for
 
 from app.model import Paper
+from test.conftest import EMAIL
 
 ROOT_LOAD = 'auto_bp.load_papers'
 ROOT_DATA = 'main_bp.data'
@@ -251,10 +252,10 @@ def test_bookmark_user(client, login):
 
 
 def test_bookmark_user_token(client):
-    """Сheck the bookmarking triggered remotely with a token."""
+    """Check the bookmarking triggered remotely with a token."""
     data = {'name': 'test',
             'token': 'test_token',
-            'email': 'tester@gmail.com'
+            'email': EMAIL
             }
     response = client.post(url_for('auto_bp.bookmark_user'),
                            data=data

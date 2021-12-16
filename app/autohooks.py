@@ -19,7 +19,8 @@ from .model import User, Tag, db, Paper, \
     paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from .utils import mail_catch, get_or_create_list, get_old_update_date, month_start
+from .utils import month_start
+from .utils_app import mail_catch, get_or_create_list, get_old_update_date
 
 auto_bp = Blueprint(
     'auto_bp',

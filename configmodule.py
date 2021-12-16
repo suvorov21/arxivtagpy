@@ -73,3 +73,4 @@ class TestingConfig(Config):
     TESTING = True
     ORCID_APP = environ.get('ORCID_APP_TEST')
     ORCID_URL = environ.get('ORCID_URL_TEST')
+    MAIL_SUPPRESS_SEND = True

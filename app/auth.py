@@ -19,7 +19,8 @@ from flask_mail import Message
 from .import login_manager
 
 from .model import db, User, PaperList, Tag
-from .utils import mail_catch, encode_token, decode_token, DecodeException
+from .utils import encode_token, decode_token, DecodeException
+from .utils_app import mail_catch
 from .settings import default_data
 
 DEFAULT_LIST = 'Favourite'
@@ -213,7 +214,6 @@ def restore():
 @auth_bp.route('/restore_pass', methods=['POST'])
 def restore_pass():
     """Endpoint for password reset."""
-    do_send = request.args.get('do_send')
     email_in = request.form.get('email').lower()
     user = User.query.filter_by(email=email_in).first()
     # Success will go to False ONLY if the user IS found
@@ -244,8 +244,7 @@ def restore_pass():
                       recipients=[user.email],
                       subject="arXiv tag password reset"
                       )
-        if do_send:
-            success = mail_catch(msg)
+        success = mail_catch(msg)
 
     if success:
         flash(f'The email with a new password was sent to your email from \
@@ -278,7 +277,11 @@ def oath():
     # response = requests.post('https://sandbox.orcid.org/oauth/token', headers=headers, data=data)
     # print(response.headers)
 
-    req = requests.Request('POST', f'{current_app.config["ORCID_URL"]}/oauth/token', data=data, headers=headers)
+    req = requests.Request('POST',
+                           f'{current_app.config["ORCID_URL"]}/oauth/token',
+                           data=data,
+                           headers=headers
+                           )
     prepared = req.prepare()
     s = requests.Session()
     response = s.send(prepared)
@@ -331,7 +334,6 @@ def email_change():
     """Change email for the current user."""
     new = request.form.get('newEmail')
     if not current_user.email:
-        print('catch')
         current_user.email = new
         db.session.commit()
         message = 'Email changed successfully! You can verify it now.'
@@ -340,7 +342,7 @@ def email_change():
 
     user = User.query.filter_by(email=new).first()
     if user:
-        flash("ERROR!  User with new email is already registered.")
+        flash("ERROR! User with new email is already registered.")
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     payload = {'exp': datetime.now(tz=timezone.utc) + timedelta(days=1),
@@ -424,12 +426,20 @@ def verify_email():
 @auth_bp.route('/change_email_confirm',  methods=['GET'])
 def change_email_confirm():
     token = request.args.get('data')
-    decoded = decode_token(token, key='to')
+    try:
+        decoded = decode_token(token, keys=['to', 'from'])
+    except DecodeException:
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     user = User.query.filter_by(email=decoded['from']).first()
     if not user:
         logging.error('User not found during email change')
         flash('ERROR! User not found!')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    user_tmp = User.query.filter_by(email=decoded['to']).first()
+    if user_tmp:
+        flash('ERROR! User with entered email already exists!')
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     user.email = decoded['to']
@@ -445,7 +455,7 @@ def verify_email_confirm():
     """Verification of the email with token."""
     token = request.args.get('data')
     try:
-        decoded = decode_token(token, key='email')
+        decoded = decode_token(token, keys=['email'])
     except DecodeException:
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
