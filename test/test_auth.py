@@ -6,7 +6,7 @@ from datetime import datetime, timezone, timedelta
 from time import sleep
 
 from flask import url_for
-from utils import encode_token, decode_token, DecodeException
+from app.utils import encode_token, decode_token, DecodeException
 from app import mail
 
 ROOT_LOGIN = 'auth_bp.login'
