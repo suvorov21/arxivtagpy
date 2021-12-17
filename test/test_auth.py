@@ -11,7 +11,7 @@ from app import mail
 
 ROOT_LOGIN = 'auth_bp.login'
 ROOT_PASSW = 'auth_bp.change_pasw'
-ROOT_NEW_USER = 'auto_bp.new_user'
+ROOT_NEW_USER = 'auth_bp.new_user'
 ROOT_EMAIL_CHANGE = 'auth_bp.email_change'
 ROOT_EMAIL_CHANGE_CONF = 'auth_bp.change_email_confirm'
 
