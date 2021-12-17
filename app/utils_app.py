@@ -4,7 +4,6 @@ import logging
 import smtplib
 from typing import List, Dict
 
-from flask import current_app
 from flask_mail import Message
 from flask_login import current_user
 

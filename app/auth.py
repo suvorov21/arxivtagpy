@@ -259,7 +259,7 @@ def restore_pass():
     return redirect(url_for(ROOT_PATH), code=303)
 
 
-@auth_bp.route('/oath',  methods=['GET'])
+@auth_bp.route('/oath', methods=['GET'])
 def oath():
     """Authentication with ORCID API."""
     code = request.args.get('code')
@@ -272,9 +272,12 @@ def oath():
             'code': str(code)
             }
 
-    # Because of some black magic requests.post() is not working, and we have to use requests.Request()
+    # Because of some black magic requests.post() is not working,
+    # and we have to use requests.Request()
     # The possible reason is some additional headers requests adds to POST by default.
-    # response = requests.post('https://sandbox.orcid.org/oauth/token', headers=headers, data=data)
+    # response = requests.post('https://sandbox.orcid.org/oauth/token',
+    #                          headers=headers,
+    #                          data=data)
     # print(response.headers)
 
     req = requests.Request('POST',
@@ -283,8 +286,8 @@ def oath():
                            headers=headers
                            )
     prepared = req.prepare()
-    s = requests.Session()
-    response = s.send(prepared)
+    req_session = requests.Session()
+    response = req_session.send(prepared)
 
     if response.status_code != 200 or 'orcid' not in response.json():
         logging.error('Error with ORCID OAth. Code %i', response.status_code)
@@ -316,19 +319,19 @@ def oath():
                     )
 
         return new_user_routine(user)
-    else:
-        # ORCID record is found, but user is authenticated
-        # throw an error as ORCID num is unique in users table
-        if current_user and current_user.is_authenticated:
-            flash('ERROR! User with this orcid is already registered!')
-            return redirect(url_for(ROOT_PATH), code=303)
-        # if no current_user, but ORCID record is in the DB --> authenticate
-        login_user(user)
+
+    # ORCID record is found, but user is authenticated
+    # throw an error as ORCID num is unique in users table
+    if current_user and current_user.is_authenticated:
+        flash('ERROR! User with this orcid is already registered!')
+        return redirect(url_for(ROOT_PATH), code=303)
+    # if no current_user, but ORCID record is in the DB --> authenticate
+    login_user(user)
 
     return redirect(url_for(ROOT_PATH), code=303)
 
 
-@auth_bp.route('/email_change',  methods=['POST'])
+@auth_bp.route('/email_change', methods=['POST'])
 @login_required
 def email_change():
     """Change email for the current user."""
@@ -382,7 +385,7 @@ def email_change():
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
 
-@auth_bp.route('/verify_email',  methods=['GET'])
+@auth_bp.route('/verify_email', methods=['GET'])
 @login_required
 def verify_email():
     """Verify email for the current user."""
@@ -394,15 +397,16 @@ def verify_email():
                'email': current_user.email
                }
     token = encode_token(payload)
+    href = f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
 
     # create an email
     body = 'Hello,\n\nplease verify your email for the website' + request.headers['Host']
     body += '\n with the link below\n\n'
-    body += f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
+    body += href
 
     html = render_template('mail_email_verification.jinja2',
                            host=request.headers['Host'],
-                           href=f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
+                           href=href
                            )
     msg = Message(body=body,
                   html=html,
@@ -423,8 +427,9 @@ def verify_email():
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
 
-@auth_bp.route('/change_email_confirm',  methods=['GET'])
+@auth_bp.route('/change_email_confirm', methods=['GET'])
 def change_email_confirm():
+    """Hook for email changing confirmation."""
     token = request.args.get('data')
     try:
         decoded = decode_token(token, keys=['to', 'from'])
@@ -450,7 +455,7 @@ def change_email_confirm():
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
 
-@auth_bp.route('/verify_email_confirm',  methods=['GET'])
+@auth_bp.route('/verify_email_confirm', methods=['GET'])
 def verify_email_confirm():
     """Verification of the email with token."""
     token = request.args.get('data')
@@ -483,12 +488,12 @@ def orcid():
             if not current_user.email or not current_user.pasw:
                 flash('ERROR! Could not unlink ORCID this is your only authentication method')
                 return redirect(url_for(ROOT_SET, page='pref'), code=303)
-            else:
-                # unlink orcid
-                current_user.orcid = None
-                db.session.commit()
-                flash('ORCID unlinked successfully')
-                return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+            # unlink orcid
+            current_user.orcid = None
+            db.session.commit()
+            flash('ORCID unlinked successfully')
+            return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
                                  '/oauth/authorize?client_id=',

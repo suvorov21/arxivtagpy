@@ -5,9 +5,10 @@ from os import linesep
 from json import loads
 from typing import List, Dict
 from datetime import datetime, timedelta
-from jwt import decode, encode, InvalidTokenError, ExpiredSignatureError
 
 from flask import current_app, flash
+
+from jwt import decode, encode, InvalidTokenError, ExpiredSignatureError
 
 
 def fix_xml(xml: str) -> str:

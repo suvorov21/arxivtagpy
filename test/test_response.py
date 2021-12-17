@@ -4,10 +4,11 @@
 from json import loads
 from datetime import datetime
 
+from test.conftest import EMAIL
+
 from flask import url_for
 
 from app.model import Paper
-from test.conftest import EMAIL
 
 ROOT_LOAD = 'auto_bp.load_papers'
 ROOT_DATA = 'main_bp.data'

@@ -250,7 +250,7 @@ class TestLiveServer:
         element = wait_load(wait, By.ID, 'check-nov-1')
         assert not element.is_selected()
 
-    def check_orcid_credits(funct):
+    def check_orcid_credits(self, funct):
         """Check if the ORCID credits are in ENV."""
 
         @wraps(funct)
@@ -262,7 +262,7 @@ class TestLiveServer:
                 assert True
                 return
 
-            return funct(*args, **kwargs)
+            return funct(self, *args, **kwargs)
 
         return my_wrapper
 
