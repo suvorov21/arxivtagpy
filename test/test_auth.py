@@ -68,7 +68,7 @@ def test_logout(client, login):
 
 def test_new_acc(client):
     """Test new account creation."""
-    response = client.post(ROOT_NEW_USER,
+    response = client.post(url_for(ROOT_NEW_USER),
                            data={'email': 'tester2@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
@@ -82,7 +82,7 @@ def test_new_acc(client):
 
 def test_new_acc_same_email(client):
     """Test new account creation with already registered email."""
-    response = client.post(ROOT_NEW_USER,
+    response = client.post(url_for(ROOT_NEW_USER),
                            data={'email': 'tester2@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
@@ -96,7 +96,7 @@ def test_new_acc_same_email(client):
 
 def test_new_acc_wrong_email(client):
     """Test new account creation with wrong email format."""
-    response = client.post(ROOT_NEW_USER,
+    response = client.post(url_for(ROOT_NEW_USER),
                            data={'email': 'blablabla',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
@@ -110,7 +110,7 @@ def test_new_acc_wrong_email(client):
 
 def test_new_acc_diff_passw(client):
     """Test new account creation with different passwords."""
-    response = client.post(ROOT_NEW_USER,
+    response = client.post(url_for(ROOT_NEW_USER),
                            data={'email': 'tester3@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester3'
