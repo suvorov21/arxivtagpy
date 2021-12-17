@@ -229,6 +229,10 @@ p > a {
   color: #f00;
 }
 
+.shade {
+  opacity: 0.5;
+}
+
 .shift {
   padding: 0.25rem 0 2rem 2rem !important;
 }
@@ -247,6 +251,11 @@ p > a {
   &:hover {
     text-decoration: underline;
   }
+}
+
+a.disabled {
+  /* And disable the pointer events */
+  pointer-events: none;
 }
 
 .paper-day {

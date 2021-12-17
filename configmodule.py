@@ -23,9 +23,7 @@ class Config:
 
     LOG_PATH = environ.get('LOG_PATH')
 
-    assets = environ.get('BUILD_ASSETS')
-    BUILD_ASSETS = True if assets == 'True' else False
-
+    # Sentry config
     SENTRY_HOOK = environ.get('SENTRY_HOOK')
     VERSION = environ.get('VERSION')
 
@@ -38,6 +36,10 @@ class Config:
 
     MAIL_USE_SSL = False
     MAIL_USE_TLS = True
+
+    # ORCID application
+    ORCID_APP = environ.get('ORCID_APP')
+    ORCID_URL = environ.get('ORCID_URL')
 
     # arXiv timing
     time_str = environ.get('ARXIV_UPDATE_TIME', '6:30')
@@ -69,3 +71,6 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
     DEBUG = True
     TESTING = True
+    ORCID_APP = environ.get('ORCID_APP_TEST')
+    ORCID_URL = environ.get('ORCID_URL_TEST')
+    MAIL_SUPPRESS_SEND = True

@@ -19,7 +19,8 @@ from .model import User, Tag, db, Paper, \
     paper_associate
 from .papers import tag_suitable, render_paper_json, update_papers
 from .paper_api import ArxivOaiApi
-from .utils import mail_catch, get_or_create_list, get_old_update_date, month_start
+from .utils import month_start
+from .utils_app import mail_catch, get_or_create_list, get_old_update_date
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -313,7 +314,10 @@ def email_papers():
             if any([len(tags['papers']) > 0 for tags in papers_to_send]) \
                     and user:
                 logging.debug('Send email for user %i', user.id)
-                email_paper_update(papers_to_send, user.email, bool(do_send == "True"))
+                email_paper_update(papers_to_send,
+                                   user.email,
+                                   bool(do_send == "True") and user.verify_email
+                                   )
 
             user = User.query.filter_by(id=tag.user_id).first()
             logging.debug('Form the email for user %i', user.id)
@@ -338,7 +342,10 @@ def email_papers():
     # for the last user
     if any([len(tags['papers']) > 0 for tags in papers_to_send]):
         logging.debug('Send email for user %i', user.id)
-        email_paper_update(papers_to_send, user.email, bool(do_send == "True"))
+        email_paper_update(papers_to_send,
+                           user.email,
+                           bool(do_send == "True") and user.verify_email
+                           )
 
     # store the last checked paper
     last_paper = Paper.query.order_by(Paper.date_up.desc()).first()

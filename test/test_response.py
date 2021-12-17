@@ -4,6 +4,8 @@
 from json import loads
 from datetime import datetime
 
+from test.conftest import EMAIL
+
 from flask import url_for
 
 from app.model import Paper
@@ -119,6 +121,12 @@ def test_paper_page_args(client, login):
 def test_signup_page(client):
     """Test sign up page."""
     response = client.get(url_for('auth_bp.signup'))
+    assert response.status_code == 200
+
+
+def test_pass_restore_page(client):
+    """Test password restore page."""
+    response = client.get(url_for('auth_bp.restore'))
     assert response.status_code == 200
 
 
@@ -251,10 +259,10 @@ def test_bookmark_user(client, login):
 
 
 def test_bookmark_user_token(client):
-    """Сheck the bookmarking triggered remotely with a token."""
+    """Check the bookmarking triggered remotely with a token."""
     data = {'name': 'test',
             'token': 'test_token',
-            'email': 'tester@gmail.com'
+            'email': EMAIL
             }
     response = client.post(url_for('auto_bp.bookmark_user'),
                            data=data

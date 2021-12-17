@@ -3,7 +3,7 @@
 {% block head_scripts %}
   <title>arXiv tag. Sign up</title>
 
-  <script type="text/javascript" src="{{ url_for('main_bp.static', filename='dist/js/papers_style.bundle.js') }}?{{ data['version'] }}"></script>
+  <script type="text/javascript" src="{{ url_for('main_bp.static', filename='dist/js/settings_style.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}
 
 {% block content %}
@@ -29,7 +29,12 @@
             <input type="password" class="form-control" id="pasw2" name="pasw2" placeholder="Password" autocomplete="new-password">
           </div>
         </div>
-        <button class="btn btn-primary float-right mt-4" type="submit">Sigh up!</button>
+        <button class="btn btn-primary float-right mt-4" id="signup" type="submit">Sigh up!</button>
+        <div id="orcidWidget">
+          <a id="orcidAuthButton" href="/orcid">
+            <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_32x32.png">  Connect with your ORCID iD
+          </a>
+        </div>
       </form>
     </div>
   </div>
