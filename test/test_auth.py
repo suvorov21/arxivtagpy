@@ -192,16 +192,44 @@ def test_email_verification(client, login):
     assert response.status_code == 303
 
 
+def test_email_change_to_existing(client, login, tmp_user):
+    """Test error throw for email change to existing user record."""
+    with mail.record_messages() as outbox:
+        response = client.post(url_for('auth_bp.email_change'),
+                               data={'newEmail': EMAIL},
+                               follow_redirects=True
+                               )
+        assert len(outbox) == 0
+
+    assert response.status_code == 200
+    assert 'already registered' in response.get_data(as_text=True)
+
+
+def test_email_change_to_same(client, login):
+    """Test error throw during attempt to change email to same one."""
+    with mail.record_messages() as outbox:
+        response = client.post(url_for('auth_bp.email_change'),
+                               data={'newEmail': EMAIL},
+                               follow_redirects=True
+                               )
+        assert len(outbox) == 0
+
+    assert response.status_code == 200
+    assert 'same email' in response.get_data(as_text=True)
+
+
 def test_email_change(client, login):
     """Test email generation for the email change."""
     with mail.record_messages() as outbox:
-        response = client.post(url_for('auth_bp.email_change',
-                                       newEmail=EMAIL
-                                       ))
+        response = client.post(url_for('auth_bp.email_change'),
+                               data={'newEmail': TMP_EMAIL},
+                               follow_redirects=True
+                               )
         assert len(outbox) == 1
         assert outbox[0].subject == "arXiv tag email change"
 
-    assert response.status_code == 303
+    assert response.status_code == 200
+    assert 'ERROR' not in response.get_data(as_text=True)
 
 
 def test_email_verification_confirmation(client):

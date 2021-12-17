@@ -28,7 +28,7 @@ ROOT_LOGOUT = 'auth_bp.logout'
 def driver():
     """Create chrome driver."""
     options = Options()
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     driver = webdriver.Chrome(options=options)
     yield driver
@@ -313,6 +313,26 @@ class TestLiveServer:
         assert 'already registered!' in driver.page_source
         assert 'successfully' not in driver.page_source
         assert 'ERROR' in driver.page_source
+
+    @check_orcid_credits
+    def test_email_creation(self, driver, **kwargs):
+        """Test email creation for the record with ORCID registration."""
+        wait = WebDriverWait(driver, 10)
+        # sign out
+        driver.get(url_for(ROOT_LOGOUT, _external=True))
+        wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        # sign in
+        driver.get(url_for('auth_bp.orcid', _external=True))
+        orcid_signin(driver, wait, **kwargs)
+        wait_load(wait, By.ID, 'about-nav')
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'emailChange').click()
+        wait_load(wait, By.ID, 'emailInput').send_keys('tester5@mailinator.com')
+        wait_load(wait, By.ID, 'confirm-btn').click()
+        sleep(1)
+        wait_load(wait, By.ID, 'btn-confirm').click()
+        wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        assert 'successfully!' in driver.page_source
 
     @check_orcid_credits
     def test_orcid_failed_unlink(self, driver, **kwargs):

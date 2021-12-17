@@ -323,7 +323,7 @@ def oath():
     # ORCID record is found, but user is authenticated
     # throw an error as ORCID num is unique in users table
     if current_user and current_user.is_authenticated:
-        flash('ERROR! User with this orcid is already registered!')
+        flash('ERROR! User with this ORCID is already registered! Please use your ORCID ID to login')
         return redirect(url_for(ROOT_PATH), code=303)
     # if no current_user, but ORCID record is in the DB --> authenticate
     login_user(user)
@@ -341,6 +341,11 @@ def email_change():
         db.session.commit()
         message = 'Email changed successfully! You can verify it now.'
         flash(message)
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+    print(new, current_user.email)
+    if new == current_user.email:
+        flash("ERROR! You entered the same email.")
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     user = User.query.filter_by(email=new).first()
@@ -469,7 +474,7 @@ def verify_email_confirm():
     user = User.query.filter_by(email=decoded.get('email')).first()
     if not user:
         logging.error('User not found during email verification')
-        flash('ERROR! User not found!')
+        flash('ERROR! User not found! Please, try again.')
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     user.verified_email = True
@@ -488,7 +493,7 @@ def orcid():
         if current_user.orcid:
             # check if alternative authentication is available
             if not current_user.email or not current_user.pasw:
-                flash('ERROR! Could not unlink ORCID this is your only authentication method')
+                flash('ERROR! Could not unlink ORCID, this is your only authentication method')
                 return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
             # unlink orcid
