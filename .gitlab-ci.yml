@@ -33,7 +33,7 @@ assets_build:
 integration_test:
   stage: test
   image:
-    python:3.9.5-slim-buster
+    python:3.9.9-slim-buster
   services:
     - postgres:latest
   variables:
