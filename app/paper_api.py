@@ -72,7 +72,7 @@ class ArxivOaiApi:
 
         try:
             response = get(self.URL, self.params)
-        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.NewConnectionError) as e:
+        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.NewConnectionError):
             logging.warning('urllib3 exception')
             fail_attempts += 1
             sleep(self.DELAY)

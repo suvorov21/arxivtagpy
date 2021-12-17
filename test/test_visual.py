@@ -22,6 +22,7 @@ ROOT = 'main_bp.root'
 ROOT_PAPERS = 'main_bp.papers_list'
 ROOT_SET = 'settings_bp.settings_page'
 ROOT_LOGOUT = 'auth_bp.logout'
+ROOT_ORCID = 'auth_bp.orcid'
 
 
 @pytest.fixture(scope='session')
@@ -288,7 +289,7 @@ class TestLiveServer:
         driver.get(url_for(ROOT_LOGOUT, _external=True))
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
 
-        driver.get(url_for('auth_bp.orcid', _external=True))
+        driver.get(url_for(ROOT_ORCID, _external=True))
         orcid_signin(driver, wait, **kwargs)
         element = wait_load(wait, By.ID, 'about-nav')
         assert element is not None
@@ -306,7 +307,7 @@ class TestLiveServer:
         wait_load(wait, By.ID, 'about-nav')
 
         # Try to register with the same orcid
-        driver.get(url_for('auth_bp.orcid', _external=True))
+        driver.get(url_for(ROOT_ORCID, _external=True))
         orcid_signin(driver, wait, **kwargs)
         wait_load(wait, By.ID, 'about-nav')
 
@@ -322,7 +323,7 @@ class TestLiveServer:
         driver.get(url_for(ROOT_LOGOUT, _external=True))
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
         # sign in
-        driver.get(url_for('auth_bp.orcid', _external=True))
+        driver.get(url_for(ROOT_ORCID, _external=True))
         orcid_signin(driver, wait, **kwargs)
         wait_load(wait, By.ID, 'about-nav')
         # Try with existing email (FAIL)
@@ -353,7 +354,7 @@ class TestLiveServer:
         driver.get(url_for(ROOT_LOGOUT, _external=True))
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
         # sign in
-        driver.get(url_for('auth_bp.orcid', _external=True))
+        driver.get(url_for(ROOT_ORCID, _external=True))
         orcid_signin(driver, wait, **kwargs)
         wait_load(wait, By.ID, 'about-nav')
 

@@ -64,9 +64,9 @@ const confirmEditEmail = (event): void => {
     }
     const form = document.getElementById("form-confirm");
 
-    const probe = form.querySelector("input[name='newEmail']") as HTMLInputElement;
+    const probe = form.querySelector("input[name='newEmail']");
     if (probe) {
-        probe.value = newEmailText;
+        (probe as HTMLInputElement).value = newEmailText;
     } else {
         const newEmail = document.createElement("input");
         newEmail.hidden = true;
@@ -106,7 +106,7 @@ document.getElementById("emailChange").onclick = () : void => {
         field.value = "";
     }
 
-    const parentEle = document.getElementById("email") as HTMLElement;
+    const parentEle = document.getElementById("email");
     parentEle.innerHTML = "";
     document.getElementById("emailChange").style.display = "none";
     document.getElementById("verification").style.display = "none";

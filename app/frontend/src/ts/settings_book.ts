@@ -83,7 +83,7 @@ const editListName = (event: MouseEvent) => {
     confirmBtn.addEventListener("click", confirmEdit);
 
     // hide label with list name
-    const listName =  document.getElementById("list-name-" + num) as HTMLElement;
+    const listName =  document.getElementById("list-name-" + num);
     listName.style.display = "none";
 
     const field = document.createElement("input");
@@ -92,7 +92,7 @@ const editListName = (event: MouseEvent) => {
     field.id = "field-list-" + num;
     field.value = __LISTS__[findListNumById(String(num))].name
 
-    const parentEle = document.getElementById("par-list-" + num) as HTMLElement;
+    const parentEle = document.getElementById("par-list-" + num);
     parentEle.appendChild(field);
     parentEle.appendChild(confirmBtn);
     parentEle.draggable = false;

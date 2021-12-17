@@ -11,6 +11,9 @@ from app import mail
 
 ROOT_LOGIN = 'auth_bp.login'
 ROOT_PASSW = 'auth_bp.change_pasw'
+ROOT_NEW_USER = 'auto_bp.new_user'
+ROOT_EMAIL_CHANGE = 'auth_bp.email_change'
+ROOT_EMAIL_CHANGE_CONF = 'auth_bp.change_email_confirm'
 
 
 def test_general(client):
@@ -65,7 +68,7 @@ def test_logout(client, login):
 
 def test_new_acc(client):
     """Test new account creation."""
-    response = client.post('/new_user',
+    response = client.post(ROOT_NEW_USER,
                            data={'email': 'tester2@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
@@ -79,7 +82,7 @@ def test_new_acc(client):
 
 def test_new_acc_same_email(client):
     """Test new account creation with already registered email."""
-    response = client.post('/new_user',
+    response = client.post(ROOT_NEW_USER,
                            data={'email': 'tester2@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
@@ -93,7 +96,7 @@ def test_new_acc_same_email(client):
 
 def test_new_acc_wrong_email(client):
     """Test new account creation with wrong email format."""
-    response = client.post('/new_user',
+    response = client.post(ROOT_NEW_USER,
                            data={'email': 'blablabla',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
@@ -107,7 +110,7 @@ def test_new_acc_wrong_email(client):
 
 def test_new_acc_diff_passw(client):
     """Test new account creation with different passwords."""
-    response = client.post('/new_user',
+    response = client.post(ROOT_NEW_USER,
                            data={'email': 'tester3@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester3'
@@ -195,7 +198,7 @@ def test_email_verification(client, login):
 def test_email_change_to_existing(client, login, tmp_user):
     """Test error throw for email change to existing user record."""
     with mail.record_messages() as outbox:
-        response = client.post(url_for('auth_bp.email_change'),
+        response = client.post(url_for(ROOT_EMAIL_CHANGE),
                                data={'newEmail': EMAIL},
                                follow_redirects=True
                                )
@@ -208,7 +211,7 @@ def test_email_change_to_existing(client, login, tmp_user):
 def test_email_change_to_same(client, login):
     """Test error throw during attempt to change email to same one."""
     with mail.record_messages() as outbox:
-        response = client.post(url_for('auth_bp.email_change'),
+        response = client.post(url_for(ROOT_EMAIL_CHANGE),
                                data={'newEmail': EMAIL},
                                follow_redirects=True
                                )
@@ -221,7 +224,7 @@ def test_email_change_to_same(client, login):
 def test_email_change(client, login):
     """Test email generation for the email change."""
     with mail.record_messages() as outbox:
-        response = client.post(url_for('auth_bp.email_change'),
+        response = client.post(url_for(ROOT_EMAIL_CHANGE),
                                data={'newEmail': TMP_EMAIL},
                                follow_redirects=True
                                )
@@ -262,7 +265,7 @@ def test_email_change_confirmation(client, tmp_user):
                'to': 'tester_wrong@mailinator.com'
                }
     token = encode_token(payload)
-    response = client.get(url_for('auth_bp.change_email_confirm',
+    response = client.get(url_for(ROOT_EMAIL_CHANGE_CONF,
                                   data=token),
                           follow_redirects=True
                           )
@@ -276,7 +279,7 @@ def test_wrong_old_email_change_confirmation(client, tmp_user):
                'to': TMP_EMAIL
                }
     token = encode_token(payload)
-    response = client.get(url_for('auth_bp.change_email_confirm',
+    response = client.get(url_for(ROOT_EMAIL_CHANGE_CONF,
                                   data=token),
                           follow_redirects=True
                           )
@@ -290,7 +293,7 @@ def test_wrong_new_email_change_confirmation(client, tmp_user):
                'to': EMAIL
                }
     token = encode_token(payload)
-    response = client.get(url_for('auth_bp.change_email_confirm',
+    response = client.get(url_for(ROOT_EMAIL_CHANGE_CONF,
                                   data=token),
                           follow_redirects=True
                           )

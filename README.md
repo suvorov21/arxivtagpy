@@ -72,7 +72,7 @@ npm run build
 The server can be run in the dev mode with
 
 ```bash
-./launch_dev.py
+flask run
 ```
 
 The website access is the same as for the Docker run.

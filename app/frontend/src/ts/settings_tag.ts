@@ -253,7 +253,7 @@ document.getElementById("test-btn").onclick = (event: MouseEvent) => {
             const icon = document.createElement("i");
             const text = document.createElement("span");
             text.className = "ps-2";
-            const parent = document.getElementById("test-result") as HTMLElement;
+            const parent = document.getElementById("test-result");
             parent.innerHTML = "";
             if (resp.includes("true")) {
                 icon.className = "fa fa-check";

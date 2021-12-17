@@ -171,10 +171,9 @@ def change_pasw():
         return redirect(url_for(ROOT_SET, page='pref'))
 
     # check for the old password only if any (3rd party OAth may be used)
-    if current_user.pasw:
-        if not check_password_hash(current_user.pasw, old):
-            flash("ERROR! Wrong old password!")
-            return redirect(url_for(ROOT_SET, page='pref'))
+    if current_user.pasw and not check_password_hash(current_user.pasw, old):
+        flash("ERROR! Wrong old password!")
+        return redirect(url_for(ROOT_SET, page='pref'))
 
     current_user.pasw = generate_password_hash(new)
     db.session.commit()
@@ -365,7 +364,7 @@ def email_change():
                'to': new}
     token = encode_token(payload)
 
-    href = f'http://{request.headers["Host"]}/change_email_confirm?data={token}'
+    href = f'https://{request.headers["Host"]}/change_email_confirm?data={token}'
 
     # create an email
     body = 'Hello,\n\nYour email in the account at the website' + request.headers['Host']
@@ -411,7 +410,7 @@ def verify_email():
                'email': current_user.email
                }
     token = encode_token(payload)
-    href = f'http://{request.headers["Host"]}/verify_email_confirm?data={token}'
+    href = f'https://{request.headers["Host"]}/verify_email_confirm?data={token}'
 
     # create an email
     body = 'Hello,\n\nplease verify your email for the website' + request.headers['Host']
@@ -495,19 +494,18 @@ def verify_email_confirm():
 def orcid():
     """Redirect to ORCID authentication page."""
     # if user exists and authenticated
-    if current_user and current_user.is_authenticated:
+    if current_user and current_user.is_authenticated and current_user.orcid:
         # if ORCID is already linked -> unlink ORCID
-        if current_user.orcid:
-            # check if alternative authentication is available
-            if not current_user.email or not current_user.pasw:
-                flash('ERROR! Could not unlink ORCID, this is your only authentication method')
-                return redirect(url_for(ROOT_SET, page='pref'), code=303)
-
-            # unlink orcid
-            current_user.orcid = None
-            db.session.commit()
-            flash('ORCID unlinked successfully')
+        # check if alternative authentication is available
+        if not current_user.email or not current_user.pasw:
+            flash('ERROR! Could not unlink ORCID, this is your only authentication method')
             return redirect(url_for(ROOT_SET, page='pref'), code=303)
+
+        # unlink orcid
+        current_user.orcid = None
+        db.session.commit()
+        flash('ORCID unlinked successfully')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     prefix = 'https'
     if current_app.config['TESTING']:
