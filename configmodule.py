@@ -40,6 +40,7 @@ class Config:
     # ORCID application
     ORCID_APP = environ.get('ORCID_APP')
     ORCID_URL = environ.get('ORCID_URL')
+    ORCID_SECRET = environ.get('ORCID_SEC')
 
     # arXiv timing
     time_str = environ.get('ARXIV_UPDATE_TIME', '6:30')
@@ -73,4 +74,5 @@ class TestingConfig(Config):
     TESTING = True
     ORCID_APP = environ.get('ORCID_APP_TEST')
     ORCID_URL = environ.get('ORCID_URL_TEST')
+    ORCID_SECRET = environ.get('ORCID_SEC_TEST')
     MAIL_SUPPRESS_SEND = True

@@ -267,8 +267,8 @@ def oath():
     prefix = 'https'
     if current_app.config['TESTING']:
         prefix = 'http'
-    data = {'client_id': 'APP-CUS94SZ4NVHZ1IFS',
-            'client_secret': 'c73364d5-2602-43a5-a9c5-e0a50033243e',
+    data = {'client_id': current_app.config["ORCID_APP"],
+            'client_secret': current_app.config["ORCID_SECRET"],
             'grant_type': 'authorization_code',
             'redirect_uri': f'{prefix}://{request.headers["Host"]}/oath',
             'code': str(code)
@@ -326,7 +326,7 @@ def oath():
     # throw an error as ORCID num is unique in users table
     if current_user and current_user.is_authenticated:
         flash('ERROR! User with this ORCID is already registered! Please use your ORCID ID to login')
-        return redirect(url_for(ROOT_SET), code=303)
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
     # if no current_user, but ORCID record is in the DB --> authenticate
     login_user(user)
 
