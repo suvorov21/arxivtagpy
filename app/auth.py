@@ -264,11 +264,13 @@ def oath():
     """Authentication with ORCID API."""
     code = request.args.get('code')
     headers = {'Accept': 'application/json'}
+    prefix = 'https'
+    if current_app.config['TESTING']:
+        prefix = 'http'
     data = {'client_id': 'APP-CUS94SZ4NVHZ1IFS',
             'client_secret': 'c73364d5-2602-43a5-a9c5-e0a50033243e',
             'grant_type': 'authorization_code',
-            # TODO upate with HTTPS
-            'redirect_uri': 'http://' + request.headers['Host'] + '/oath',
+            'redirect_uri': f'{prefix}://{request.headers["Host"]}/oath',
             'code': str(code)
             }
 
@@ -324,7 +326,7 @@ def oath():
     # throw an error as ORCID num is unique in users table
     if current_user and current_user.is_authenticated:
         flash('ERROR! User with this ORCID is already registered! Please use your ORCID ID to login')
-        return redirect(url_for(ROOT_PATH), code=303)
+        return redirect(url_for(ROOT_SET), code=303)
     # if no current_user, but ORCID record is in the DB --> authenticate
     login_user(user)
 
@@ -337,6 +339,11 @@ def email_change():
     """Change email for the current user."""
     new = request.form.get('newEmail')
     if not current_user.email:
+        # check if there is no one with this email
+        user = User.query.filter_by(email=new).first()
+        if user:
+            flash("ERROR! User with new email is already registered.")
+            return redirect(url_for(ROOT_SET, page='pref'), code=303)
         current_user.email = new
         db.session.commit()
         message = 'Email changed successfully! You can verify it now.'
@@ -502,12 +509,14 @@ def orcid():
             flash('ORCID unlinked successfully')
             return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
+    prefix = 'https'
+    if current_app.config['TESTING']:
+        prefix = 'http'
     href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
                                  '/oauth/authorize?client_id=',
                                  current_app.config['ORCID_APP'],
                                  '&response_type=code&scope=/authenticate',
                                  '&redirect_uri=',
-                                 # TODO UPDATE with HTTPS
-                                 'http://' + request.headers['Host'] + '/oath'
+                                 f'{prefix}://{request.headers["Host"]}/oath'
                                  )
     return redirect(href, code=303)

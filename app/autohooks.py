@@ -101,11 +101,11 @@ def load_papers():
     # TODO move it to particular API
     last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
     if abs(last_paper_date.hour - current_app.config['ARXIV_DEADLINE_TIME'].hour) > 1:
-        logging.error('Last paper exceeds deadline limit! Consider deadline revision')
-        logging.error('Last paper: %r\tDeadline: %r',
-                      last_paper_date,
-                      current_app.config['ARXIV_DEADLINE_TIME']
-                      )
+        logging.warning('Last paper exceeds deadline limit! Consider deadline revision')
+        logging.warning('Last paper: %r\tDeadline: %r',
+                        last_paper_date,
+                        current_app.config['ARXIV_DEADLINE_TIME']
+                        )
 
     return dumps({'success': True}), 201
 

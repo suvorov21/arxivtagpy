@@ -325,6 +325,17 @@ class TestLiveServer:
         driver.get(url_for('auth_bp.orcid', _external=True))
         orcid_signin(driver, wait, **kwargs)
         wait_load(wait, By.ID, 'about-nav')
+        # Try with existing email (FAIL)
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'emailChange').click()
+        wait_load(wait, By.ID, 'emailInput').send_keys(EMAIL)
+        wait_load(wait, By.ID, 'confirm-btn').click()
+        sleep(1)
+        wait_load(wait, By.ID, 'btn-confirm').click()
+        wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        assert 'successfully!' not in driver.page_source
+        assert 'already registered' in driver.page_source
+        # Try with new email
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
         wait_load(wait, By.ID, 'emailChange').click()
         wait_load(wait, By.ID, 'emailInput').send_keys('tester5@mailinator.com')

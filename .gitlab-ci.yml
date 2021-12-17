@@ -12,7 +12,7 @@ sast:
 syntax_test:
   stage: build
   image:
-    python:3.9.5-slim-buster
+    python:3.9.9-slim-buster
   before_script:
     - python3 -m pip install --ignore-installed -r requirements.txt
   script:
@@ -33,7 +33,7 @@ assets_build:
 integration_test:
   stage: test
   image:
-    python:3.9.5-slim-buster
+    python:3.9.9-slim-buster
   services:
     - postgres:latest
   variables:
