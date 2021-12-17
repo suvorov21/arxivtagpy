@@ -482,7 +482,6 @@ def verify_email_confirm():
 @auth_bp.route('/orcid', methods=['GET'])
 def orcid():
     """Redirect to ORCID authentication page."""
-    """Redirect to ORCID authentication page."""
     # if user exists and authenticated
     if current_user and current_user.is_authenticated:
         # if ORCID is already linked -> unlink ORCID

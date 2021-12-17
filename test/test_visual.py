@@ -34,9 +34,9 @@ def driver():
     yield driver
 
 
-def wait_load(wait, by, name):
+def wait_load(wait, by_parameter, name):
     """Helper function to wait for element load."""
-    return wait.until(EC.element_to_be_clickable((by, name)))
+    return wait.until(EC.element_to_be_clickable((by_parameter, name)))
 
 
 def check_orcid_credits(funct):
@@ -56,6 +56,25 @@ def check_orcid_credits(funct):
     return my_wrapper
 
 
+def orcid_signin(driver, wait, **kwargs):
+    """Attempt to sign in ORCID system."""
+    try:
+        element = wait_load(wait, By.ID, 'signin-button')
+        driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+        driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
+        element.click()
+    except TimeoutException:
+        pass
+
+
+def signin(driver, wait, **kwargs):
+    """Sign in the website."""
+    element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
+    driver.find_element(By.NAME, 'i_login').send_keys(kwargs['login'])
+    driver.find_element(By.NAME, 'i_pass').send_keys(kwargs['passw'])
+    element.click()
+
+
 @pytest.mark.usefixtures('live_server')
 class TestLiveServer:
     """Class for tests with visual driver."""
@@ -69,11 +88,7 @@ class TestLiveServer:
         """Test login form."""
         wait = WebDriverWait(driver, 10)
         driver.get(url_for(ROOT, _external=True))
-        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
-
-        driver.find_element(By.NAME, 'i_login').send_keys(EMAIL)
-        driver.find_element(By.NAME, 'i_pass').send_keys(PASS)
-        element.click()
+        signin(driver, wait, login=EMAIL, passw=PASS)
         element = wait_load(wait, By.ID, 'about-nav')
         assert element is not None
 
@@ -97,10 +112,7 @@ class TestLiveServer:
         element = wait_load(wait, By.ID, 'logout')
         element.click()
         # sign in
-        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
-        driver.find_element(By.NAME, 'i_login').send_keys(EMAIL)
-        driver.find_element(By.NAME, 'i_pass').send_keys(PASS)
-        element.click()
+        signin(driver, wait, login=EMAIL, passw=PASS)
         wait_load(wait, By.ID, 'about-nav')
 
     def test_paper_view(self, driver):
@@ -272,19 +284,12 @@ class TestLiveServer:
         """Test ORCID authentication."""
         wait = WebDriverWait(driver, 20)
 
-        driver.get(url_for(ROOT, _external=True))
-        sleep(3)
-        try:
-            element = driver.find_element(By.ID, 'logout')
-            element.click()
-        except NoSuchElementException:
-            pass
+        # sign out
+        driver.get(url_for(ROOT_LOGOUT, _external=True))
+        wait_load(wait, By.CLASS_NAME, 'btn-primary')
 
         driver.get(url_for('auth_bp.orcid', _external=True))
-        element = wait_load(wait, By.ID, 'signin-button')
-        driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
-        driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
-        element.click()
+        orcid_signin(driver, wait, **kwargs)
         element = wait_load(wait, By.ID, 'about-nav')
         assert element is not None
 
@@ -297,22 +302,12 @@ class TestLiveServer:
         driver.get(url_for(ROOT_LOGOUT, _external=True))
 
         # sign in other user credentials
-        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
-        # sign in
-        driver.find_element(By.NAME, 'i_login').send_keys(TMP_EMAIL)
-        driver.find_element(By.NAME, 'i_pass').send_keys(TMP_PASS)
-        element.click()
+        signin(driver, wait, login=TMP_EMAIL, passw=TMP_PASS)
         wait_load(wait, By.ID, 'about-nav')
 
         # Try to register with the same orcid
         driver.get(url_for('auth_bp.orcid', _external=True))
-        try:
-            element = wait_load(wait, By.ID, 'signin-button')
-            driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
-            driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
-            element.click()
-        except TimeoutException:
-            pass
+        orcid_signin(driver, wait, **kwargs)
         wait_load(wait, By.ID, 'about-nav')
 
         assert 'already registered!' in driver.page_source
@@ -328,13 +323,7 @@ class TestLiveServer:
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
         # sign in
         driver.get(url_for('auth_bp.orcid', _external=True))
-        try:
-            element = wait_load(wait, By.ID, 'signin-button')
-            driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
-            driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
-            element.click()
-        except TimeoutException:
-            pass
+        orcid_signin(driver, wait, **kwargs)
         wait_load(wait, By.ID, 'about-nav')
 
         # try to unlink (FAIL)
@@ -343,6 +332,7 @@ class TestLiveServer:
         wait_load(wait, By.ID, 'logout')
         assert 'ERROR' in driver.page_source
         assert 'Could not unlink' in driver.page_source
+        # delete account
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         sleep(1)
         driver.find_element(By.ID, 'deleteAcc').click()
@@ -355,21 +345,12 @@ class TestLiveServer:
         """Check successful ORCID unlink."""
         wait = WebDriverWait(driver, 10)
         driver.get(url_for(ROOT, _external=True))
-        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
-        driver.find_element(By.NAME, 'i_login').send_keys(EMAIL)
-        driver.find_element(By.NAME, 'i_pass').send_keys(PASS)
-        element.click()
+        signin(driver, wait, login=EMAIL, passw=PASS)
         wait_load(wait, By.ID, 'about-nav')
 
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
         wait_load(wait, By.ID, 'orcidAuthButton').click()
-        try:
-            element = wait_load(wait, By.ID, 'signin-button')
-            driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
-            driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
-            element.click()
-        except TimeoutException:
-            pass
+        orcid_signin(driver, wait, **kwargs)
         sleep(3)
         assert 'ORCID linked successfully' in driver.page_source
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
