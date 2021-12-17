@@ -28,7 +28,7 @@ ROOT_LOGOUT = 'auth_bp.logout'
 def driver():
     """Create chrome driver."""
     options = Options()
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     driver = webdriver.Chrome(options=options)
     yield driver
