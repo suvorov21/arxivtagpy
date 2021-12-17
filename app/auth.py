@@ -303,7 +303,7 @@ def oath():
             current_user.orcid = response.json()['orcid']
             db.session.commit()
             flash('ORCID linked successfully')
-            return redirect(url_for(ROOT_PATH), code=303)
+            return redirect(url_for(ROOT_SET, page='pref'), code=303)
         # if no current_user --> create a new one
         user = User(orcid=response.json()['orcid'],
                     arxiv_cat=['hep-ex'],
@@ -485,7 +485,7 @@ def orcid():
                 return redirect(url_for(ROOT_SET, page='pref'), code=303)
             else:
                 # unlink orcid
-                current_user.orcid = ''
+                current_user.orcid = None
                 db.session.commit()
                 flash('ORCID unlinked successfully')
                 return redirect(url_for(ROOT_SET, page='pref'), code=303)

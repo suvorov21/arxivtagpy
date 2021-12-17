@@ -123,6 +123,12 @@ def test_signup_page(client):
     assert response.status_code == 200
 
 
+def test_pass_restore_page(client):
+    """Test password restore page."""
+    response = client.get(url_for('auth_bp.restore'))
+    assert response.status_code == 200
+
+
 def test_paper_page_not_auth(client):
     """Test anauthorised paper access."""
     response = client.get(url_for(ROOT_PAPERS),

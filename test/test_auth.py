@@ -66,7 +66,7 @@ def test_logout(client, login):
 def test_new_acc(client):
     """Test new account creation."""
     response = client.post('/new_user',
-                           data={'email': 'tester2@gmail.com',
+                           data={'email': 'tester2@mailinator.com',
                                  'pasw': 'tester2',
                                  'pasw2': 'tester2'
                                  },
@@ -75,6 +75,48 @@ def test_new_acc(client):
     assert response.status_code == 200
     assert 'ERROR' not in response.get_data(as_text=True)
     assert 'Welcome' in response.get_data(as_text=True)
+
+
+def test_new_acc_same_email(client):
+    """Test new account creation with already registered email."""
+    response = client.post('/new_user',
+                           data={'email': 'tester2@mailinator.com',
+                                 'pasw': 'tester2',
+                                 'pasw2': 'tester2'
+                                 },
+                           follow_redirects=True
+                           )
+    assert response.status_code == 200
+    assert 'Email is already registered' in response.get_data(as_text=True)
+    assert 'Welcome' not in response.get_data(as_text=True)
+
+
+def test_new_acc_wrong_email(client):
+    """Test new account creation with wrong email format."""
+    response = client.post('/new_user',
+                           data={'email': 'blablabla',
+                                 'pasw': 'tester2',
+                                 'pasw2': 'tester2'
+                                 },
+                           follow_redirects=True
+                           )
+    assert response.status_code == 200
+    assert 'The email is not correct!' in response.get_data(as_text=True)
+    assert 'Welcome' not in response.get_data(as_text=True)
+
+
+def test_new_acc_diff_passw(client):
+    """Test new account creation with different passwords."""
+    response = client.post('/new_user',
+                           data={'email': 'tester3@mailinator.com',
+                                 'pasw': 'tester2',
+                                 'pasw2': 'tester3'
+                                 },
+                           follow_redirects=True
+                           )
+    assert response.status_code == 200
+    assert "Passwords don't match!" in response.get_data(as_text=True)
+    assert 'Welcome' not in response.get_data(as_text=True)
 
 
 def test_del_acc(client, tmp_user):
@@ -101,7 +143,7 @@ def test_change_pass(client, tmp_user):
 
 
 def test_unauthorised_request(client):
-    """Test acccess to login restricted pages."""
+    """Test access to login restricted pages."""
     response = client.post(url_for(ROOT_PASSW),
                            data={'oldPass': PASS,
                                  'newPass1': 'tester_new',

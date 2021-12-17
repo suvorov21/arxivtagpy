@@ -17,6 +17,7 @@ EMAIL = 'arxiv_tester@mailinator.com'
 PASS = 'tester'  # nosec
 
 TMP_EMAIL = 'arxiv_tester2@mailinator.com'
+TMP_PASS = 'tester' #nosec
 
 DEFAULT_LIST = 'Favourite'
 

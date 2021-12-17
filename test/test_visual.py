@@ -3,8 +3,9 @@
 
 from time import sleep
 from os import environ
+from functools import wraps
 
-from test.conftest import EMAIL, PASS
+from test.conftest import EMAIL, PASS, TMP_EMAIL, TMP_PASS
 
 from flask import url_for
 
@@ -20,6 +21,7 @@ import pytest
 ROOT = 'main_bp.root'
 ROOT_PAPERS = 'main_bp.papers_list'
 ROOT_SET = 'settings_bp.settings_page'
+ROOT_LOGOUT = 'auth_bp.logout'
 
 
 @pytest.fixture(scope='session')
@@ -57,6 +59,32 @@ class TestLiveServer:
         element.click()
         element = wait_load(wait, By.ID, 'about-nav')
         assert element is not None
+
+    def test_registration(self, driver):
+        """Test login form."""
+        wait = WebDriverWait(driver, 10)
+        driver.get(url_for('auth_bp.signup', _external=True))
+        element = wait_load(wait, By.ID, 'signup')
+
+        driver.find_element(By.NAME, 'email').send_keys(TMP_EMAIL)
+        driver.find_element(By.NAME, 'pasw').send_keys(TMP_PASS)
+        driver.find_element(By.NAME, 'pasw2').send_keys(TMP_PASS)
+        element.click()
+
+        element = wait_load(wait, By.ID, 'about-nav')
+        assert element is not None
+
+        # restore login to main test user
+        # sign out
+        driver.get(url_for(ROOT, _external=True))
+        element = wait_load(wait, By.ID, 'logout')
+        element.click()
+        # sign in
+        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        driver.find_element(By.NAME, 'i_login').send_keys(EMAIL)
+        driver.find_element(By.NAME, 'i_pass').send_keys(PASS)
+        element.click()
+        wait_load(wait, By.ID, 'about-nav')
 
     def test_paper_view(self, driver):
         """Test paper view."""
@@ -222,17 +250,26 @@ class TestLiveServer:
         element = wait_load(wait, By.ID, 'check-nov-1')
         assert not element.is_selected()
 
-    def test_orcid_auth(self, driver):
+    def check_orcid_credits(funct):
+        """Check if the ORCID credits are in ENV."""
+
+        @wraps(funct)
+        def my_wrapper(*args, **kwargs):
+            kwargs['login'] = environ.get('ORCID_NAME')
+            kwargs['passw'] = environ.get('ORCID_PASSW')
+            if not kwargs['login'] or not kwargs['passw']:
+                print('WARNING! Test is skipped as no ORCID credentials are provided')
+                assert True
+                return
+
+            return funct(*args, **kwargs)
+
+        return my_wrapper
+
+    @check_orcid_credits
+    def test_orcid_auth(self, driver, **kwargs):
         """Test ORCID authentication."""
-        login = environ.get('ORCID_NAME')
-        passw = environ.get('ORCID_PASSW')
-
-        if not login or not passw:
-            print('WARNING! Test is skipped as no ORCID credentials are provided')
-            assert True
-            return
-
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, 20)
 
         driver.get(url_for(ROOT, _external=True))
         sleep(3)
@@ -244,8 +281,76 @@ class TestLiveServer:
 
         driver.get(url_for('auth_bp.orcid', _external=True))
         element = wait_load(wait, By.ID, 'signin-button')
-        driver.find_element(By.ID, 'username').send_keys(login)
-        driver.find_element(By.ID, 'password').send_keys(passw)
+        driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+        driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
         element.click()
         element = wait_load(wait, By.ID, 'about-nav')
         assert element is not None
+
+    @check_orcid_credits
+    def test_orcid_second_registration(self, driver, **kwargs):
+        """Try to register with existing ORCID."""
+        wait = WebDriverWait(driver, 20)
+
+        # sign out
+        driver.get(url_for(ROOT_LOGOUT, _external=True))
+
+        # sign in other user credentials
+        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        # sign in
+        driver.find_element(By.NAME, 'i_login').send_keys(TMP_EMAIL)
+        driver.find_element(By.NAME, 'i_pass').send_keys(TMP_PASS)
+        element.click()
+        wait_load(wait, By.ID, 'about-nav')
+
+        # Try to register with the same orcid
+        driver.get(url_for('auth_bp.orcid', _external=True))
+        wait_load(wait, By.ID, 'about-nav')
+
+        assert 'already registered!' in driver.page_source
+        assert 'successfully' not in driver.page_source
+        assert 'ERROR' in driver.page_source
+
+    @check_orcid_credits
+    def test_orcid_failed_unlink(self, driver, **kwargs):
+        """Test ORCID link/unlink."""
+        wait = WebDriverWait(driver, 20)
+        # sign out
+        driver.get(url_for(ROOT_LOGOUT, _external=True))
+        wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        # sign in
+        driver.get(url_for('auth_bp.orcid', _external=True))
+        wait_load(wait, By.ID, 'about-nav')
+
+        # try to unlink (FAIL)
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        wait_load(wait, By.ID, 'logout')
+        assert 'ERROR' in driver.page_source
+        assert 'Could not unlink' in driver.page_source
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        sleep(1)
+        driver.find_element(By.ID, 'deleteAcc').click()
+        sleep(1)
+        wait_load(wait, By.ID, 'btn-confirm').click()
+        wait_load(wait, By.CLASS_NAME, 'btn-primary')
+
+    @check_orcid_credits
+    def test_orcid_unlink(self, driver, **kwargs):
+        """Check successful ORCID unlink."""
+        wait = WebDriverWait(driver, 20)
+        driver.get(url_for(ROOT, _external=True))
+        element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
+        driver.find_element(By.NAME, 'i_login').send_keys(EMAIL)
+        driver.find_element(By.NAME, 'i_pass').send_keys(PASS)
+        element.click()
+        wait_load(wait, By.ID, 'about-nav')
+
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        sleep(3)
+        assert 'ORCID linked successfully' in driver.page_source
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        sleep(1)
+        assert 'ORCID unlinked successfully' in driver.page_source
