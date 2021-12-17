@@ -353,17 +353,19 @@ def email_change():
                'to': new}
     token = encode_token(payload)
 
+    href = f'http://{request.headers["Host"]}/change_email_confirm?data={token}'
+
     # create an email
     body = 'Hello,\n\nYour email in the account at the website' + request.headers['Host']
     body += f'was requested to be changed to {new}.\n'
     body += 'If it was not you - ignore the message.'
     body += ' If you are sure you want to change the email use the link below\n\n'
-    body += f'http://{request.headers["Host"]}/change_email_confirm?data={token}'
+    body += href
 
     html = render_template('mail_email_change.jinja2',
                            host=request.headers['Host'],
                            new_emal=new,
-                           href=f'http://{request.headers["Host"]}/change_email_confirm?data={token}'
+                           href=href
                            )
     msg = Message(body=body,
                   html=html,
@@ -479,6 +481,7 @@ def verify_email_confirm():
 
 @auth_bp.route('/orcid', methods=['GET'])
 def orcid():
+    """Redirect to ORCID authentication page."""
     """Redirect to ORCID authentication page."""
     # if user exists and authenticated
     if current_user and current_user.is_authenticated:

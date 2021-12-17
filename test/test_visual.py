@@ -14,7 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 import pytest
 
@@ -37,6 +37,23 @@ def driver():
 def wait_load(wait, by, name):
     """Helper function to wait for element load."""
     return wait.until(EC.element_to_be_clickable((by, name)))
+
+
+def check_orcid_credits(funct):
+    """Check if the ORCID credits are in ENV."""
+
+    @wraps(funct)
+    def my_wrapper(*args, **kwargs):
+        kwargs['login'] = environ.get('ORCID_NAME')
+        kwargs['passw'] = environ.get('ORCID_PASSW')
+        if not kwargs['login'] or not kwargs['passw']:
+            print('WARNING! Test is skipped as no ORCID credentials are provided')
+            assert True
+            return None
+
+        return funct(*args, **kwargs)
+
+    return my_wrapper
 
 
 @pytest.mark.usefixtures('live_server')
@@ -250,22 +267,6 @@ class TestLiveServer:
         element = wait_load(wait, By.ID, 'check-nov-1')
         assert not element.is_selected()
 
-    def check_orcid_credits(self, funct):
-        """Check if the ORCID credits are in ENV."""
-
-        @wraps(funct)
-        def my_wrapper(*args, **kwargs):
-            kwargs['login'] = environ.get('ORCID_NAME')
-            kwargs['passw'] = environ.get('ORCID_PASSW')
-            if not kwargs['login'] or not kwargs['passw']:
-                print('WARNING! Test is skipped as no ORCID credentials are provided')
-                assert True
-                return
-
-            return funct(self, *args, **kwargs)
-
-        return my_wrapper
-
     @check_orcid_credits
     def test_orcid_auth(self, driver, **kwargs):
         """Test ORCID authentication."""
@@ -290,7 +291,7 @@ class TestLiveServer:
     @check_orcid_credits
     def test_orcid_second_registration(self, driver, **kwargs):
         """Try to register with existing ORCID."""
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 10)
 
         # sign out
         driver.get(url_for(ROOT_LOGOUT, _external=True))
@@ -305,6 +306,13 @@ class TestLiveServer:
 
         # Try to register with the same orcid
         driver.get(url_for('auth_bp.orcid', _external=True))
+        try:
+            element = wait_load(wait, By.ID, 'signin-button')
+            driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+            driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
+            element.click()
+        except TimeoutException:
+            pass
         wait_load(wait, By.ID, 'about-nav')
 
         assert 'already registered!' in driver.page_source
@@ -314,12 +322,19 @@ class TestLiveServer:
     @check_orcid_credits
     def test_orcid_failed_unlink(self, driver, **kwargs):
         """Test ORCID link/unlink."""
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 10)
         # sign out
         driver.get(url_for(ROOT_LOGOUT, _external=True))
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
         # sign in
         driver.get(url_for('auth_bp.orcid', _external=True))
+        try:
+            element = wait_load(wait, By.ID, 'signin-button')
+            driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+            driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
+            element.click()
+        except TimeoutException:
+            pass
         wait_load(wait, By.ID, 'about-nav')
 
         # try to unlink (FAIL)
@@ -338,7 +353,7 @@ class TestLiveServer:
     @check_orcid_credits
     def test_orcid_unlink(self, driver, **kwargs):
         """Check successful ORCID unlink."""
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 10)
         driver.get(url_for(ROOT, _external=True))
         element = wait_load(wait, By.CLASS_NAME, 'btn-primary')
         driver.find_element(By.NAME, 'i_login').send_keys(EMAIL)
@@ -348,6 +363,13 @@ class TestLiveServer:
 
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
         wait_load(wait, By.ID, 'orcidAuthButton').click()
+        try:
+            element = wait_load(wait, By.ID, 'signin-button')
+            driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+            driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
+            element.click()
+        except TimeoutException:
+            pass
         sleep(3)
         assert 'ORCID linked successfully' in driver.page_source
         driver.get(url_for(ROOT_SET, page='pref', _external=True))

@@ -52,7 +52,6 @@ def month_start() -> datetime:
 
 class DecodeException(Exception):
     """Custom exception for token decode error."""
-    pass
 
 
 def encode_token(payload: Dict) -> str:
