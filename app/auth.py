@@ -11,7 +11,7 @@ from werkzeug.security import check_password_hash, \
     generate_password_hash
 
 from flask import Blueprint, render_template, flash, redirect, \
-    request, current_app, url_for
+    request, current_app, url_for, session
 from flask_login import login_user, logout_user, \
     current_user, login_required
 from flask_mail import Message
@@ -464,6 +464,9 @@ def change_email_confirm():
     user.verified_email = False
     db.session.commit()
 
+    if not current_user or not current_user.is_authenticated:
+        login_user(user)
+
     flash('Email changed successfully!')
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
@@ -486,6 +489,11 @@ def verify_email_confirm():
     user.verified_email = True
     db.session.commit()
 
+    if not current_user or not current_user.is_authenticated:
+        login_user(user)
+
+    # for some reason the session is not cleaned before
+    session['_flashes'].clear()
     flash('Email verified successfully!')
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 

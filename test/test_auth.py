@@ -14,6 +14,7 @@ ROOT_PASSW = 'auth_bp.change_pasw'
 ROOT_NEW_USER = 'auth_bp.new_user'
 ROOT_EMAIL_CHANGE = 'auth_bp.email_change'
 ROOT_EMAIL_CHANGE_CONF = 'auth_bp.change_email_confirm'
+ROOT_LOGOUT = 'auth_bp.logout'
 
 
 def test_general(client):
@@ -237,6 +238,8 @@ def test_email_change(client, login):
 
 def test_email_verification_confirmation(client):
     """Tests confirmation of email change."""
+    # check that the user will be logged in with a token
+    client.get(url_for(ROOT_LOGOUT))
     payload = {'email': EMAIL}
     token = encode_token(payload)
     response = client.get(url_for('auth_bp.verify_email_confirm',
@@ -244,7 +247,8 @@ def test_email_verification_confirmation(client):
                           follow_redirects=True
                           )
     assert response.status_code == 200
-    assert 'successfully' in response.get_data(as_text=True)
+    assert 'Email verified successfully' in response.get_data(as_text=True)
+    assert 'ERROR' not in response.get_data(as_text=True)
 
 
 def test_wrong_email_verification_confirmation(client):
@@ -261,6 +265,8 @@ def test_wrong_email_verification_confirmation(client):
 
 def test_email_change_confirmation(client, tmp_user):
     """Tests confirmation of email verification."""
+    # check that the user will be logged in with a token
+    client.get(url_for(ROOT_LOGOUT))
     payload = {'from': TMP_EMAIL,
                'to': 'tester_wrong@mailinator.com'
                }
@@ -271,6 +277,7 @@ def test_email_change_confirmation(client, tmp_user):
                           )
     assert response.status_code == 200
     assert 'successfully' in response.get_data(as_text=True)
+    assert 'ERROR' not in response.get_data(as_text=True)
 
 
 def test_wrong_old_email_change_confirmation(client, tmp_user):
