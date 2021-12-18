@@ -493,7 +493,8 @@ def verify_email_confirm():
         login_user(user)
 
     # for some reason the session is not cleaned before
-    session['_flashes'].clear()
+    if '_flashes' in session:
+        session['_flashes'].clear()
     flash('Email verified successfully!')
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
