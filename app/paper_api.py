@@ -72,7 +72,7 @@ class ArxivOaiApi:
 
         try:
             response = get(self.URL, self.params)
-        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.NewConnectionError) as e:
+        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.NewConnectionError):
             logging.warning('urllib3 exception')
             fail_attempts += 1
             sleep(self.DELAY)
@@ -135,6 +135,7 @@ class ArxivOaiApi:
 
             paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
                           title=fix_xml(info.find(self.ARXIV + 'title').text),
+                          # TODO add helper function for author parse
                           author=author,
                           date_up=updated,
                           date_sub=created,

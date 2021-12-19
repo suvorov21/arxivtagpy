@@ -44,8 +44,13 @@ def settings_page():
 
     elif page == 'tag':
         data['tags'] = dumps(session['tags'])
+        data['verified_email'] = current_user.verified_email
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
+        data['verified_email'] = current_user.verified_email
+        data['pass'] = current_user.pasw is not None
+        data['email'] = current_user.email
+        data['orcid'] = current_user.orcid
     else:
         return redirect(url_for(SET_PAGE,
                                 page='cat'

@@ -99,7 +99,7 @@ export function raiseAlert(text = "Text", type: alertType="success"): void {
 
     setTimeout(() => {
         (<any>$(".alert")).alert("close");
-    } , 3000);
+    } , 4000);
 }
 
 // utility function to access css var

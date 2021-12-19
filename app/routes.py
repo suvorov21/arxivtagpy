@@ -19,7 +19,7 @@ from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers, tag_test
 from .paper_api import get_arxiv_sub_start, \
     get_annonce_date, get_arxiv_announce_date, get_date_range
-from .utils import get_lists_for_user
+from .utils_app import get_lists_for_user
 from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
@@ -403,7 +403,7 @@ def public_tags():
 @login_required
 def collect_feedback():
     """Send feedback by email to the admin."""
-    sender = current_user.email
+    sender = current_user.email if current_user.email else current_user.orcid
     text = request.form.get('body')
 
     body = f'Feedback from {sender}\n\n'

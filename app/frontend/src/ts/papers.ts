@@ -116,7 +116,7 @@ const pageChange = (p = 1, push = true): void => {
     (document.activeElement as HTMLElement).blur();
 
     if (push) {
-        const regex = /page=[0-9]*/i;
+        const regex = /page=\d*/i;
         const hrefPage = location.href.replace(regex, "page=" + p);
         history.pushState({}, document.title, hrefPage);
     }

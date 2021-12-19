@@ -34,6 +34,7 @@ pluggy==1.0.0
 psycopg2-binary==2.9.2
 py==1.11.0
 pycparser==2.21
+PyJWT==2.3.0
 pyOpenSSL==21.0.0
 pyparsing==3.0.6
 pytest==6.2.5
