@@ -316,7 +316,7 @@ def email_papers():
                 logging.debug('Send email for user %i', user.id)
                 email_paper_update(papers_to_send,
                                    user.email,
-                                   bool(do_send == "True") and user.verify_email
+                                   bool(do_send == "True") and user.verified_email
                                    )
 
             user = User.query.filter_by(id=tag.user_id).first()
@@ -344,7 +344,7 @@ def email_papers():
         logging.debug('Send email for user %i', user.id)
         email_paper_update(papers_to_send,
                            user.email,
-                           bool(do_send == "True") and user.verify_email
+                           bool(do_send == "True") and user.verified_email
                            )
 
     # store the last checked paper
