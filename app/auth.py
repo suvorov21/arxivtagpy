@@ -337,11 +337,11 @@ def oath():
 def email_change():
     """Change email for the current user."""
     new = request.form.get('newEmail')
-    if not current_user.email:
+    if not current_user.email or not current_user.verified_email:
         # check if there is no one with this email
         user = User.query.filter_by(email=new).first()
         if user:
-            flash("ERROR! User with new email is already registered.")
+            flash("ERROR! User with this email is already registered.")
             return redirect(url_for(ROOT_SET, page='pref'), code=303)
         current_user.email = new
         db.session.commit()
@@ -349,7 +349,6 @@ def email_change():
         flash(message)
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
-    print(new, current_user.email)
     if new == current_user.email:
         flash("ERROR! You entered the same email.")
         return redirect(url_for(ROOT_SET, page='pref'), code=303)

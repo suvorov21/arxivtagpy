@@ -26,8 +26,8 @@
 
   {% if data['sentry'] == 'long' %}
     <script
-      src="https://browser.sentry-cdn.com/6.15.0/bundle.tracing.min.js"
-      integrity="sha384-1k7XKRQgqjUbNyG2sI+qsY8HTHMOeLdycMx6hoGuNSANZ3WrMa3LXkr+M4t+SIpF"
+      src="https://browser.sentry-cdn.com/6.16.1/bundle.tracing.min.js"
+      integrity="sha384-hySah00SvKME+98UjlzyfP852AXjPPTh2vgJu26gFcwTlZ02/zm82SINaKTKwIX2"
       crossorigin="anonymous"
     ></script>
     <script type="text/javascript">
@@ -45,7 +45,6 @@
   </script>
   {% if data.get('math_jax') %}
     <script>
-      {#window["MathJax"] = {#}
       MathJax = {
         tex: {
           inlineMath: [['$', '$'], ['\\(', '\\)']],
@@ -166,7 +165,6 @@
           Please leave your feedback through the feedback panel,<br/> or with submitting issues at the repos.</p>
     </div>
 
-  {# TODO  do we need his with webpack? #}
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
 
@@ -182,7 +180,6 @@
    </script>
     {% if current_user.is_authenticated %}
       <script type="text/javascript">
-          {# TODO put feedback script here for the timebeing #}
            $(function() {
                document.getElementById("feedback-tab").onclick = () => {
                  $("#feedback-form").toggle("slide");
@@ -196,7 +193,6 @@
                  data: $form.serialize(),
                    success: function() {
                      $("#feedback-form").toggle("slide").find("textarea").val("");
-                     {# FIXME make the alert back to work #}
                      {#raiseAlert("Thank you for your feedback!", "success");#}
                    }
                  });

@@ -128,15 +128,9 @@ class ArxivOaiApi:
             if doi is not None:
                 doi = doi.text.split()[0]
 
-            author = info.find(self.ARXIV + 'authors').text
-            # explicitly for people who put affiliation in author list
-            author = split(r', | \(.*?\),| and ', author)
-            author[-1] = split(r' \(.*?\)(,|\s)', author[-1])[0]
-
             paper = Paper(paper_id=info.find(self.ARXIV + 'id').text,
                           title=fix_xml(info.find(self.ARXIV + 'title').text),
-                          # TODO add helper function for author parse
-                          author=author,
+                          author=parse_authors(info.find(self.ARXIV + 'authors').text),
                           date_up=updated,
                           date_sub=created,
                           version=versions[-1].get('version'),
@@ -160,6 +154,16 @@ class ArxivOaiApi:
 
         sleep(self.DELAY)
         yield from self.download_papers(rest=rest)
+
+
+def parse_authors(author_xml):
+    """Parse XML entry for authors."""
+    # explicitly for people who put affiliation in author list
+    authors = split(r', | \(.*?\),| and ', author_xml)
+    authors[-1] = split(r' \(.*?\)([,\s])', authors[-1])[0]
+    # remove double spaces
+    authors = [author.replace(r'\s+', ' ') for author in authors]
+    return authors
 
 
 def get_arxiv_sub_start(announce_date: date,
