@@ -332,7 +332,14 @@
     <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   {% if 'pref' in data %}
-    <script type="text/javascript">__PREF__ = {{ data['pref'] }}; __EMAIL__ = "{{ data['email'] }}";</script>
+    <script type="text/javascript">
+        __PREF__ = {{ data['pref'] }};
+        __EMAIL__ = "{{ data['email'] }}";
+        __VERIF__ = false;
+        {% if data['verified_email'] %}
+          __VERIF__ = true;
+        {% endif %}
+    </script>
     <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
   {% endif %}
   <script type="text/javascript">
