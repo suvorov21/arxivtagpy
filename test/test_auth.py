@@ -8,6 +8,7 @@ from time import sleep
 from flask import url_for
 from app.utils import encode_token, decode_token, DecodeException
 from app import mail
+from app.model import User, db
 
 ROOT_LOGIN = 'auth_bp.login'
 ROOT_PASSW = 'auth_bp.change_pasw'
@@ -219,7 +220,7 @@ def test_email_change_to_same(client, login):
         assert len(outbox) == 0
 
     assert response.status_code == 200
-    assert 'same email' in response.get_data(as_text=True)
+    assert 'ERROR' in response.get_data(as_text=True)
 
 
 def test_email_change(client, login):
@@ -229,11 +230,25 @@ def test_email_change(client, login):
                                data={'newEmail': TMP_EMAIL},
                                follow_redirects=True
                                )
+        assert len(outbox) == 0
+
+    assert response.status_code == 200
+    assert 'ERROR' not in response.get_data(as_text=True)
+
+    User.query.filter_by(email=TMP_EMAIL).first().verified_email = True
+    db.session.commit()
+    with mail.record_messages() as outbox:
+        response = client.post(url_for(ROOT_EMAIL_CHANGE),
+                               data={'newEmail': EMAIL},
+                               follow_redirects=True
+                               )
         assert len(outbox) == 1
         assert outbox[0].subject == "arXiv tag email change"
 
     assert response.status_code == 200
     assert 'ERROR' not in response.get_data(as_text=True)
+    User.query.filter_by(email=TMP_EMAIL).first().email = EMAIL
+    db.session.commit()
 
 
 def test_email_verification_confirmation(client):
