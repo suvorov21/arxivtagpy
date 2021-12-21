@@ -4,6 +4,7 @@ import {raiseAlert} from "./layout";
 
 declare const __PREF__;
 declare const __EMAIL__;
+declare const __VERIF__;
 declare const bootstrap;
 
 const renderPref = (): void => {
@@ -59,7 +60,7 @@ const confirmEditEmail = (event): void => {
         return;
     }
     let optional = "";
-    if (__EMAIL__ !== "None") {
+    if (__EMAIL__ !== "None" && __VERIF__) {
         optional = "<br>Confirmation email will be sent to the old email " + __EMAIL__;
     }
     const form = document.getElementById("form-confirm");
