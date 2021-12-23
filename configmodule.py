@@ -16,8 +16,8 @@ class Config:
     # security
     TOKEN = environ.get('TOKEN')
     SECRET_KEY = b'\xed\xb5S\x8c\xc2\x83\xb5>\xe6\xf82\x9e@\x95\xd0\xcb\xfa\x9c\xf7\xafy\xd7\x8d9'
-    if environ.get('SECURE_KEY'):
-        SECRET_KEY = environ.get('SECURE_KEY').split(',')[0]
+    if environ.get('SECRET_KEY'):
+        SECRET_KEY = environ.get('SECRET_KEY')
     # keep users logged in
     SESSION_PERMANENT = True
 

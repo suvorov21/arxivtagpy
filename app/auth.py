@@ -291,7 +291,10 @@ def oath():
     response = req_session.send(prepared)
 
     if response.status_code != 200 or 'orcid' not in response.json():
-        logging.error('Error with ORCID OAth. Code %i', response.status_code)
+        logging.error('Error with ORCID OAth. Code %i\nResponse: %r',
+                      response.status_code,
+                      response.json()
+                      )
         message = 'ERROR! ORCID respond with error.<br>'
         message += 'We are notified and investigating the problem.<br>'
         message += 'You can try login with email/password.'
