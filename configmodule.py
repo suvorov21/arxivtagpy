@@ -72,6 +72,7 @@ class TestingConfig(Config):
     WTF_CSRF_ENABLED = False
     DEBUG = True
     TESTING = True
+    LOG_PATH = 'STDOUT'
     ORCID_APP = environ.get('ORCID_APP_TEST')
     ORCID_URL = environ.get('ORCID_URL_TEST')
     ORCID_SECRET = environ.get('ORCID_SEC_TEST')

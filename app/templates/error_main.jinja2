@@ -1,0 +1,23 @@
+{% extends "layout.jinja2" %}
+
+{% block head_scripts %}
+  <title>arXiv tag. Error</title>
+
+  <script type="text/javascript" src="{{ url_for('main_bp.static', filename='dist/js/settings_style.bundle.js') }}?{{ data['version'] }}"></script>
+{% endblock %}
+
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="paper-wrapper col-sm-11 col-md-5 col-lg-4 col-xl-3 mt-5 row justify-content-center">
+      <div class="d-flex justify-content-center mt-2">
+        <img src="{{ url_for('main_bp.static', filename='dist/img/' + img + '.png')}}">
+      </div>
+      <div class="text-center mt-2">
+        <p>{{ line1 }}</p>
+      </div>
+      <div class="text-center">
+        <p>{{ line2 }}</p>
+      </div>
+    </div>
+  </div>
+{% endblock %}

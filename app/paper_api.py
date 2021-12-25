@@ -8,7 +8,7 @@ from re import split
 from typing import Tuple
 
 from flask import current_app
-from requests import get
+from requests import get, exceptions
 import urllib3
 
 from .model import Paper
@@ -40,6 +40,7 @@ class ArxivOaiApi:
     def __init__(self):
         """API initialisation."""
         self.params = ArxivOaiApi.DEF_PARAMS
+        self.fail_attempts = 0
 
     def set_set(self, set_var: str):
         """Set for papers."""
@@ -61,44 +62,49 @@ class ArxivOaiApi:
         """Format ref for webpage with summary."""
         return self.BASE_URL + '/abs/' + pid + version
 
-    def download_papers(self, fail_attempts: int = 0, rest: int = -1):
+    def download_papers(self, rest: int = -1):
         """Generator for paper downloading."""
 
-        if fail_attempts > self.MAX_FAIL:
+        if self.fail_attempts > self.MAX_FAIL:
             logging.error('arXiv exceeds max allowed error limit')
             return
 
         logging.debug('Start harvesting')
 
         try:
-            response = get(self.URL, self.params)
-        except (urllib3.exceptions.MaxRetryError, urllib3.exceptions.NewConnectionError):
-            logging.warning('urllib3 exception')
-            fail_attempts += 1
+            logging.info('try')
+            response = get(self.URL, self.params, verify=True)
+            logging.info('request...')
+            response.raise_for_status()
+            logging.info('status...')
+        except (urllib3.exceptions.MaxRetryError,
+                urllib3.exceptions.NewConnectionError,
+                urllib3.exceptions.HTTPError
+                ) as exep:
+            logging.warning('urllib3 exception: %r', exep)
             sleep(self.DELAY)
-            self.download_papers(fail_attempts=fail_attempts)
+            self.fail_attempts += 1
             yield from self.download_papers(rest=rest)
-
-        logging.info('Ask arxiv with %r', response.url)
-
-        if response.status_code != 200:
-            fail_attempts += 1
-
-            logging.warning('arXiv API response with %i',
-                            response.status_code
-                            )
+        except exceptions.HTTPError:
             if 'Retry-After' in response.headers:
                 delay = int(response.headers["Retry-After"])
                 logging.warning('Sleeping for %i',
                                 delay
                                 )
                 sleep(delay)
-
             sleep(self.DELAY)
-            self.download_papers(fail_attempts=fail_attempts)
+            self.fail_attempts += 1
             yield from self.download_papers(rest=rest)
 
+        if self.fail_attempts > self.MAX_FAIL:
+            return
+
+        logging.info('Ask arxiv with %r', response.url)
+
         lor = ET.fromstring(response.text).find(self.OAI + 'ListRecords')
+        if not lor:
+            logging.error('Empty response from arXiv')
+            return
         records = lor.findall(self.OAI + 'record')
 
         if len(records) != self.BATCH_SIZE and len(records) != rest:

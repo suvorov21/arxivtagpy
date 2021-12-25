@@ -131,6 +131,9 @@ def new_user():
     pasw1 = request.form.get('pasw')
     pasw2 = request.form.get('pasw2')
 
+    if '_flashes' in session:
+        session['_flashes'].clear()
+
     usr = User.query.filter_by(email=email).first()
     if usr:
         flash("ERROR! Email is already registered")
@@ -291,10 +294,10 @@ def oath():
     response = req_session.send(prepared)
 
     if response.status_code != 200 or 'orcid' not in response.json():
-        logging.error('Error with ORCID OAth. Code %i\nResponse: %r',
-                      response.status_code,
-                      response.json()
-                      )
+        logging.info('Error with ORCID OAth. Code %i\nResponse: %r',
+                     response.status_code,
+                     response.json()
+                     )
         message = 'ERROR! ORCID respond with error.<br>'
         message += 'We are notified and investigating the problem.<br>'
         message += 'You can try login with email/password.'
@@ -466,11 +469,11 @@ def change_email_confirm():
     user.verified_email = False
     db.session.commit()
 
-    if not current_user or not current_user.is_authenticated:
-        login_user(user)
+    if '_flashes' in session:
+        session['_flashes'].clear()
+    flash('Email changed successfully! You can use your new email to login')
 
-    flash('Email changed successfully!')
-    return redirect(url_for(ROOT_SET, page='pref'), code=303)
+    return redirect(url_for('main_bp.about'), code=303)
 
 
 @auth_bp.route('/verify_email_confirm', methods=['GET'])
@@ -488,15 +491,21 @@ def verify_email_confirm():
         flash('ERROR! User not found! Please, try again.')
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
-    user.verified_email = True
-    db.session.commit()
+    # For security reasons login the user ONLY if the email was NOT verified before
+    if user.verified_email:
+        flash('ERROR! Link is already used, please, generate a new one.')
+        return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     if not current_user or not current_user.is_authenticated:
         login_user(user)
 
+    user.verified_email = True
+    db.session.commit()
+
     # for some reason the session is not cleaned before
     if '_flashes' in session:
         session['_flashes'].clear()
+
     flash('Email verified successfully!')
     return redirect(url_for(ROOT_SET, page='pref'), code=303)
 

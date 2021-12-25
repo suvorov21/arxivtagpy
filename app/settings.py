@@ -102,13 +102,13 @@ def mod_list():
 @login_required
 def add_list():
     """Add a new paper list."""
-    args = cast_args_to_dict(request.form.to_dict().keys())[0]
-
-    if args['name'] == '':
-        logging.error('Error during list add. Request %r', args)
+    if not request.form.to_dict().get('name') or request.form.to_dict().get('name') == '':
+        logging.error('Error during list add. Request %r', request.form.to_dict())
         return dumps({'success': False}), 422
 
-    n_list = PaperList(name=args['name'],
+    name = request.form.to_dict()['name']
+
+    n_list = PaperList(name=name,
                        order=999,
                        not_seen=0
                        )
