@@ -13,8 +13,7 @@ services:
 
   arxiv_dev:
     build: .
-    # sleep 20 seconds while postgres is starting
-    command: sh -c "flask create-db || true; flask db init || flask db stamp head; flask db migrate; flask db upgrade; gunicorn --workers=2 -t 300 -b 0.0.0.0:8000 wsgi:app"
+    command: sh -c "flask db init || flask db stamp head; flask db migrate; flask db upgrade; gunicorn --workers=2 -t 300 -b 0.0.0.0:8000 wsgi:app"
 
     volumes:
       - .:/usr/src/app/

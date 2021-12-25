@@ -46,6 +46,7 @@ integration_test:
     - apt update
     - apt install -y chromium chromium-driver wget
     - mv .env_example .env
+    - sed -i '/log_cli_level = 10/d' test/pytest.ini
   script:
     - pytest --cov=app --junitxml=report.xml test/
     - coverage xml -o coverage.xml

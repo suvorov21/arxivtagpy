@@ -2,7 +2,7 @@
 
 from os import linesep
 
-from json import loads
+from json import loads, JSONDecodeError
 from typing import List, Dict
 from datetime import datetime, timedelta
 
@@ -33,7 +33,10 @@ def cast_args_to_dict(args) -> List[Dict]:
         return list()
 
     # convert to array of dict
-    prefs = loads(prefs)
+    try:
+        prefs = loads(prefs)
+    except JSONDecodeError:
+        return list()
 
     if isinstance(prefs, dict):
         prefs = [prefs]

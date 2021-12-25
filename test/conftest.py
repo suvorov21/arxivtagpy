@@ -3,6 +3,8 @@
 
 import multiprocessing
 from datetime import datetime, timedelta
+import logging
+import requests
 
 from werkzeug.utils import import_string
 from werkzeug.security import generate_password_hash
@@ -31,7 +33,8 @@ def make_user(email):
                  last_paper=datetime.now() - timedelta(days=4),
                  arxiv_cat=['hep-ex'],
                  pref='{"tex": "True"}',
-                 recent_visit=0
+                 recent_visit=0,
+                 verified_email=False
                  )
     tag = Tag(name='test',
               rule='ti{math}|abs{physics&math}&au{!John}',
@@ -52,45 +55,76 @@ def app():
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
+    logging.level = logging.DEBUG
     with app.app_context():
         mail.init_app(app)
         db.drop_all()
         db.create_all()
-        user = make_user(EMAIL)
-        db.session.add(user)
-        db.session.commit()
         yield app
         db.session.remove()
         db.drop_all()
 
 
 @pytest.fixture(scope='function')
-def login(client):
+def user(client):
+    """Registered user ficture."""
+    client.post(url_for('auth_bp.new_user'),
+                data={'email': EMAIL,
+                      'pasw': PASS,
+                      'pasw2': PASS
+                      },
+                )
+    yield User.query.filter_by(email=EMAIL).first()
+    User.query.filter_by(email=EMAIL).delete()
+    db.session.commit()
+
+
+@pytest.fixture(scope='function')
+def login(client, user):
     """Login user to access the personal data."""
     client.post(url_for('auth_bp.login'),
-                data={'i_login': EMAIL,
+                data={'i_login': user.email,
                       'i_pass': PASS
                       },
-                follow_redirects=True
                 )
     yield client
-    client.get('/logout',
-               follow_redirects=True
-               )
+    client.get('/logout')
 
 
 @pytest.fixture(scope='function')
 def tmp_user(client):
     """Fixture for tmp user that could be changed/deleted."""
-    user = make_user(TMP_EMAIL)
-    db.session.add(user)
-    db.session.commit()
-    client.post(url_for('auth_bp.login'),
-                data={'i_login': TMP_EMAIL,
-                      'i_pass': PASS
+    client.post(url_for('auth_bp.new_user'),
+                data={'email': TMP_EMAIL,
+                      'pasw': PASS,
+                      'pasw2': PASS
                       },
-                follow_redirects=True
                 )
-    yield client
+    yield User.query.filter_by(email=TMP_EMAIL).first()
     User.query.filter_by(email=TMP_EMAIL).delete()
     db.session.commit()
+
+
+@pytest.fixture(scope='function')
+def tmp_login(client, tmp_user):
+    """Login user to access the personal data."""
+    client.post(url_for('auth_bp.login'),
+                data={'i_login': tmp_user.email,
+                      'i_pass': PASS
+                      },
+                )
+    yield client
+    client.get('/logout')
+
+
+@pytest.fixture(scope='module')
+def papers(app):
+    """Papers downloader."""
+    with app.app_context(), app.test_request_context():
+        requests.post(url_for('auto_bp.load_papers', # nosec
+                              token='test_token',  # nosec
+                              n_papers=500,
+                              set='physics:hep-ex',
+                              _external=True
+                              )
+                      )

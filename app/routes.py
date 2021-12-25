@@ -251,7 +251,9 @@ def about():
 def bookshelf():
     """Bookshelf page."""
     # if list is not specified take the default one
-    if 'list_id' not in request.args:
+    try:
+        display_list = int(request.args.get('list_id'))
+    except (ValueError, TypeError):
         fst_list = PaperList.query.filter_by(user_id=current_user.id
                                              ).order_by(PaperList.order).first()
         if not fst_list:
@@ -259,27 +261,26 @@ def bookshelf():
             fst_list = PaperList.query.filter_by(user_id=current_user.id
                                                  ).order_by(PaperList.order).first()
         return redirect(url_for(ROOT_BOOK, list_id=fst_list.id))
-    display_list = request.args['list_id']
-
-    if 'page' not in request.args:
-        return redirect(url_for(ROOT_BOOK,
-                                list_id=display_list,
-                                page=1))
 
     try:
-        page = int(request.args['page'])
-    except ValueError:
-        logging.error('Page argument is not int but: %r',
-                      request.args['page']
-                      )
+        page = int(request.args.get('page'))
+    except (ValueError, TypeError):
         return redirect(url_for(ROOT_BOOK,
                                 list_id=display_list,
                                 page=1))
 
     lists = get_lists_for_user()
+    # if User tries to access the list that doesn't belong to him
+    if display_list not in {user_list['id'] for user_list in lists}:
+        logging.warning('%r tries to access list %r', current_user.id, display_list)
+        return redirect(url_for(ROOT_BOOK, list_id=lists[0]['id']), code=303)
 
     # get the particular paper list to access papers from one
     paper_list = PaperList.query.filter_by(id=display_list).first()
+
+    # too large page argument
+    if page > len(paper_list.papers) / PAPERS_PAGE + 1:
+        return redirect(url_for(ROOT_BOOK, list_id=lists[0]['id'], page=1), code=303)
 
     # reset number of unseen papers
     paper_list.not_seen = 0
@@ -299,6 +300,7 @@ def bookshelf():
     total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
 
     # tag papers
+    load_prefs()
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
@@ -355,6 +357,12 @@ def add_bm():
     paper_list = PaperList.query.filter_by(id=list_id).first()
     if not paper_list:
         logging.error('List is not in the DB %r', list_id)
+        return dumps({'success': False}), 422
+
+    lists = get_lists_for_user()
+    # if User tries to access the list that doesn't belong to him
+    if paper_list.id not in {user_list['id'] for user_list in lists}:
+        logging.warning('%r tries to add bm to list %r', current_user.id, paper_list.id)
         return dumps({'success': False}), 422
 
     # check if paper is already in the given list of the current user

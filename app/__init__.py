@@ -1,12 +1,10 @@
-"""Application initialiser."""
-# pylint: disable=import-outside-toplevel
+"""Application initializer."""
+# pylint: disable=import-outside-toplevel, unused-import
 
 from os import environ
 import sys
 
 import logging
-
-import click
 
 from werkzeug.utils import import_string
 
@@ -35,20 +33,11 @@ app = Flask(__name__, instance_relative_config=True)
 csrf.init_app(app)
 
 
-@app.cli.command("create-db")
-def create_db():
-    """CLI for database creation."""
-    db.init_app(app)
-    db.create_all()
-    db.session.commit()
-
-
 def app_init():
     """Initialise app."""
+    cfg = import_string('configmodule.ProductionConfig')()
     if 'SERVER_CONF' in environ:
         cfg = import_string(environ['SERVER_CONF'])()
-    else:
-        cfg = import_string('configmodule.ProductionConfig')()
 
     app.config.from_object(cfg)
 
@@ -65,17 +54,6 @@ def app_init():
             # We recommend adjusting this value in production.
             traces_sample_rate=1.0
         )
-
-    if app.config.get('SQLALCHEMY_DATABASE_URI') is None:
-        logging.error("Database URL is not specified.")
-        return app
-
-    # fix a syntax for database
-    if 'postgres://' in app.config['SQLALCHEMY_DATABASE_URI']:
-        app.config['SQLALCHEMY_DATABASE_URI'] = \
-            app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://',
-                                                          'postgresql://'
-                                                          )
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -105,6 +83,7 @@ def app_init():
         from . import auth
         from . import settings
         from . import autohooks
+        from . import error_handler
         app.register_blueprint(routes.main_bp)
         app.register_blueprint(auth.auth_bp)
         app.register_blueprint(settings.settings_bp)
