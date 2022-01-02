@@ -197,6 +197,32 @@ def data():
         i = max(i, 0)
         current_user.recent_visit = current_user.recent_visit | 2 ** i
 
+    # because of the holidays 1-2 day can be skipped
+    # in this case return the last day with submissions
+    if len(papers['papers']) == 0:
+        last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
+        # update information for the page title
+        old_date_tmp, new_date_tmp, new_date = get_date_range(
+            request.args['date'],
+            get_arxiv_announce_date(last_paper_date)
+        )
+        # new query in the paper DB. Attempt to find papers
+        if request.args['date'] == 'today':
+            papers['papers'] = get_json_papers(session['cats'],
+                                               last_paper_date - timedelta(days=1),
+                                               last_paper_date
+                                               )
+        elif request.args['date'] == 'week':
+            papers['papers'] = get_json_papers(session['cats'],
+                                               last_paper_date - timedelta(weeks=1),
+                                               last_paper_date
+                                               )
+        elif request.args['date'] == 'month':
+            papers['papers'] = get_json_papers(session['cats'],
+                                               last_paper_date - timedelta(weeks=4),
+                                               last_paper_date
+                                               )
+
     # error handler
     if len(papers['papers']) == 0 and \
             request.args['date'] not in ('last', 'unseen'):
