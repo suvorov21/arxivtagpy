@@ -48,10 +48,11 @@ integration_test:
     - mv .env_example .env
     - sed -i '/log_cli_level = 10/d' test/pytest.ini
   script:
-    - pytest --cov=app --junitxml=report.xml test/
-    - coverage xml -o coverage.xml
-    - wget https://coverage.codacy.com/get.sh
-    - . get.sh report -r coverage.xml
+    - cat test/pytest.ini
+#    - pytest --cov=app --junitxml=report.xml test/
+#    - coverage xml -o coverage.xml
+#    - wget https://coverage.codacy.com/get.sh
+#    - . get.sh report -r coverage.xml
   artifacts:
     reports:
       cobertura: coverage.xml
