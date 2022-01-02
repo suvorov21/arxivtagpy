@@ -14,6 +14,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 import pytest
@@ -129,8 +130,9 @@ class TestBasicViews:
         wait = WebDriverWait(driver, 10)
         signin(driver, wait, login=EMAIL, passw=PASS)
         driver.get(url_for('main_bp.paper_land', _external=True))
-        element = wait_load(wait, By.CLASS_NAME, 'paper-day')
-        element.click()
+        wait_load(wait, By.CLASS_NAME, 'paper-day')
+        # go to DAY-2 as the last days may be holidays with no submissions
+        driver.execute_script("document.getElementsByClassName('paper-day')[2].click()")
         element = wait_load(wait, By.ID, 'paper-num-0')
         assert element.text == '1'
 
