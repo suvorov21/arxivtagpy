@@ -4,8 +4,10 @@ __pycache__
 draft/*
 arXivTag
 app/frontend/.webassets-cache/*
-app/static/dist/js/*.js
-app/static/dist/css/*.css
+app/frontend/dist/js/*
+app/frontend/dist/js_cov/
+app/frontend/dist/js/*.map
+app/frontend/dist/css/*
 varxiv/*
 .idea/*
 *.pyc
@@ -18,4 +20,3 @@ coverage.xml
 data/*
 HELP/*
 app/frontend/src/node_modules/*
-/app/frontend/dist/*
