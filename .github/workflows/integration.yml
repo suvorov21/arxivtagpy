@@ -31,14 +31,14 @@ jobs:
         python -m pip install -r requirements.txt
         mv .env_example .env
     - name : Log cutaway
-        run: |
-          sed -i '/log_cli_level = 10/d' test/pytest.ini
-          sed -i '/log_cli = true/d' test/pytest.ini
+      run: |
+        sed -i '/log_cli_level = 10/d' test/pytest.ini
+        sed -i '/log_cli = true/d' test/pytest.ini
     - name: npm install and build
-        run: |
-          cd app/frontend/src/
-          npm install
-          npm run build
+      run: |
+        cd app/frontend/src/
+        npm install
+        npm run build
     - name: Run Tests
       env:
         DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
