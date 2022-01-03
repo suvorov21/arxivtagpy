@@ -199,7 +199,7 @@ def data():
 
     # because of the holidays 1-2 day can be skipped
     # in this case return the last day with submissions
-    if len(papers['papers']) == 0:
+    if len(papers['papers']) == 0 and request.args['date'] in ('today', 'week', 'month'):
         last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
         # update information for the page title
         old_date_tmp, new_date_tmp, new_date = get_date_range(
