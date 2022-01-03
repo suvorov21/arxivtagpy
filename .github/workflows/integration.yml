@@ -17,7 +17,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: bundles
-        path: app/frontend/dist/js/*
+        path: app/frontend/dist/js
 
   test:
     name: Run pytest
@@ -49,9 +49,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
         mv .env_example .env
-
-    - name : Log cutaway
-      run: |
         sed -i '/log_cli_level = 10/d' test/pytest.ini
         sed -i '/log_cli = true/d' test/pytest.ini
 
