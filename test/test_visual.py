@@ -396,43 +396,43 @@ class TestOrcid:
         User.query.filter(User.orcid is not None).delete()
         db.session.commit()
 
-#     @check_orcid_credits
-#     def test_orcid_failed_unlink(self, driver, user, **kwargs):
-#         """Test ORCID link/unlink."""
-#         wait = WebDriverWait(driver, 10)
-#         signout(driver, wait)
-#         # sign in (create new user)
-#         driver.get(url_for(ROOT_ORCID, _external=True))
-#         orcid_signin(driver, wait, **kwargs)
-#         wait_load(wait, By.ID, 'about-nav')
-#
-#         # try to unlink (FAIL)
-#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-#         wait_load(wait, By.ID, 'orcidAuthButton').click()
-#         wait_load(wait, By.ID, 'logout')
-#         assert 'ERROR' in driver.page_source
-#         assert 'Could not unlink' in driver.page_source
-#         # tear down
-#         User.query.filter(User.orcid is not None).delete()
-#         db.session.commit()
-#
-#     @check_orcid_credits
-#     def test_orcid_unlink(self, driver, user, **kwargs):
-#         """Check successful ORCID unlink."""
-#         User.query.filter_by(email=EMAIL).first().orcid = None
-#         db.session.commit()
-#
-#         wait = WebDriverWait(driver, 10)
-#         signout(driver, wait)
-#         signin(driver, wait, login=EMAIL, passw=PASS)
-#         wait_load(wait, By.ID, 'about-nav')
-#
-#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-#         wait_load(wait, By.ID, 'orcidAuthButton').click()
-#         orcid_signin(driver, wait, **kwargs)
-#         sleep(3)
-#         assert 'ORCID linked successfully' in driver.page_source
-#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-#         wait_load(wait, By.ID, 'orcidAuthButton').click()
-#         sleep(1)
-#         assert 'ORCID unlinked successfully' in driver.page_source
+    @check_orcid_credits
+    def test_orcid_failed_unlink(self, driver, user, **kwargs):
+        """Test ORCID link/unlink."""
+        wait = WebDriverWait(driver, 10)
+        signout(driver, wait)
+        # sign in (create new user)
+        driver.get(url_for(ROOT_ORCID, _external=True))
+        orcid_signin(driver, wait, **kwargs)
+        wait_load(wait, By.ID, 'about-nav')
+
+        # try to unlink (FAIL)
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        wait_load(wait, By.ID, 'logout')
+        assert 'ERROR' in driver.page_source
+        assert 'Could not unlink' in driver.page_source
+        # tear down
+        User.query.filter(User.orcid is not None).delete()
+        db.session.commit()
+
+    @check_orcid_credits
+    def test_orcid_unlink(self, driver, user, **kwargs):
+        """Check successful ORCID unlink."""
+        User.query.filter_by(email=EMAIL).first().orcid = None
+        db.session.commit()
+
+        wait = WebDriverWait(driver, 10)
+        signout(driver, wait)
+        signin(driver, wait, login=EMAIL, passw=PASS)
+        wait_load(wait, By.ID, 'about-nav')
+
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        orcid_signin(driver, wait, **kwargs)
+        sleep(3)
+        assert 'ORCID linked successfully' in driver.page_source
+        driver.get(url_for(ROOT_SET, page='pref', _external=True))
+        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        sleep(1)
+        assert 'ORCID unlinked successfully' in driver.page_source
