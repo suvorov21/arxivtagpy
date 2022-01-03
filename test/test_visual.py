@@ -129,12 +129,17 @@ class TestBasicViews:
         """Test paper selector href."""
         wait = WebDriverWait(driver, 10)
         signin(driver, wait, login=EMAIL, passw=PASS)
-        driver.get(url_for('main_bp.paper_land', _external=True))
-        wait_load(wait, By.CLASS_NAME, 'paper-day')
-        # go to DAY-2 as the last days may be holidays with no submissions
-        driver.execute_script("document.getElementsByClassName('paper-day')[2].click()")
-        element = wait_load(wait, By.ID, 'paper-num-0')
-        assert element.text == '1'
+        # look at the last 3 days (in case of holidays, etc.
+        recent_papers_exists = []
+        for i in range(3):
+            driver.get(url_for('main_bp.paper_land', _external=True))
+            wait_load(wait, By.CLASS_NAME, 'paper-day')
+            # go to DAY-2 as the last days may be holidays with no submissions
+            driver.execute_script(f"document.getElementsByClassName('paper-day')[{i}].click()")
+            element = wait_load(wait, By.ID, 'paper-num-0')
+            recent_papers_exists.append(element.text == '1')
+
+        assert any(recent_papers_exists)
 
     def test_paper_view_month(self, papers, user, driver):
         """Test paper view month."""
