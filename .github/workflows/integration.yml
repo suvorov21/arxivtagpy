@@ -2,15 +2,28 @@ name: App CI
 
 on: [push]
 
+runs-on: ubuntu-latest
+strategy:
+  max-parallel: 4
+  matrix:
+    python-version: [3.9]
+
 jobs:
   build:
+    steps:
+    - uses: actions/checkout@master
+    - name: Build frontend
+      run: |
+        cd app/frontend/src/
+        npm install
+        npm run build
+    - name: Save bundles
+      uses: actions/upload-artifact@v2
+      with:
+        name: bundles
+        path: ../dist
 
-    runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.9]
-
+  test:
     services:
       postgres:
         image: postgres:latest
@@ -25,20 +38,23 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - uses: nanasess/setup-chromedriver@v1
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
         mv .env_example .env
+
     - name : Log cutaway
       run: |
         sed -i '/log_cli_level = 10/d' test/pytest.ini
         sed -i '/log_cli = true/d' test/pytest.ini
-    - name: npm install and build
-      run: |
-        cd app/frontend/src/
-        npm install
-        npm run build
+
+    - name: Download bundles
+      uses: actions/download-artifact@v2
+      with:
+        name: bundles
+
     - name: Run Tests
       env:
         DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
