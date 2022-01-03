@@ -27,7 +27,7 @@ jobs:
     - name: Install packages
       run: |
         sudo apt-get update
-        sudo apt-get install -y chromium chromium-driver wget
+        sudo apt-get install -y chromium-browser chromium-chromedriver wget
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
