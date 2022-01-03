@@ -2,7 +2,7 @@
 
 from os import linesep
 
-from json import loads
+from json import loads, JSONDecodeError
 from typing import List, Dict
 from datetime import datetime, timedelta
 
@@ -33,7 +33,10 @@ def cast_args_to_dict(args) -> List[Dict]:
         return list()
 
     # convert to array of dict
-    prefs = loads(prefs)
+    try:
+        prefs = loads(prefs)
+    except JSONDecodeError:
+        return list()
 
     if isinstance(prefs, dict):
         prefs = [prefs]
@@ -45,8 +48,7 @@ def month_start() -> datetime:
     """Return the first day of the month."""
     today_date = datetime.now()
     # if month just stated --> take the previous one
-    if today_date.day < 3:
-        today_date -= timedelta(days=4)
+    today_date -= timedelta(days=5)
     return today_date - timedelta(days=today_date.day)
 
 

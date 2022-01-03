@@ -162,7 +162,7 @@ document.getElementById("add-book-btn").onclick = (): void => {
     }
     const url = "add_list";
     const dataSet = {"name": document.forms["add-book-form"]["new-list"].value};
-    $.post(url, JSON.stringify(dataSet))
+    $.post(url, dataSet)
     .done(function() {
         renderBookshelf();
         $(".btn-save").addClass("disabled");

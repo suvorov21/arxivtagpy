@@ -146,8 +146,11 @@ def data():
     )
 
     old_date = get_arxiv_sub_start(old_date_tmp.date())
+    # papers since last visit is a special case,
+    # the last paper date is read from DB
     if request.args['date'] == 'last':
         old_date = current_user.last_paper
+        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
                   datetime.now(timezone.utc),
@@ -163,6 +166,12 @@ def data():
               'title': ''
               }
 
+    # update "seen" papers bounds
+    it_start = (announce_date -
+                new_date_tmp.replace(tzinfo=timezone.utc)).days
+    it_end = (announce_date -
+              old_date_tmp.replace(tzinfo=timezone.utc)).days
+
     # define categories of interest
     load_prefs()
     if request.args['date'] != 'unseen':
@@ -171,25 +180,14 @@ def data():
                                            new_date
                                            )
     else:
+        it_start = 0
+        it_end = RECENT_PAPER_RANGE
         papers['papers'] = get_json_unseen_papers(session['cats'],
                                                   current_user.recent_visit,
                                                   RECENT_PAPER_RANGE,
                                                   announce_date)
 
-    if request.args['date'] == 'last':
-        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
-
     # update "seen" papers
-    it_start = (announce_date -
-                new_date_tmp.replace(tzinfo=timezone.utc)).days
-    it_end = (announce_date -
-              old_date_tmp.replace(tzinfo=timezone.utc)).days
-
-    #  mark all the papers as "seen"
-    if request.args['date'] == 'unseen':
-        it_start = 0
-        it_end = RECENT_PAPER_RANGE
-
     for i in range(it_start,
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
@@ -197,7 +195,34 @@ def data():
         i = max(i, 0)
         current_user.recent_visit = current_user.recent_visit | 2 ** i
 
+    # because of the holidays 1-2 day can be skipped
+    # in this case return the last day with submissions
+    if len(papers['papers']) == 0 and request.args['date'] in ('today', 'week', 'month'):
+        last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
+        # update information for the page title
+        old_date_tmp, new_date_tmp, new_date = get_date_range(
+            request.args['date'],
+            get_arxiv_announce_date(last_paper_date)
+        )
+        # new query in the paper DB. Attempt to find papers
+        if request.args['date'] == 'today':
+            papers['papers'] = get_json_papers(session['cats'],
+                                               last_paper_date - timedelta(days=1),
+                                               last_paper_date
+                                               )
+        elif request.args['date'] == 'week':
+            papers['papers'] = get_json_papers(session['cats'],
+                                               last_paper_date - timedelta(weeks=1),
+                                               last_paper_date
+                                               )
+        elif request.args['date'] == 'month':
+            papers['papers'] = get_json_papers(session['cats'],
+                                               last_paper_date - timedelta(weeks=4),
+                                               last_paper_date
+                                               )
+
     # error handler
+    # "last" and "unseen" papers query results are allowed to be empty
     if len(papers['papers']) == 0 and \
             request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
@@ -251,7 +276,9 @@ def about():
 def bookshelf():
     """Bookshelf page."""
     # if list is not specified take the default one
-    if 'list_id' not in request.args:
+    try:
+        display_list = int(request.args.get('list_id'))
+    except (ValueError, TypeError):
         fst_list = PaperList.query.filter_by(user_id=current_user.id
                                              ).order_by(PaperList.order).first()
         if not fst_list:
@@ -259,27 +286,26 @@ def bookshelf():
             fst_list = PaperList.query.filter_by(user_id=current_user.id
                                                  ).order_by(PaperList.order).first()
         return redirect(url_for(ROOT_BOOK, list_id=fst_list.id))
-    display_list = request.args['list_id']
-
-    if 'page' not in request.args:
-        return redirect(url_for(ROOT_BOOK,
-                                list_id=display_list,
-                                page=1))
 
     try:
-        page = int(request.args['page'])
-    except ValueError:
-        logging.error('Page argument is not int but: %r',
-                      request.args['page']
-                      )
+        page = int(request.args.get('page'))
+    except (ValueError, TypeError):
         return redirect(url_for(ROOT_BOOK,
                                 list_id=display_list,
                                 page=1))
 
     lists = get_lists_for_user()
+    # if User tries to access the list that doesn't belong to him
+    if display_list not in {user_list['id'] for user_list in lists}:
+        logging.warning('%r tries to access list %r', current_user.id, display_list)
+        return redirect(url_for(ROOT_BOOK, list_id=lists[0]['id']), code=303)
 
     # get the particular paper list to access papers from one
     paper_list = PaperList.query.filter_by(id=display_list).first()
+
+    # too large page argument
+    if page > len(paper_list.papers) / PAPERS_PAGE + 1:
+        return redirect(url_for(ROOT_BOOK, list_id=lists[0]['id'], page=1), code=303)
 
     # reset number of unseen papers
     paper_list.not_seen = 0
@@ -299,6 +325,7 @@ def bookshelf():
     total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
 
     # tag papers
+    load_prefs()
     papers = process_papers(papers,
                             session['tags'],
                             session['cats'],
@@ -355,6 +382,12 @@ def add_bm():
     paper_list = PaperList.query.filter_by(id=list_id).first()
     if not paper_list:
         logging.error('List is not in the DB %r', list_id)
+        return dumps({'success': False}), 422
+
+    lists = get_lists_for_user()
+    # if User tries to access the list that doesn't belong to him
+    if paper_list.id not in {user_list['id'] for user_list in lists}:
+        logging.warning('%r tries to add bm to list %r', current_user.id, paper_list.id)
         return dumps({'success': False}), 422
 
     # check if paper is already in the given list of the current user

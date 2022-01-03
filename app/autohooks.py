@@ -72,8 +72,8 @@ def load_papers():
         params['n_papers'] = int(request.args.get('n_papers'))
     if 'do_update' in request.args:
         params['do_update'] = request.args.get('do_update')
-    if 'from' in request.args:
-        last_paper_date = datetime.strptime(request.args['from'],
+    if 'start_date' in request.args:
+        last_paper_date = datetime.strptime(request.args['start_date'],
                                             DATA_FORMAT
                                             )
     params['last_paper_date'] = last_paper_date
@@ -93,6 +93,8 @@ def load_papers():
 
     if request.args.get('until'):
         paper_api.set_until(request.args['until'])
+    else:
+        paper_api.params.pop('until', None)
 
     # further code is paper source independent.
     # Any API can be defined above
@@ -129,12 +131,15 @@ def delete_papers():
         logging.error('Options are not provided. Exit to prevent DB damage.')
         return dumps({'success': False}), 422
 
-    Paper.query.filter(Paper.date_up < until_date).delete()
+    to_delete = Paper.query.filter(Paper.date_up < until_date)
+    logging.info('Deleting %i papers', len(to_delete.all()))
+    n_deleted = len(to_delete.all())
+    to_delete.delete()
     db.session.commit()
 
     logging.info('All papers until %r are deleted.', until_date)
 
-    return dumps({'success': True}), 201
+    return dumps({'success': True, 'deleted': n_deleted}), 201
 
 
 @auto_bp.route('/bookmark_papers_user', methods=['POST'])
@@ -223,8 +228,8 @@ def bookmark_papers():
     old_date_record = get_old_update_date()
     old_date = old_date_record.last_bookmark
 
-    if 'from' in request.args:
-        old_date = datetime.strptime(request.args['from'],
+    if 'start_date' in request.args:
+        old_date = datetime.strptime(request.args['start_date'],
                                      DATA_FORMAT
                                      )
 
