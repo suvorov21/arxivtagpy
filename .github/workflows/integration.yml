@@ -25,19 +25,15 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - uses: nanasess/setup-chromedriver@v1
-    # - name: Install packages
-    #   run: |
-    #     sudo apt-get update
-    #     sudo apt-get install -y chromium-chromedriver wget
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install -r requirements.txt
         mv .env_example .env
     - name : Log cutaway
-      run: |
-        sed -i '/log_cli_level = 10/d' test/pytest.ini
-        sed -i '/log_cli = true/d' test/pytest.ini
+        run: |
+          sed -i '/log_cli_level = 10/d' test/pytest.ini
+          sed -i '/log_cli = true/d' test/pytest.ini
     - name: npm install and build
         run: |
           cd app/frontend/src/
