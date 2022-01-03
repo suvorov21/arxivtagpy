@@ -16,6 +16,10 @@ from app import mail, db
 ROOT_LOAD = 'auto_bp.load_papers'
 ROOT_DATA = 'main_bp.data'
 ROOT_PAPERS = 'main_bp.papers_list'
+ROOT_BOOKSHELF = 'main_bp.bookshelf'
+ROOT_ADD_BM = 'main_bp.add_bm'
+ROOT_BM_USER = 'auto_bp.bookmark_user'
+ROOT_DEL_PAPERS = 'auto_bp.delete_papers'
 
 
 @pytest.mark.usefixtures('live_server')
@@ -48,7 +52,7 @@ class TestMainPages:
         paper_list = User.query.filter_by(email=EMAIL).first().lists[0]
         paper_list.papers.append(Paper.query.filter_by().first())
         db.session.commit()
-        response = client.get(url_for('main_bp.bookshelf'),
+        response = client.get(url_for(ROOT_BOOKSHELF),
                               follow_redirects=True
                               )
         assert response.status_code == 200
@@ -56,7 +60,7 @@ class TestMainPages:
     def test_bookshelf_page_wrong_page(self, client, login):
         """Test bookmark page with a wrong argument."""
         list_id = User.query.filter_by(email=EMAIL).first().id
-        response = client.get(url_for('main_bp.bookshelf',
+        response = client.get(url_for(ROOT_BOOKSHELF,
                                       page='abracadabra',
                                       list_id=list_id
                                       ),
@@ -68,7 +72,7 @@ class TestMainPages:
     def test_bookshelf_page_wrong_list(self, client, login):
         """Test bookmark page with a wrong argument."""
         list_id = User.query.filter_by(email=EMAIL).first().id
-        response = client.get(url_for('main_bp.bookshelf',
+        response = client.get(url_for(ROOT_BOOKSHELF,
                                       list_id=list_id+3
                                       ),
                               follow_redirects=True
@@ -79,7 +83,7 @@ class TestMainPages:
     def test_bookshelf_large_page(self, client, login):
         """Test bookmark page with a wrong argument."""
         list_id = User.query.filter_by(email=EMAIL).first().id
-        response = client.get(url_for('main_bp.bookshelf',
+        response = client.get(url_for(ROOT_BOOKSHELF,
                                       page=10000,
                                       list_id=list_id
                                       ),
@@ -235,7 +239,7 @@ class TestPaperPage:
         """Test bookmark add and delete."""
         # first add --> response 201
         test_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-        response = client.post(url_for('main_bp.add_bm'),
+        response = client.post(url_for(ROOT_ADD_BM),
                                data={'paper_id': test_paper.paper_id,
                                      'list_id': user.lists[0].id
                                      }
@@ -243,7 +247,7 @@ class TestPaperPage:
         assert response.status_code == 201
 
         # same paper --> response 200
-        response = client.post(url_for('main_bp.add_bm'),
+        response = client.post(url_for(ROOT_ADD_BM),
                                data={'paper_id': test_paper.paper_id,
                                      'list_id': user.lists[0].id
                                      }
@@ -260,7 +264,7 @@ class TestPaperPage:
 
     def test_add_wrong_bm(self, client, papers, login, user):
         """Test adding wrong bookmark."""
-        response = client.post(url_for('main_bp.add_bm'),
+        response = client.post(url_for(ROOT_ADD_BM),
                                data={'paper_id': 1000000,
                                      'list_id': user.lists[0].id
                                      }
@@ -270,7 +274,7 @@ class TestPaperPage:
     def test_add_bm_to_wrong_list(self, client, papers, login, user):
         """Test adding bookmark to a wrong list."""
         test_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-        response = client.post(url_for('main_bp.add_bm'),
+        response = client.post(url_for(ROOT_ADD_BM),
                                data={'paper_id': test_paper.id,
                                      'list_id': 100000
                                      }
@@ -280,7 +284,7 @@ class TestPaperPage:
     def test_add_bm_to_other_user_list(self, client, papers, login, user, tmp_user):
         """Test adding bookmark to a wrong list."""
         test_paper = Paper.query.order_by(Paper.date_up.desc()).first()
-        response = client.post(url_for('main_bp.add_bm'),
+        response = client.post(url_for(ROOT_ADD_BM),
                                data={'paper_id': test_paper.id,
                                      'list_id': tmp_user.lists[0].id
                                      }
@@ -377,7 +381,7 @@ class TestAutoHooks:
     def test_bookmark_user(self, client, login, user):
         """Test the bookmarking for the past month."""
         data = {'name': 'example'}
-        response = client.post(url_for('auto_bp.bookmark_user'),
+        response = client.post(url_for(ROOT_BM_USER),
                                data=data
                                )
         assert response.status_code == 201
@@ -388,7 +392,7 @@ class TestAutoHooks:
                 'token': 'test_token',
                 'email': EMAIL
                 }
-        response = client.post(url_for('auto_bp.bookmark_user'),
+        response = client.post(url_for(ROOT_BM_USER),
                                data=data
                                )
         assert response.status_code == 201
@@ -396,21 +400,21 @@ class TestAutoHooks:
     def test_bookmark_user_bad_request(self, client, login, user):
         """Test the bookmarking with wrong arguments."""
         data = {'name': 'example'}
-        response = client.post(url_for('auto_bp.bookmark_user',
+        response = client.post(url_for(ROOT_BM_USER,
                                        email=EMAIL,
                                        data=data
                                        )
                                )
         assert response.status_code == 422
 
-        response = client.post(url_for('auto_bp.bookmark_user',
+        response = client.post(url_for(ROOT_BM_USER,
                                        email=EMAIL,
                                        data={}
                                        )
                                )
         assert response.status_code == 422
 
-        response = client.post(url_for('auto_bp.bookmark_user',
+        response = client.post(url_for(ROOT_BM_USER,
                                        email=EMAIL,
                                        data={'name': 'wrong'}
                                        )
@@ -432,31 +436,30 @@ class TestAutoHooks:
     def test_paper_delete(self, client, papers, login):
         """Test paper delete endpoint."""
         # no date --> error
-        response = client.post(url_for('auto_bp.delete_papers',  # nosec
+        response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        token='test_token'
                                        )
                                )
         assert response.status_code == 422
         assert 'deleted' not in loads(response.get_data())
 
-        response = client.post(url_for('auto_bp.delete_papers',  # nosec
+        response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        token='test_token',  # nosec
                                        days=1
                                        ))
         assert response.status_code == 201
         assert loads(response.get_data())['deleted'] > 0
 
-        response = client.post(url_for('auto_bp.delete_papers',  # nosec
+        response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        token='test_token',  # nosec
                                        week=1
                                        ))
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
 
-        response = client.post(url_for('auto_bp.delete_papers',  # nosec
+        response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        token='test_token',  # nosec
                                        until='2019-09-10'
-                                       # until=datetime.now().strftime('%Y-%m-%d')
                                        ))
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())

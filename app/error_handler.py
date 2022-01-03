@@ -10,11 +10,14 @@ from flask_wtf.csrf import CSRFError
 from .settings import default_data
 
 
+ERROR_TEMPLATE = 'error_main.jinja2'
+
+
 @current_app.errorhandler(CSRFError)
 def handle_csrf_error(error):
     """CSRF token error handler."""
     if 'expired' in error.description:
-        return render_template('error_main.jinja2',
+        return render_template(ERROR_TEMPLATE,
                                line1='Your session is expired.',
                                line2='Please, resubmit the form.',
                                img='clock',
@@ -32,7 +35,7 @@ def handle_exception(error):
         if error.code in (404, 405):
             pref = 'http'
             line2 = f'Go to <a href="{pref}://{request.headers.get("Host")}">main page</a>'
-            return render_template('error_main.jinja2',
+            return render_template(ERROR_TEMPLATE,
                                    line1='Page not found',
                                    line2=line2,
                                    img='error',
@@ -44,7 +47,7 @@ def handle_exception(error):
     line2 = 'We are notified and investigating the issue. Sorry for the inconvenience.'
     pref = 'http'
     line2 += f'<br>Go to <a href="{pref}://{request.headers.get("Host")}">main page</a>'
-    return render_template('error_main.jinja2',
+    return render_template(ERROR_TEMPLATE,
                            line1=line1,
                            line2=line2,
                            img='error',

@@ -18,6 +18,7 @@ ROOT_NEW_USER = 'auth_bp.new_user'
 ROOT_EMAIL_CHANGE = 'auth_bp.email_change'
 ROOT_EMAIL_CHANGE_CONF = 'auth_bp.change_email_confirm'
 ROOT_LOGOUT = 'auth_bp.logout'
+ROOT_VERIFY_EMAIL = 'auth_bp.verify_email_confirm'
 
 
 @pytest.mark.usefixtures('live_server')
@@ -269,7 +270,7 @@ class TestVerificationConfirmation:
         client.get(url_for(ROOT_LOGOUT))
         payload = {'email': EMAIL}
         token = encode_token(payload)
-        response = client.get(url_for('auth_bp.verify_email_confirm',
+        response = client.get(url_for(ROOT_VERIFY_EMAIL,
                                       data=token),
                               follow_redirects=True
                               )
@@ -279,7 +280,7 @@ class TestVerificationConfirmation:
 
         # Client should NOT be logged in if the email was verified before
         client.get(url_for(ROOT_LOGOUT))
-        response = client.get(url_for('auth_bp.verify_email_confirm',
+        response = client.get(url_for(ROOT_VERIFY_EMAIL,
                                       data=token),
                               follow_redirects=True
                               )
@@ -291,7 +292,7 @@ class TestVerificationConfirmation:
         """Tests confirmation of email change with wrong email."""
         payload = {'email': 'tester@mailinator.com'}
         token = encode_token(payload)
-        response = client.get(url_for('auth_bp.verify_email_confirm',
+        response = client.get(url_for(ROOT_VERIFY_EMAIL,
                                       data=token),
                               follow_redirects=True
                               )
