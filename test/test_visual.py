@@ -317,122 +317,122 @@ class TestSettingsUpdate:
     #     client.application.config['WTF_CSRF_ENABLED'] = False
 
 
-@pytest.mark.usefixtures('live_server')
-class TestOrcid:
-    """Test ORCID authorization."""
-    @check_orcid_credits
-    def test_orcid_auth(self, driver, user, **kwargs):
-        """Test ORCID authentication."""
-        wait = WebDriverWait(driver, 20)
-        signout(driver, wait)
-
-        # register new user with ORCID
-        driver.get(url_for(ROOT_ORCID, _external=True))
-        orcid_signin(driver, wait, **kwargs)
-        element = wait_load(wait, By.ID, 'about-nav')
-        assert element is not None
-        # tear down
-        User.query.filter(User.orcid is not None).delete()
-        db.session.commit()
-
-    @check_orcid_credits
-    def test_orcid_second_registration(self, driver, user, tmp_user, **kwargs):
-        """Try to link existing ORCID."""
-        wait = WebDriverWait(driver, 10)
-        signout(driver, wait)
-
-        # register new user with ORCID
-        driver.get(url_for(ROOT_ORCID, _external=True))
-        orcid_signin(driver, wait, **kwargs)
-        wait_load(wait, By.ID, 'about-nav')
-        signout(driver, wait)
-
-        # sign in other user credentials
-        signin(driver, wait, login=TMP_EMAIL, passw=TMP_PASS)
-        wait_load(wait, By.ID, 'about-nav')
-
-        # Try to link existing orcid
-        driver.get(url_for(ROOT_ORCID, _external=True))
-        orcid_signin(driver, wait, **kwargs)
-        wait_load(wait, By.ID, 'about-nav')
-
-        assert 'already registered!' in driver.page_source
-        assert 'successfully' not in driver.page_source
-        assert 'ERROR' in driver.page_source
-        # tear down
-        User.query.filter(User.orcid is not None).delete()
-        db.session.commit()
-
-    @check_orcid_credits
-    def test_email_creation(self, driver, user, **kwargs):
-        """Test email creation for the record with ORCID registration."""
-        wait = WebDriverWait(driver, 10)
-        signout(driver, wait)
-        # sign in (create a bew user)
-        driver.get(url_for(ROOT_ORCID, _external=True))
-        orcid_signin(driver, wait, **kwargs)
-        wait_load(wait, By.ID, 'about-nav')
-        # Try with existing email (FAIL)
-        driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'emailChange').click()
-        wait_load(wait, By.ID, 'emailInput').send_keys(EMAIL)
-        wait_load(wait, By.ID, 'confirm-btn').click()
-        sleep(1)
-        wait_load(wait, By.ID, 'btn-confirm').click()
-        wait_load(wait, By.CLASS_NAME, 'btn-primary')
-        assert 'successfully!' not in driver.page_source
-        assert 'already registered' in driver.page_source
-        # Try with new email
-        driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'emailChange').click()
-        wait_load(wait, By.ID, 'emailInput').send_keys('tester5@mailinator.com')
-        wait_load(wait, By.ID, 'confirm-btn').click()
-        sleep(1)
-        wait_load(wait, By.ID, 'btn-confirm').click()
-        wait_load(wait, By.CLASS_NAME, 'btn-primary')
-        assert 'successfully!' in driver.page_source
-        # tear down
-        User.query.filter_by(email='tester5@mailinator.com').delete()
-        User.query.filter(User.orcid is not None).delete()
-        db.session.commit()
-
-    @check_orcid_credits
-    def test_orcid_failed_unlink(self, driver, user, **kwargs):
-        """Test ORCID link/unlink."""
-        wait = WebDriverWait(driver, 10)
-        signout(driver, wait)
-        # sign in (create new user)
-        driver.get(url_for(ROOT_ORCID, _external=True))
-        orcid_signin(driver, wait, **kwargs)
-        wait_load(wait, By.ID, 'about-nav')
-
-        # try to unlink (FAIL)
-        driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'orcidAuthButton').click()
-        wait_load(wait, By.ID, 'logout')
-        assert 'ERROR' in driver.page_source
-        assert 'Could not unlink' in driver.page_source
-        # tear down
-        User.query.filter(User.orcid is not None).delete()
-        db.session.commit()
-
-    @check_orcid_credits
-    def test_orcid_unlink(self, driver, user, **kwargs):
-        """Check successful ORCID unlink."""
-        User.query.filter_by(email=EMAIL).first().orcid = None
-        db.session.commit()
-
-        wait = WebDriverWait(driver, 10)
-        signout(driver, wait)
-        signin(driver, wait, login=EMAIL, passw=PASS)
-        wait_load(wait, By.ID, 'about-nav')
-
-        driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'orcidAuthButton').click()
-        orcid_signin(driver, wait, **kwargs)
-        sleep(3)
-        assert 'ORCID linked successfully' in driver.page_source
-        driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'orcidAuthButton').click()
-        sleep(1)
-        assert 'ORCID unlinked successfully' in driver.page_source
+# @pytest.mark.usefixtures('live_server')
+# class TestOrcid:
+#     """Test ORCID authorization."""
+#     @check_orcid_credits
+#     def test_orcid_auth(self, driver, user, **kwargs):
+#         """Test ORCID authentication."""
+#         wait = WebDriverWait(driver, 20)
+#         signout(driver, wait)
+#
+#         # register new user with ORCID
+#         driver.get(url_for(ROOT_ORCID, _external=True))
+#         orcid_signin(driver, wait, **kwargs)
+#         element = wait_load(wait, By.ID, 'about-nav')
+#         assert element is not None
+#         # tear down
+#         User.query.filter(User.orcid is not None).delete()
+#         db.session.commit()
+#
+#     @check_orcid_credits
+#     def test_orcid_second_registration(self, driver, user, tmp_user, **kwargs):
+#         """Try to link existing ORCID."""
+#         wait = WebDriverWait(driver, 10)
+#         signout(driver, wait)
+#
+#         # register new user with ORCID
+#         driver.get(url_for(ROOT_ORCID, _external=True))
+#         orcid_signin(driver, wait, **kwargs)
+#         wait_load(wait, By.ID, 'about-nav')
+#         signout(driver, wait)
+#
+#         # sign in other user credentials
+#         signin(driver, wait, login=TMP_EMAIL, passw=TMP_PASS)
+#         wait_load(wait, By.ID, 'about-nav')
+#
+#         # Try to link existing orcid
+#         driver.get(url_for(ROOT_ORCID, _external=True))
+#         orcid_signin(driver, wait, **kwargs)
+#         wait_load(wait, By.ID, 'about-nav')
+#
+#         assert 'already registered!' in driver.page_source
+#         assert 'successfully' not in driver.page_source
+#         assert 'ERROR' in driver.page_source
+#         # tear down
+#         User.query.filter(User.orcid is not None).delete()
+#         db.session.commit()
+#
+#     @check_orcid_credits
+#     def test_email_creation(self, driver, user, **kwargs):
+#         """Test email creation for the record with ORCID registration."""
+#         wait = WebDriverWait(driver, 10)
+#         signout(driver, wait)
+#         # sign in (create a bew user)
+#         driver.get(url_for(ROOT_ORCID, _external=True))
+#         orcid_signin(driver, wait, **kwargs)
+#         wait_load(wait, By.ID, 'about-nav')
+#         # Try with existing email (FAIL)
+#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
+#         wait_load(wait, By.ID, 'emailChange').click()
+#         wait_load(wait, By.ID, 'emailInput').send_keys(EMAIL)
+#         wait_load(wait, By.ID, 'confirm-btn').click()
+#         sleep(1)
+#         wait_load(wait, By.ID, 'btn-confirm').click()
+#         wait_load(wait, By.CLASS_NAME, 'btn-primary')
+#         assert 'successfully!' not in driver.page_source
+#         assert 'already registered' in driver.page_source
+#         # Try with new email
+#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
+#         wait_load(wait, By.ID, 'emailChange').click()
+#         wait_load(wait, By.ID, 'emailInput').send_keys('tester5@mailinator.com')
+#         wait_load(wait, By.ID, 'confirm-btn').click()
+#         sleep(1)
+#         wait_load(wait, By.ID, 'btn-confirm').click()
+#         wait_load(wait, By.CLASS_NAME, 'btn-primary')
+#         assert 'successfully!' in driver.page_source
+#         # tear down
+#         User.query.filter_by(email='tester5@mailinator.com').delete()
+#         User.query.filter(User.orcid is not None).delete()
+#         db.session.commit()
+#
+#     @check_orcid_credits
+#     def test_orcid_failed_unlink(self, driver, user, **kwargs):
+#         """Test ORCID link/unlink."""
+#         wait = WebDriverWait(driver, 10)
+#         signout(driver, wait)
+#         # sign in (create new user)
+#         driver.get(url_for(ROOT_ORCID, _external=True))
+#         orcid_signin(driver, wait, **kwargs)
+#         wait_load(wait, By.ID, 'about-nav')
+#
+#         # try to unlink (FAIL)
+#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
+#         wait_load(wait, By.ID, 'orcidAuthButton').click()
+#         wait_load(wait, By.ID, 'logout')
+#         assert 'ERROR' in driver.page_source
+#         assert 'Could not unlink' in driver.page_source
+#         # tear down
+#         User.query.filter(User.orcid is not None).delete()
+#         db.session.commit()
+#
+#     @check_orcid_credits
+#     def test_orcid_unlink(self, driver, user, **kwargs):
+#         """Check successful ORCID unlink."""
+#         User.query.filter_by(email=EMAIL).first().orcid = None
+#         db.session.commit()
+#
+#         wait = WebDriverWait(driver, 10)
+#         signout(driver, wait)
+#         signin(driver, wait, login=EMAIL, passw=PASS)
+#         wait_load(wait, By.ID, 'about-nav')
+#
+#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
+#         wait_load(wait, By.ID, 'orcidAuthButton').click()
+#         orcid_signin(driver, wait, **kwargs)
+#         sleep(3)
+#         assert 'ORCID linked successfully' in driver.page_source
+#         driver.get(url_for(ROOT_SET, page='pref', _external=True))
+#         wait_load(wait, By.ID, 'orcidAuthButton').click()
+#         sleep(1)
+#         assert 'ORCID unlinked successfully' in driver.page_source
