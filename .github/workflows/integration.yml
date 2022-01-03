@@ -24,10 +24,19 @@ jobs:
         
     steps:
     - uses: actions/checkout@master
+    - name: Install packages
+      run: |
+        apt-get update
+        apt-get install -y chromium chromium-driver wget
     - name: Install dependencies
       run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+        mv .env_example .env
+    - name : Log cutaway
+      run: |
+        sed -i '/log_cli_level = 10/d' test/pytest.ini
+        sed -i '/log_cli = true/d' test/pytest.ini
     - name: Run Tests
       env:
         DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
