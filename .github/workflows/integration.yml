@@ -30,7 +30,7 @@ jobs:
           python -m pip install -r requirements.txt
     - name: Run Tests
       env:
-        DATABASE_URL: postgresql://runner:tester@postgres/arxiv_test
-        DATABASE_URL_TEST: postgresql://runner:tester@postgres:5432/arxiv_test
+        DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
+        DATABASE_URL_TEST: postgresql://runner:tester@localhost:5432/arxiv_test
       run: |
         pytest --cov=app --junitxml=report.xml test/
