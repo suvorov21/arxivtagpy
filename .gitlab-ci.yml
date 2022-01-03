@@ -43,8 +43,8 @@ integration_test:
     POSTGRES_HOST_AUTH_METHOD: trust
   before_script:
     - python3 -m pip install --ignore-installed -r requirements.txt
-    - apt update
-    - apt install -y chromium chromium-driver wget
+    - apt-get update
+    - apt-get install -y chromium chromium-driver wget
     - mv .env_example .env
     - sed -i '/log_cli_level = 10/d' test/pytest.ini
     - sed -i '/log_cli = true/d' test/pytest.ini
