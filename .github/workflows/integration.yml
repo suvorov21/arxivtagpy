@@ -17,7 +17,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: bundles
-        path: ../dist
+        path: app/frontend/dist/js/*
 
   test:
     name: Run pytest
