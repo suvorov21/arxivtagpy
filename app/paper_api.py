@@ -72,11 +72,8 @@ class ArxivOaiApi:
         logging.debug('Start harvesting')
 
         try:
-            logging.info('try')
             response = get(self.URL, self.params, verify=True)
-            logging.info('request...')
             response.raise_for_status()
-            logging.info('status...')
         except (urllib3.exceptions.MaxRetryError,
                 urllib3.exceptions.NewConnectionError,
                 urllib3.exceptions.HTTPError
