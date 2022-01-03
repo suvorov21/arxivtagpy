@@ -317,23 +317,23 @@ class TestSettingsUpdate:
     #     client.application.config['WTF_CSRF_ENABLED'] = False
 
 
-# @pytest.mark.usefixtures('live_server')
-# class TestOrcid:
-#     """Test ORCID authorization."""
-#     @check_orcid_credits
-#     def test_orcid_auth(self, driver, user, **kwargs):
-#         """Test ORCID authentication."""
-#         wait = WebDriverWait(driver, 20)
-#         signout(driver, wait)
-#
-#         # register new user with ORCID
-#         driver.get(url_for(ROOT_ORCID, _external=True))
-#         orcid_signin(driver, wait, **kwargs)
-#         element = wait_load(wait, By.ID, 'about-nav')
-#         assert element is not None
-#         # tear down
-#         User.query.filter(User.orcid is not None).delete()
-#         db.session.commit()
+@pytest.mark.usefixtures('live_server')
+class TestOrcid:
+    """Test ORCID authorization."""
+    @check_orcid_credits
+    def test_orcid_auth(self, driver, user, **kwargs):
+        """Test ORCID authentication."""
+        wait = WebDriverWait(driver, 20)
+        signout(driver, wait)
+
+        # register new user with ORCID
+        driver.get(url_for(ROOT_ORCID, _external=True))
+        orcid_signin(driver, wait, **kwargs)
+        element = wait_load(wait, By.ID, 'about-nav')
+        assert element is not None
+        # tear down
+        User.query.filter(User.orcid is not None).delete()
+        db.session.commit()
 #
 #     @check_orcid_credits
 #     def test_orcid_second_registration(self, driver, user, tmp_user, **kwargs):
