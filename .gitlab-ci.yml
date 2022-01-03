@@ -32,6 +32,8 @@ assets_build:
 
 integration_test:
   stage: test
+  tags:
+    - custom_runner
   image:
     python:3.9.9-slim-buster
   services:
