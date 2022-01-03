@@ -18,6 +18,7 @@ jobs:
           POSTGRES_USER: runner
           POSTGRES_PASSWORD: tester
           POSTGRES_DB: arxiv_test
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports: ['5432:5432']
         
     steps:
