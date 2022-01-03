@@ -26,8 +26,8 @@ jobs:
     - uses: actions/checkout@master
     - name: Install packages
       run: |
-        apt-get update
-        apt-get install -y chromium chromium-driver wget
+        sudo apt-get update
+        sudo apt-get install -y chromium chromium-driver wget
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
