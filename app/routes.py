@@ -146,8 +146,11 @@ def data():
     )
 
     old_date = get_arxiv_sub_start(old_date_tmp.date())
+    # papers since last visit is a special case,
+    # the last paper date is read from DB
     if request.args['date'] == 'last':
         old_date = current_user.last_paper
+        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
 
     logging.debug('Now: %r\nNew date: %r\nOld_date: %r',
                   datetime.now(timezone.utc),
@@ -163,6 +166,12 @@ def data():
               'title': ''
               }
 
+    # update "seen" papers bounds
+    it_start = (announce_date -
+                new_date_tmp.replace(tzinfo=timezone.utc)).days
+    it_end = (announce_date -
+              old_date_tmp.replace(tzinfo=timezone.utc)).days
+
     # define categories of interest
     load_prefs()
     if request.args['date'] != 'unseen':
@@ -171,25 +180,14 @@ def data():
                                            new_date
                                            )
     else:
+        it_start = 0
+        it_end = RECENT_PAPER_RANGE
         papers['papers'] = get_json_unseen_papers(session['cats'],
                                                   current_user.recent_visit,
                                                   RECENT_PAPER_RANGE,
                                                   announce_date)
 
-    if request.args['date'] == 'last':
-        old_date_tmp = get_arxiv_announce_date(current_user.last_paper)
-
     # update "seen" papers
-    it_start = (announce_date -
-                new_date_tmp.replace(tzinfo=timezone.utc)).days
-    it_end = (announce_date -
-              old_date_tmp.replace(tzinfo=timezone.utc)).days
-
-    #  mark all the papers as "seen"
-    if request.args['date'] == 'unseen':
-        it_start = 0
-        it_end = RECENT_PAPER_RANGE
-
     for i in range(it_start,
                    min(RECENT_PAPER_RANGE, it_end) + 1,
                    ):
@@ -224,6 +222,7 @@ def data():
                                                )
 
     # error handler
+    # "last" and "unseen" papers query results are allowed to be empty
     if len(papers['papers']) == 0 and \
             request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
