@@ -58,10 +58,7 @@ def app_init():
     db.init_app(app)
     login_manager.init_app(app)
     mail.init_app(app)
-
-    if environ.get('SERVER_CONF'):
-        if "Development" in environ.get('SERVER_CONF') or "Production" in environ.get('SERVER_CONF'):
-            migrate.init_app(app, db)
+    migrate.init_app(app, db)
 
     level = logging.DEBUG if app.config['DEBUG'] else logging.INFO
     log_file = app.config.get('LOG_PATH') if app.config.get('LOG_PATH') else ''
