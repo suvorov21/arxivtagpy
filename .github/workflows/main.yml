@@ -110,7 +110,7 @@ jobs:
         name: coverage
     - name: Refactor coverage for SonarCloud
       run: |
-        sed -i "s/<source>\/home\/runner\/work\/arxivtagpy<\/source>/<source>\/github\/workspace<\/source>/g" coverage.xml
+        sed -i "s/<source>\/home\/runner\/work\/arxivtagpy\/arxivtagpy<\/source>/<source>\/github\/workspace<\/source>/g" coverage.xml
     - name: SonarCloud analysis
       uses: SonarSource/sonarcloud-github-action@master
       env:
