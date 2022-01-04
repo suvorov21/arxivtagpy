@@ -51,7 +51,7 @@ integration_test:
     - sed -i '/log_cli_level = 10/d' test/pytest.ini
     - sed -i '/log_cli = true/d' test/pytest.ini
   script:
-    - pytest --cov=app --junitxml=report.xml test/ # > pytest.log  2>&1
+    - pytest --cov=app --junitxml=report.xml test
     - coverage xml -o coverage.xml
     - wget https://coverage.codacy.com/get.sh
     - . get.sh report -r coverage.xml
@@ -59,8 +59,6 @@ integration_test:
     reports:
       cobertura: coverage.xml
       junit: report.xml
-#    paths:
-#      - pytest.log
 
 stage_to_beta:
   stage: deploy

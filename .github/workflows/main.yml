@@ -1,0 +1,118 @@
+name: App CI
+
+on: [push]
+
+jobs:
+  gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+      - name: Push to GitLab
+        uses: SvanBoxel/gitlab-mirror-and-ci-action@master
+        with:
+          args: "https://gitlab.com/suvorov21/arxivtagpy"
+        env:
+          GITLAB_HOSTNAME: "gitlab.com"
+          GITLAB_USERNAME: "suvorov21"
+          GITLAB_PASSWORD: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+          GITLAB_PROJECT_ID: "20513429"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: Build bundles
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Build frontend
+      run: |
+        cd app/frontend/src/
+        npm install
+        npm run build
+    - name: Save bundles
+      uses: actions/upload-artifact@v2
+      with:
+        name: bundles
+        path: app/frontend/dist/js
+
+  test:
+    name: Run pytest
+    runs-on: ubuntu-latest
+    needs: build
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: runner
+          POSTGRES_PASSWORD: tester
+          POSTGRES_DB: arxiv_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
+    steps:
+    - uses: actions/checkout@master
+    - uses: nanasess/setup-chromedriver@v1
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+        mv .env_example .env
+        sed -i '/log_cli_level = 10/d' test/pytest.ini
+        sed -i '/log_cli = true/d' test/pytest.ini
+
+    - name: Download bundles
+      uses: actions/download-artifact@v2
+      with:
+        name: bundles
+        path: app/frontend/dist/js
+
+    - name: Run Tests
+      env:
+        DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
+        DATABASE_URL_TEST: postgresql://runner:tester@localhost:5432/arxiv_test
+        ORCID_APP_TEST: ${{ secrets.ORCID_APP_TEST }}
+        ORCID_SEC_TEST: ${{ secrets.ORCID_SEC_TEST }}
+        ORCID_URL_TEST: ${{ secrets.ORCID_URL_TEST }}
+        ORCID_NAME: ${{ secrets.ORCID_NAME }}
+        ORCID_PASSW: ${{ secrets.ORCID_PASSW }}
+      run: |
+        pytest --cov=app --junitxml=report.xml test/
+        coverage xml -o coverage.xml
+
+    - name: Save coverage
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: coverage.xml
+
+
+  SonarCloud:
+    runs-on: ubuntu-latest
+    name: SonarCloud Scan
+    needs: test
+    steps:
+    - name: Clone
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Download coverage
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage
+    - name: Refactor coverage for SonarCloud
+      run: |
+        sed -i "s/<source>\/home\/runner\/work\/arxivtagpy\/arxivtagpy<\/source>/<source>\/github\/workspace<\/source>/g" coverage.xml
+    - name: SonarCloud analysis
+      uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

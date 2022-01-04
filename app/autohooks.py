@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import logging
 from json import dumps
 from functools import wraps
+from typing import List
 
 from flask import Blueprint, current_app, request, render_template
 from flask_mail import Message
@@ -364,7 +365,7 @@ def email_papers():
     return dumps({'success': True}), 201
 
 
-def email_paper_update(papers: list, email: str, do_send: bool):
+def email_paper_update(papers: List, email: str, do_send: bool):
     """Send the papers update."""
     body = 'Hello,\n\nWe created a daily paper feed based on your preferences.'
     html_body = ''
@@ -383,7 +384,20 @@ def email_paper_update(papers: list, email: str, do_send: bool):
             ref_arxiv = ArxivOaiApi().get_ref_web(paper.paper_id,
                                                   paper.version
                                                   )
-            html_body += f'<a href={ref_arxiv}>arXiv</a> | <a href={ref_pdf}>PDF</a></p>'
+            # paper version
+            if paper.version != 'v1':
+                html_body += f'<span class="small gray">{paper.version}'
+                html_body += f' (v1: {datetime.strftime(paper.date_sub, "%d %B %Y")})<br>'
+                html_body += '</span>'
+
+            # Categories
+            html_body += f'<span class="small">[<b>{paper.cats[0]}</b>'
+            for cat in paper.cats[1:]:
+                html_body += f', {cat}'
+            html_body += ']</span><br>'
+
+            # link to website
+            html_body += f'<a href={ref_arxiv}>arXiv</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href={ref_pdf}>PDF</a></p>'
 
     body += '\n\n\n\nRegards, \narXiv tag team.'
 

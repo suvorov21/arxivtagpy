@@ -9,7 +9,6 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
 ![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&label=Sonar%20violations&server=https%3A%2F%2Fsonarcloud.io)
 
-
 # arXiv tag
 Welcome to [arXivtag.tk](https://arxivtag.tk)!
 
@@ -27,6 +26,13 @@ A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the pa
 7. Authorization with ORCID
 
 Detailed features description and screenshot gallery at [arxivtag.tk](https://arxivtag.tk)
+
+## Support project
+
+Project maintaining requires some amount of coffee and money for server hosting.
+If you like the project, your support is welcome.
+
+[![](https://www.paypalobjects.com/en_US/FR/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=LQKRDE4T6NU4G)
 
 ## Development
 
