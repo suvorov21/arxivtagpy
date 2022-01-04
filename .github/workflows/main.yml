@@ -14,7 +14,7 @@ jobs:
         env:
           GITLAB_HOSTNAME: "gitlab.com"
           GITLAB_USERNAME: "suvorov21"
-          GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }} 
+          GITLAB_PASSWORD: ${{ secrets.GITLAB_ACCESS_TOKEN }} 
           GITLAB_PROJECT_ID: "20513429"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #       - name: Push
