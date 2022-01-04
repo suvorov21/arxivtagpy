@@ -86,6 +86,7 @@ jobs:
         ORCID_PASSW: ${{ secrets.ORCID_PASSW }}
       run: |
         pytest --cov=app --junitxml=report.xml test/
+        coverage xml -o coverage.xml
 
     - name: Save coverage
       uses: actions/upload-artifact@v2
