@@ -16,16 +16,10 @@ jobs:
         env:
           GITLAB_HOSTNAME: "gitlab.com"
           GITLAB_USERNAME: "suvorov21"
-          GITLAB_PASSWORD: ${{ secrets.GITLAB_ACCESS_TOKEN }} 
+          GITLAB_PASSWORD: ${{ secrets.GITLAB_ACCESS_TOKEN }}
           GITLAB_PROJECT_ID: "20513429"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       - name: Push
-#         env: 
-#           token: ${{ secrets.GITLAB_ACCESS_TOKEN }}
-#         run: |
-#           git remote set-url origin "https://oauth2:${token}@gitlab.com/suvorov21/arxivtagpy.git"
-#           git push --all origin
-          
+
   build:
     name: Build bundles
     runs-on: ubuntu-latest
@@ -57,7 +51,7 @@ jobs:
           POSTGRES_HOST_AUTH_METHOD: trust
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-        
+
     steps:
     - uses: actions/checkout@master
     - uses: nanasess/setup-chromedriver@v1
@@ -85,5 +79,34 @@ jobs:
       env:
         DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
         DATABASE_URL_TEST: postgresql://runner:tester@localhost:5432/arxiv_test
+        ORCID_APP_TEST: ${{ secrets.ORCID_APP_TEST }}
+        ORCID_SEC_TEST: ${{ secrets.ORCID_SEC_TEST }}
+        ORCID_URL_TEST: ${{ secrets.ORCID_URL_TEST }}
+        ORCID_NAME: ${{ secrets.ORCID_NAME }}
+        ORCID_PASSW: ${{ secrets.ORCID_PASSW }}
       run: |
         pytest --cov=app --junitxml=report.xml test/
+
+    - name: Save coverage
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage
+        path: ./coverage.xml
+
+
+  SonarCloud:
+    runs-on: ubuntu-latest
+    name: SonarCloud Scan
+    needs: test
+    steps:
+      - name: Download coverage
+        uses: actions/download-artifact@v2
+        with:
+          name: coverage
+      - uses: SonarSource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      with:
+        args: >
+          sonar.python.coverage.reportPath: ./coverage.xml
