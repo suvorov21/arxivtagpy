@@ -99,11 +99,12 @@ jobs:
     name: SonarCloud Scan
     needs: test
     steps:
-      - name: Download coverage
-        uses: actions/download-artifact@v2
-        with:
-          name: coverage
-      - uses: SonarSource/sonarcloud-github-action@master
+    - name: Download coverage
+      uses: actions/download-artifact@v2
+      with:
+        name: coverage
+    - name: SonarCloud analysis
+      uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
