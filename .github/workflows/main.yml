@@ -1,0 +1,87 @@
+name: App CI
+
+on: [push]
+
+jobs:
+  gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Push to GitLab
+        uses: SvanBoxel/gitlab-mirror-and-ci-action@master
+        with:
+          args: "https://gitlab.com/suvorov21/arxivtagpy"
+        env:
+          GITLAB_HOSTNAME: "gitlab.com"
+          GITLAB_USERNAME: "suvorov21"
+          GITLAB_PASSWORD: ${{ secrets.GITLAB_PASSWORD }} 
+          GITLAB_PROJECT_ID: "20513429"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#       - name: Push
+#         env: 
+#           token: ${{ secrets.GITLAB_ACCESS_TOKEN }}
+#         run: |
+#           git remote set-url origin "https://oauth2:${token}@gitlab.com/suvorov21/arxivtagpy.git"
+#           git push --all origin
+          
+  build:
+    name: Build bundles
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Build frontend
+      run: |
+        cd app/frontend/src/
+        npm install
+        npm run build
+    - name: Save bundles
+      uses: actions/upload-artifact@v2
+      with:
+        name: bundles
+        path: app/frontend/dist/js
+
+  test:
+    name: Run pytest
+    runs-on: ubuntu-latest
+    needs: build
+
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: runner
+          POSTGRES_PASSWORD: tester
+          POSTGRES_DB: arxiv_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        
+    steps:
+    - uses: actions/checkout@master
+    - uses: nanasess/setup-chromedriver@v1
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+        mv .env_example .env
+        sed -i '/log_cli_level = 10/d' test/pytest.ini
+        sed -i '/log_cli = true/d' test/pytest.ini
+
+    - name: Download bundles
+      uses: actions/download-artifact@v2
+      with:
+        name: bundles
+        path: app/frontend/dist/js
+
+    - name: Run Tests
+      env:
+        DATABASE_URL: postgresql://runner:tester@localhost:5432/arxiv_test
+        DATABASE_URL_TEST: postgresql://runner:tester@localhost:5432/arxiv_test
+      run: |
+        pytest --cov=app --junitxml=report.xml test/
