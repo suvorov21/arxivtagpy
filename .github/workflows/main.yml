@@ -91,7 +91,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: coverage
-        path: ./coverage.xml
+        path: coverage.xml
 
 
   SonarCloud:
@@ -110,4 +110,4 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-          sonar.python.coverage.reportPath: ./coverage.xml
+          sonar.python.coverage.reportPath: coverage.xml
