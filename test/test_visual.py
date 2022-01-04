@@ -135,8 +135,11 @@ class TestBasicViews:
             wait_load(wait, By.CLASS_NAME, 'paper-day')
             # go to DAY-2 as the last days may be holidays with no submissions
             driver.execute_script(f"document.getElementsByClassName('paper-day')[{i}].click()")
-            element = wait_load(wait, By.ID, 'paper-num-0')
-            recent_papers_exists.append(element.text == '1')
+            try:
+                element = wait_load(wait, By.ID, 'paper-num-0')
+                recent_papers_exists.append(element.text == '1')
+            except TimeoutException:
+                recent_papers_exists.append(False)
 
         assert any(recent_papers_exists)
 
