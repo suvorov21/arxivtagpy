@@ -267,7 +267,7 @@ def oath():
     code = request.args.get('code')
     headers = {'Accept': 'application/json'}
     prefix = 'https'
-    if current_app.config['TESTING']:
+    if current_app.config['TESTING'] or current_app.config['DEBUG']:
         prefix = 'http'
     data = {'client_id': current_app.config["ORCID_APP"],
             'client_secret': current_app.config["ORCID_SECRET"],
@@ -528,7 +528,7 @@ def orcid():
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     prefix = 'https'
-    if current_app.config['TESTING']:
+    if current_app.config['TESTING'] or current_app.config['DEBUG']:
         prefix = 'http'
     href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
                                  '/oauth/authorize?client_id=',
