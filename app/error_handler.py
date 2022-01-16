@@ -31,7 +31,7 @@ def handle_csrf_error(error):
 def handle_exception(error):
     """Error handler."""
     if isinstance(error, HTTPException):
-        logging.error('Unhandled error %r', error)
+        logging.info('HTTP error %r', error)
         if error.code in (404, 405):
             pref = 'http'
             line2 = f'Go to <a href="{pref}://{request.headers.get("Host")}">main page</a>'
@@ -41,6 +41,7 @@ def handle_exception(error):
                                    img='error',
                                    data=default_data()
                                    ), error.code
+        logging.error('Unhandled HTTP error: %r', error)
         return error
     logging.error('General error was fired: %r', error)
     line1 = 'arXiv tag was suddenly broken while processing your request.'
