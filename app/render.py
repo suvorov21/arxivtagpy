@@ -45,7 +45,9 @@ accents = {"\\'a": '&aacute;',
            '\\^e': '&ecirc;',
            '\\^E': '&Ecirc;',
            '\\"e': '&euml;',
-           '\\"E': '&Euml;'
+           '\\"E': '&Euml;',
+           '\\~A': '&Atilde;',
+           '\\~a': '&atilde;'
            }
 
 
