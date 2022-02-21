@@ -25,7 +25,7 @@ A server and a [web-page](https://arxivtag.com) for friendly monitoring of the p
 6. Dark and light theme of the website.
 7. Authorization with ORCID
 
-Detailed features description and screenshot gallery at [arxivtag.tk](https://arxivtag.tk)
+Detailed features description and screenshot gallery at [arxivtag.com](https://arxivtag.com)
 
 ## Support project
 
