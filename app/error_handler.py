@@ -24,8 +24,8 @@ def handle_csrf_error(error):
                                data=default_data()
                                ), 400
     if 'is missing' in error.description:
-        flash('Internal error occurred. Please submit the form again')
-        return redirect(url_for('main_bp.route'))
+        flash('ERROR! Internal error occurred. Please submit the form again')
+        return redirect(url_for('main_bp.root'))
 
     logging.error('CSRFError: %s', error.description)
     return abort(500)
