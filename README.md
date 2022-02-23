@@ -10,9 +10,9 @@
 ![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&label=Sonar%20violations&server=https%3A%2F%2Fsonarcloud.io)
 
 # arXiv tag
-Welcome to [arXivtag.tk](https://arxivtag.tk)!
+Welcome to [arXivtag.com](https://arxivtag.com)!
 
-A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the paper submissions at [arXiv.org](https://arxiv.org/).
+A server and a [web-page](https://arxivtag.com) for friendly monitoring of the paper submissions at [arXiv.org](https://arxiv.org/).
 
 ![Framework flow](app/frontend/dist/img/scheme_small.png)
 
@@ -25,7 +25,7 @@ A server and a [web-page](https://arxivtag.tk) for friendly monitoring of the pa
 6. Dark and light theme of the website.
 7. Authorization with ORCID
 
-Detailed features description and screenshot gallery at [arxivtag.tk](https://arxivtag.tk)
+Detailed features description and screenshot gallery at [arxivtag.com](https://arxivtag.com)
 
 ## Support project
 

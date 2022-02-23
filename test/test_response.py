@@ -134,13 +134,13 @@ class TestMainPages:
     def test_missed_csrf_token(self, client, user):
         """Test missed CSRF token."""
         client.application.config['WTF_CSRF_ENABLED'] = True
-        with pytest.raises(InternalServerError):
-            client.post(url_for('auth_bp.login'),
-                        data={'i_login': EMAIL,
-                              'i_pass': PASS
-                              },
-                        follow_redirects=True
-                        )
+        response = client.post(url_for('auth_bp.login'),
+                               data={'i_login': EMAIL,
+                                     'i_pass': PASS
+                                     },
+                               follow_redirects=True
+                               )
+        assert 'ERROR' in response.get_data(as_text=True)
         client.application.config['WTF_CSRF_ENABLED'] = False
 
 

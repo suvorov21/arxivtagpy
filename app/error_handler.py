@@ -4,7 +4,7 @@ import logging
 
 from werkzeug.exceptions import HTTPException
 
-from flask import render_template, abort, current_app, request
+from flask import render_template, abort, current_app, request, flash, redirect, url_for
 from flask_wtf.csrf import CSRFError
 
 from .settings import default_data
@@ -23,6 +23,10 @@ def handle_csrf_error(error):
                                img='clock',
                                data=default_data()
                                ), 400
+    if 'is missing' in error.description:
+        flash('ERROR! Internal error occurred. Please submit the form again')
+        return redirect(url_for('main_bp.root'))
+
     logging.error('CSRFError: %s', error.description)
     return abort(500)
 
