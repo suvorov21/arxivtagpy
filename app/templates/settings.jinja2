@@ -178,6 +178,13 @@
                         {% endif %}
                       </div>
                     </div>
+                  <div class="form-check">
+                      <input class="form-check-input tag-field" type="checkbox" id="rss-check" name="rss-check">
+                      <label class="form-check-label" for="public-check">Include in RSS</label>
+                      <div class="form-text">
+                        Papers sutable with this tag will be included in your RSS feed. Check <a href="/settings?page=pref">Preference page</a> for RSS link.
+                      </div>
+                    </div>
                     <div class="form-check">
                       <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
                       <label class="form-check-label" for="public-check">Publicly available</label>
@@ -234,6 +241,14 @@
                     <input class="form-check-input" type="radio" name="theme" id="radio-dark" value="dark">
                     <label class="form-check-label" for="inlineRadio2">Dark</label>
                   </div>
+                </div>
+
+                <h3>RSS feed</h3>
+                <div>
+                  RSS feed link:
+                  <code>
+                    {{ data['rss_token'] }}
+                  </code>
                 </div>
 
                 <h3>Account settings</h3>
