@@ -39,7 +39,13 @@ def driver():
 
 def wait_load(wait, by_parameter, name):
     """Helper function to wait for element load."""
-    return wait.until(EC.element_to_be_clickable((by_parameter, name)))
+    return wait.until(EC.presence_of_element_located((by_parameter, name)))
+
+def wait_and_click(wait, by_parameter, name, driver):
+    """Wait for the load and click the element."""
+    el = wait_load(wait, by_parameter, name)
+    driver.execute_script("arguments[0].scrollIntoView();", el)
+    driver.execute_script("arguments[0].click();", el)
 
 
 def check_orcid_credits(funct):
@@ -376,21 +382,29 @@ class TestOrcid:
         wait_load(wait, By.ID, 'about-nav')
         # Try with existing email (FAIL)
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'emailChange').click()
+        wait_and_click(wait, By.ID, 'emailChange', driver)
         wait_load(wait, By.ID, 'emailInput').send_keys(EMAIL)
-        wait_load(wait, By.ID, 'confirm-btn').click()
+        wait_and_click(wait, By.ID, 'confirm-btn', driver)
         sleep(1)
-        wait_load(wait, By.ID, 'btn-confirm').click()
+        wait_and_click(wait, By.ID, 'btn-confirm', driver)
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
         assert 'successfully!' not in driver.page_source
         assert 'already registered' in driver.page_source
         # Try with new email
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'emailChange').click()
+        wait_and_click(wait, By.ID, 'emailChange', driver)
+        # el.send_keys("\n")
+        # driver.execute_script("arguments[0].scrollIntoView();", el)
+        # driver.execute_script("arguments[0].click();", el)
+
+        # action = webdriver.common.action_chains.ActionChains(driver)
+        # action.move_to_element(el)
+        # action.click()
+        # action.perform()
         wait_load(wait, By.ID, 'emailInput').send_keys('tester5@mailinator.com')
-        wait_load(wait, By.ID, 'confirm-btn').click()
+        wait_and_click(wait, By.ID, 'confirm-btn', driver)
         sleep(1)
-        wait_load(wait, By.ID, 'btn-confirm').click()
+        wait_and_click(wait, By.ID, 'btn-confirm', driver)
         wait_load(wait, By.CLASS_NAME, 'btn-primary')
         assert 'successfully!' in driver.page_source
         # tear down
@@ -410,7 +424,7 @@ class TestOrcid:
 
         # try to unlink (FAIL)
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        wait_and_click(wait, By.ID, 'orcidAuthButton', driver)
         wait_load(wait, By.ID, 'logout')
         assert 'ERROR' in driver.page_source
         assert 'Could not unlink' in driver.page_source
@@ -430,11 +444,11 @@ class TestOrcid:
         wait_load(wait, By.ID, 'about-nav')
 
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        wait_and_click(wait, By.ID, 'orcidAuthButton', driver)
         orcid_signin(driver, wait, **kwargs)
         sleep(3)
         assert 'ORCID linked successfully' in driver.page_source
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
-        wait_load(wait, By.ID, 'orcidAuthButton').click()
+        wait_and_click(wait, By.ID, 'orcidAuthButton', driver)
         sleep(1)
         assert 'ORCID unlinked successfully' in driver.page_source
