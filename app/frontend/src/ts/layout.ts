@@ -10,6 +10,7 @@ export interface Tag {
     rule?: string;
     vis?: boolean;
     order?: number;
+    userss?: boolean;
 }
 
 export interface Cats {

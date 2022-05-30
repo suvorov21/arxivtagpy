@@ -6,22 +6,27 @@ Module with daemon functions that work are triggered by hooks.
 3. Emails
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 from json import dumps
 from functools import wraps
 from typing import List
 
-from flask import Blueprint, current_app, request, render_template
+from flask import Blueprint, current_app, request, render_template, make_response, redirect, url_for
 from flask_mail import Message
 from flask_login import current_user
 
+from feedgen.feed import FeedGenerator
+
 from .model import User, Tag, db, Paper, \
     paper_associate
-from .papers import tag_suitable, render_paper_json, update_papers
+from .papers import tag_suitable, render_paper_json, update_papers, process_papers
 from .paper_api import ArxivOaiApi
-from .utils import month_start
+from .utils import month_start, decode_token, DecodeException
 from .utils_app import mail_catch, get_or_create_list, get_old_update_date
+from .routes import get_json_papers
+from .settings import tag_to_dict
+from .render import render_papers
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -415,3 +420,80 @@ def email_paper_update(papers: List, email: str, do_send: bool):
 
     if do_send:
         mail_catch(msg)
+
+@auto_bp.route('/rss/<token>')
+def rss_feed(token):
+    '''Hook for an RSS feed.'''
+    try:
+        data = decode_token(token, keys=['user'])
+    except DecodeException:
+        logging.error('Wrong RSS token received')
+        return redirect(url_for('settings_bp.settings_page', page='pref'), code=303)
+
+    print('Checking user ', data['user'])
+    user = User.query.filter_by(email=data['user']).first()
+
+    # create feed generator
+    fg = FeedGenerator()
+    fg.title('arXiv tag RSS feed')
+    fg.description('Feed with your tags')
+    fg.link(href=f'https://arxivtag.com/rss/{token}')
+
+    # fill the paper list
+    new_date = datetime.now()
+    old_date = new_date - timedelta(days = 14)
+
+    papers = {'n_cats': None,
+              'n_nov': None,
+              'n_tags': None,
+              'last_date': old_date,
+              'papers': [],
+              'title': ''
+              }
+
+    papers['papers'] = get_json_papers(user.arxiv_cat,
+                                       old_date,
+                                       new_date
+                                       )
+
+    tag_list = []
+    # use only RSS tags for speedup
+    tags = Tag.query.filter_by(user_id=user.id, userss=True).order_by(Tag.order).all()
+    for tag in tags:
+        tag_list.append(tag_to_dict(tag))
+    # assign tags
+    papers = process_papers(papers,
+                            tag_list,
+                            [""],
+                            do_nov=False,
+                            do_tag=True
+                            )
+
+    render_papers(papers)
+    # Add entries to feed
+    for paper in papers['papers']:
+        # only if one of the RSS tags is assigned
+        if paper.get('tags') and len(paper['tags']) > 0:
+            fe = fg.add_entry()
+            prefix = 'https'
+            fe.id(f'{prefix}://{request.headers["Host"]}/rss/id/{paper["id"]}')
+            fe.title(paper['title'])
+            fe.author(name=paper['author'])
+            fe.description(paper['abstract'])
+            # cats_dict = {}
+            # for cat in paper['cats']:
+            #     cats_dict[cat] = ''
+            # fe.category(category=cats_dict)
+            fe.published(paper['date_sub'] + ' 00:00Z')
+            fe.link({'href': paper['ref_web'],
+                     'rel': 'alternate',
+                     'type': 'webpage',
+                     'hreflang': 'en-US',
+                     'title': 'Link to arXiv'
+                     })
+
+    # return a feed
+    response = make_response(fg.rss_str())
+    response.headers.set('Content-Type', 'application/rss+xml')
+
+    return response

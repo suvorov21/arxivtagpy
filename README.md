@@ -18,12 +18,13 @@ A server and a [web-page](https://arxivtag.com) for friendly monitoring of the p
 
 ### Main features:
 1. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and/negation), regular expressions, and TeX formulas. The paper feed is sorted based on your preferences. View the most interesting papers on top!
-2. Papers suitable with a given tag are **bookmarked automatically**.
-3. Email notifications are sent when the paper suitable with a given tag is submitted.
-4. Add any number of arXiv sections and further toggle them easily with check boxes. Control paper novelty (new/updated) and papers from the cross-categories with the checkboxes as well.
-5. Select a date range of submissions: today/this week/this month/**since your last visit**. Check easily what submissions you have been already overviewed.
-6. Dark and light theme of the website.
-7. Authorization with ORCID
+2. RSS feed based on the tag settings
+3. Papers suitable with a given tag are **bookmarked automatically**.
+4. Email notifications are sent when the paper suitable with a given tag is submitted.
+5. Add any number of arXiv sections and further toggle them easily with check boxes. Control paper novelty (new/updated) and papers from the cross-categories with the checkboxes as well.
+6. Select a date range of submissions: today/this week/this month/**since your last visit**. Check easily what submissions you have been already overviewed.
+7. Dark and light theme of the website.
+8. Authorization with ORCID
 
 Detailed features description and screenshot gallery at [arxivtag.com](https://arxivtag.com)
 

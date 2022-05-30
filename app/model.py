@@ -108,6 +108,11 @@ class Tag(db.Model):
                        default=False
                        )
 
+    userss = db.Column(db.Boolean,
+                       nullable=False,
+                       default=True
+                       )
+
     user_id = db.Column(db.Integer,
                         db.ForeignKey('users.id',
                                       ondelete='CASCADE'

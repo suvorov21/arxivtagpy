@@ -9,7 +9,7 @@ from flask import Blueprint, render_template, session, request, \
 from flask_login import current_user, login_required
 
 from .model import db, Tag, PaperList
-from .utils import cast_args_to_dict
+from .utils import cast_args_to_dict, encode_token
 
 settings_bp = Blueprint(
     'settings_bp',
@@ -51,6 +51,7 @@ def settings_page():
         data['pass'] = current_user.pasw is not None
         data['email'] = current_user.email
         data['orcid'] = current_user.orcid
+        data['rss_token'] = f'https://{request.headers["Host"]}/rss/{encode_token({"user": current_user.email})}'
     else:
         return redirect(url_for(SET_PAGE,
                                 page='cat'
@@ -157,6 +158,7 @@ def new_tag(tag, order):
                  order=order,
                  bookmark=tag['bookmark'],
                  email=tag['email'],
+                 userss=tag['userss'],
                  public=tag['public']
                  )
     return db_tag
@@ -216,6 +218,7 @@ def update_tag(old_tag: Tag, tag: Tag, order: int):
     old_tag.color = tag['color']
     old_tag.bookmark = tag['bookmark']
     old_tag.email = tag['email']
+    old_tag.userss = tag['userss']
     old_tag.public = tag['public']
     old_tag.order = order
 
@@ -234,6 +237,7 @@ def tag_to_dict(tag: Tag) -> dict:
                 'color': tag.color,
                 'bookmark': tag.bookmark,
                 'email': tag.email,
+                'userss': tag.userss,
                 'public': tag.public
                 }
     return tag_dict
