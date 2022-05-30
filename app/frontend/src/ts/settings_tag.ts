@@ -91,6 +91,7 @@ const clearTagField = (): void => {
     document.forms["add-tag2"]["book-check"].checked = false;
     document.getElementById("btn-book").classList.add("disabled");
     document.forms["add-tag2"]["email-check"].checked = false;
+    document.forms["add-tag2"]["rss-check"].checked = false;
     document.forms["add-tag2"]["public-check"].checked = false;
 };
 
@@ -179,6 +180,7 @@ const checkTag = (): boolean => {
         "color": document.forms["add-tag2"]["tag_color"].value,
         "bookmark": document.forms["add-tag2"]["book-check"].checked,
         "email": document.forms["add-tag2"]["email-check"].checked,
+        "userss": document.forms["add-tag2"]["rss-check"].checked,
         "public": document.forms["add-tag2"]["public-check"].checked
     };
     if (editTagId > -1 && editTagId < __TAGS__.length) {
@@ -187,6 +189,7 @@ const checkTag = (): boolean => {
         __TAGS__[`${editTagId}`]["color"] = TagDict["color"];
         __TAGS__[`${editTagId}`]["bookmark"] = TagDict["bookmark"];
         __TAGS__[`${editTagId}`]["email"] = TagDict["email"];
+        __TAGS__[`${editTagId}`]["userss"] = TagDict["userss"];
         __TAGS__[`${editTagId}`]["public"] = TagDict["public"];
     } else {
         // new tag no id
@@ -440,6 +443,7 @@ document.getElementById("tag-list").onclick = (event: MouseEvent) => {
         document.forms["add-tag2"]["book-check"].checked = tag.bookmark;
         changeBookBtnStatus(tag.bookmark);
         document.forms["add-tag2"]["email-check"].checked = tag.email;
+        document.forms["add-tag2"]["rss-check"].checked = tag.userss;
         document.forms["add-tag2"]["public-check"].checked = tag.public;
 
         // make delete possible
