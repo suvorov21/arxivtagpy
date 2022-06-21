@@ -323,16 +323,26 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
     return False
 
 
+def get_papers(cats: list,
+               old_date: datetime,
+               new_date: datetime
+               ) -> List[Paper]:
+    """Make the DB request."""
+    # TODO add caching
+    paper_query = Paper.query.filter(
+        Paper.cats.overlap(cats),
+        Paper.date_up > old_date,
+        Paper.date_up < new_date,
+    ).order_by(Paper.date_up.desc()).all()
+
+    return paper_query
+
 def get_json_papers(cats: list,
                     old_date: datetime,
                     new_date: datetime
                     ) -> List[Dict]:
     """Get list of papers from DB in JSON format."""
-    paper_query = Paper.query.filter(
-                        Paper.cats.overlap(cats),
-                        Paper.date_up > old_date,
-                        Paper.date_up < new_date,
-                        ).order_by(Paper.date_up.desc()).all()
+    paper_query = get_papers(cats, old_date, new_date)
     return [render_paper_json(paper) for paper in paper_query]
 
 
@@ -354,12 +364,7 @@ def get_json_unseen_papers(cats: list,
                                 )
 
             old_date = get_arxiv_sub_start(old_date_tmp.date())
-            paper_query = Paper.query.filter(
-                        Paper.cats.overlap(cats),
-                        Paper.date_up > old_date,
-                        Paper.date_up < new_date,
-                        ).order_by(Paper.date_up.desc()).all()
-            result.extend([render_paper_json(paper) for paper in paper_query])
+            result.extend(get_json_papers(cats, old_date, new_date))
     return result
 
 
