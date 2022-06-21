@@ -142,6 +142,15 @@ class UpdateDate(db.Model):
     last_email = db.Column(db.DateTime(),
                            nullable=True
                            )
+    last_paper = db.Column(db.DateTime(),
+                           nullable=True
+                           )
+    first_paper_day_cache = db.Column(db.DateTime(),
+                                      nullable=True
+                                      )
+    first_paper_weeks_cache = db.Column(db.DateTime(),
+                                        nullable=True
+                                        )
 
 
 # helper table to deal with many-to-many relations
@@ -164,11 +173,8 @@ paper_associate = db.Table('paper_associate',
                                      )
                            )
 
-
-class Paper(db.Model):
+class PaperModel(object):
     """Paper table description."""
-    __tablename__ = 'papers'
-
     id = db.Column(db.Integer,
                    primary_key=True
                    )
@@ -221,6 +227,20 @@ class Paper(db.Model):
     def __repr__(self):
         """Print paper."""
         return f'<Paper id: {self.id} title: {self.title}>'
+
+
+class Paper(PaperModel, db.Model):
+    """The actual paper table."""
+    __tablename__ = 'papers'
+
+
+class PaperCacheDay(PaperModel, db.Model):
+    """Table for paper caching for a day."""
+    __tablename__ = 'papers_cache_day'
+
+class PaperCacheWeeks(PaperModel, db.Model):
+    """Table for paper caching for 14 days (2 weeks)."""
+    __tablename__ = 'papers_cache_weeks'
 
 
 class PaperList(db.Model):

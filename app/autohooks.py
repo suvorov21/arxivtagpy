@@ -6,7 +6,7 @@ Module with daemon functions that work are triggered by hooks.
 3. Emails
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import logging
 from json import dumps
 from functools import wraps
@@ -19,7 +19,7 @@ from flask_login import current_user
 from feedgen.feed import FeedGenerator
 
 from .model import User, Tag, db, Paper, \
-    paper_associate
+    paper_associate, PaperCacheDay, PaperCacheWeeks
 from .papers import tag_suitable, render_paper_json, update_papers, process_papers
 from .paper_api import ArxivOaiApi
 from .utils import month_start, decode_token, DecodeException
@@ -63,13 +63,12 @@ def load_papers():
     logging.info('Start paper table update')
 
     # last paper in the DB
-    last_paper = Paper.query.order_by(Paper.date_up.desc()).limit(1).first()
+    old_date_record = get_old_update_date()
+    # FIXME Remove patch
+    if not old_date_record.last_paper:
+        old_date_record.last_paper = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
+    last_paper_date = old_date_record.last_paper - timedelta(days=1)
 
-    if not last_paper:
-        # if no last paper download for this month
-        last_paper_date = month_start()
-    else:
-        last_paper_date = last_paper.date_up - timedelta(days=1)
 
     # update_papers() params
     # by default updates are on
@@ -106,9 +105,38 @@ def load_papers():
     # Any API can be defined above
     update_papers([paper_api], **params)
 
+    # update the date record
+    last_paper = Paper.query.order_by(Paper.date_up.desc()).limit(1).first()
+    old_date_record.last_paper = last_paper.date_up
+    db.session.commit()
+
+    # update the cache
+    # Day cache
+    PaperCacheDay.query.delete()
+    keys = db.inspect(PaperCacheDay).columns.keys()
+    get_columns = lambda post: {key: getattr(post, key) for key in keys}
+
+    posts = Paper.query.filter(Paper.date_up > old_date_record.last_paper - timedelta(days=1))
+    db.session.bulk_insert_mappings(PaperCacheDay, (get_columns(post) for post in posts))
+    old_date_record.first_paper_day_cache = PaperCacheDay.query.order_by(
+        PaperCacheDay.date_up.asc()
+    ).limit(1).first().date_up
+
+    # Week cache
+    PaperCacheWeeks.query.delete()
+    keys = db.inspect(PaperCacheWeeks).columns.keys()
+    get_columns = lambda post: {key: getattr(post, key) for key in keys}
+
+    posts = Paper.query.filter(Paper.date_up > old_date_record.last_paper - timedelta(days=14))
+    db.session.bulk_insert_mappings(PaperCacheWeeks, (get_columns(post) for post in posts))
+    old_date_record.first_paper_weeks_cache = PaperCacheWeeks.query.order_by(
+        PaperCacheWeeks.date_up.asc()
+    ).limit(1).first().date_up
+
+    db.session.commit()
+
     # TODO move it to particular API
-    last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
-    if abs(last_paper_date.hour - current_app.config['ARXIV_DEADLINE_TIME'].hour) > 1:
+    if abs(old_date_record.last_paper.hour - current_app.config['ARXIV_DEADLINE_TIME'].hour) > 1:
         logging.warning('Last paper exceeds deadline limit! Consider deadline revision')
         logging.warning('Last paper: %r\tDeadline: %r',
                         last_paper_date,
@@ -443,18 +471,11 @@ def rss_feed(token):
     new_date = datetime.now()
     old_date = new_date - timedelta(days = 14)
 
-    papers = {'n_cats': None,
-              'n_nov': None,
-              'n_tags': None,
-              'last_date': old_date,
-              'papers': [],
-              'title': ''
-              }
-
-    papers['papers'] = get_json_papers(user.arxiv_cat,
-                                       old_date,
-                                       new_date
-                                       )
+    papers = {'n_cats': None, 'n_nov': None, 'n_tags': None, 'last_date': old_date,
+              'papers': get_json_papers(user.arxiv_cat,
+                                        old_date,
+                                        new_date
+                                        ), 'title': ''}
 
     tag_list = []
     # use only RSS tags for speedup
@@ -480,10 +501,6 @@ def rss_feed(token):
             fe.title(paper['title'])
             fe.author(name=paper['author'])
             fe.description(paper['abstract'])
-            # cats_dict = {}
-            # for cat in paper['cats']:
-            #     cats_dict[cat] = ''
-            # fe.category(category=cats_dict)
             fe.published(paper['date_sub'] + ' 00:00Z')
             fe.link({'href': paper['ref_web'],
                      'rel': 'alternate',

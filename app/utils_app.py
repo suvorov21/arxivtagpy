@@ -69,7 +69,8 @@ def get_old_update_date() -> UpdateDate:
     if not old_date_record:
         old_date = month_start()
         old_date_record = UpdateDate(last_bookmark=old_date,
-                                     last_email=old_date
+                                     last_email=old_date,
+                                     last_paper=old_date
                                      )
         db.session.add(old_date_record)
         db.session.commit()
