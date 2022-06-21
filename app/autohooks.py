@@ -423,7 +423,7 @@ def email_paper_update(papers: List, email: str, do_send: bool):
 
 @auto_bp.route('/rss/<token>')
 def rss_feed(token):
-    '''Hook for an RSS feed.'''
+    """Hook for an RSS feed."""
     try:
         data = decode_token(token, keys=['user'])
     except DecodeException:
