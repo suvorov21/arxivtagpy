@@ -59,7 +59,7 @@ const deleteBookmark = (event: MouseEvent): void => {
         "paper_id": paper.id.split("v")[0],
         "list_id": __DISPLAY_LIST__
     })
-    .done((data, textStatus, jqXHR) => {
+    .done((_data, _textStatus, jqXHR) => {
         const status = jqXHR.status;
         if (status === 201) {
             raiseAlert("Paper has been deleted", "success");

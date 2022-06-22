@@ -608,7 +608,7 @@ const listClick = (event: MouseEvent): void => {
     $.post(url, {"paper_id": paper.id.split("v")[0],
         "list_id": num
     })
-        .done((data, textStatus, jqXHR) => {
+        .done((_data, _textStatus, jqXHR) => {
             const status = jqXHR.status;
             if (status === 200) {
                 raiseAlert("Paper has been already saved", "success");
