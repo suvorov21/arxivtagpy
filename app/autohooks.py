@@ -12,7 +12,7 @@ from json import dumps
 from functools import wraps
 from typing import List
 
-from flask import Blueprint, current_app, request, render_template, make_response, redirect, url_for
+from flask import Blueprint, current_app, request, render_template, make_response, redirect, url_for, flash
 from flask_mail import Message
 from flask_login import current_user
 
@@ -455,6 +455,7 @@ def rss_feed(token):
     try:
         data = decode_token(token, keys=['user'])
     except DecodeException:
+        flash('Wrong RSS token received')
         logging.error('Wrong RSS token received')
         return redirect(url_for('settings_bp.settings_page', page='pref'), code=303)
 
