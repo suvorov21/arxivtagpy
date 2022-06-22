@@ -194,9 +194,6 @@ def data():
     # in this case return the last day with submissions
     if len(papers['papers']) == 0 and request.args['date'] in ('today', 'week', 'month'):
         last_paper_date = get_old_update_date().last_paper
-        # TODO remove patch
-        if not last_paper_date:
-            last_paper_date = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
         # update information for the page title
         old_date_tmp, new_date_tmp, new_date = get_date_range(
             request.args['date'],

@@ -64,9 +64,6 @@ def load_papers():
 
     # last paper in the DB
     old_date_record = get_old_update_date()
-    # FIXME Remove patch
-    if not old_date_record.last_paper:
-        old_date_record.last_paper = Paper.query.order_by(Paper.date_up.desc()).limit(1).first().date_up
     last_paper_date = old_date_record.last_paper - timedelta(days=1)
 
 
