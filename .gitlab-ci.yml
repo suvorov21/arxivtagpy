@@ -68,7 +68,7 @@ stage_to_beta:
     - deploy
   environment:
     name: staging
-    url: https://beta.arxivtag.tk/
+    url: https://beta.arxivtag.com/
   script:
     - cd "$CD_STAGE_PATH"
     - source update.sh
@@ -81,7 +81,7 @@ prod:
     - deploy
   environment:
     name: production
-    url: https://arxivtag.tk/
+    url: https://arxivtag.com/
   script:
     - cd "$CD_PROD_PATH"
     - source update.sh
