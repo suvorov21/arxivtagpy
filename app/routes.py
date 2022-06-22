@@ -19,7 +19,7 @@ from .papers import process_papers, render_paper_json, \
     get_json_papers, get_json_unseen_papers, tag_test
 from .paper_api import get_arxiv_sub_start, \
     get_annonce_date, get_arxiv_announce_date, get_date_range
-from .utils_app import get_lists_for_user, get_old_update_date
+from .utils_app import get_lists_for_user, get_old_update_date, update_seen_papers
 from .settings import load_prefs, default_data
 
 PAPERS_PAGE = 25
@@ -187,13 +187,8 @@ def data():
                                                   RECENT_PAPER_RANGE,
                                                   announce_date)
 
-    # update "seen" papers
-    for i in range(it_start,
-                   min(RECENT_PAPER_RANGE, it_end) + 1,
-                   ):
-        # prevent underflow by 1
-        i = max(i, 0)
-        current_user.recent_visit = current_user.recent_visit | 2 ** i
+
+    update_seen_papers(it_start, min(RECENT_PAPER_RANGE, it_end))
 
     # because of the holidays 1-2 day can be skipped
     # in this case return the last day with submissions
@@ -208,21 +203,12 @@ def data():
             get_arxiv_announce_date(last_paper_date)
         )
         # new query in the paper DB. Attempt to find papers
-        if request.args['date'] == 'today':
-            papers['papers'] = get_json_papers(session['cats'],
-                                               last_paper_date - timedelta(days=1),
-                                               last_paper_date
-                                               )
-        elif request.args['date'] == 'week':
-            papers['papers'] = get_json_papers(session['cats'],
-                                               last_paper_date - timedelta(weeks=1),
-                                               last_paper_date
-                                               )
-        elif request.args['date'] == 'month':
-            papers['papers'] = get_json_papers(session['cats'],
-                                               last_paper_date - timedelta(weeks=4),
-                                               last_paper_date
-                                               )
+        papers['papers'] = get_json_papers(session['cats'],
+                                           last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
+                                                                       weeks=int(request.args['date'] == 'week') +
+                                                                       4 * int(request.args['date'] == 'month')),
+                                           last_paper_date
+                                           )
 
     # error handler
     # "last" and "unseen" papers query results are allowed to be empty

@@ -393,14 +393,7 @@ class TestOrcid:
         # Try with new email
         driver.get(url_for(ROOT_SET, page='pref', _external=True))
         wait_and_click(wait, By.ID, 'emailChange', driver)
-        # el.send_keys("\n")
-        # driver.execute_script("arguments[0].scrollIntoView();", el)
-        # driver.execute_script("arguments[0].click();", el)
 
-        # action = webdriver.common.action_chains.ActionChains(driver)
-        # action.move_to_element(el)
-        # action.click()
-        # action.perform()
         wait_load(wait, By.ID, 'emailInput').send_keys('tester5@mailinator.com')
         wait_and_click(wait, By.ID, 'confirm-btn', driver)
         sleep(1)

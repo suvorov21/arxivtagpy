@@ -76,3 +76,10 @@ def get_old_update_date() -> UpdateDate:
         db.session.commit()
 
     return old_date_record
+
+def update_seen_papers(it_start, it_end):
+    """Update "seen" papers."""
+    for i in range(it_start, it_end + 1):
+        # prevent underflow by 1
+        i = max(i, 0)
+        current_user.recent_visit = current_user.recent_visit | 2 ** i
