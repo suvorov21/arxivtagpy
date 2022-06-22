@@ -3,7 +3,6 @@
 
 from json import loads
 from datetime import datetime
-import re
 
 from test.conftest import EMAIL, PASS, TMP_EMAIL
 
@@ -13,6 +12,7 @@ import pytest
 
 from app.model import Paper, UpdateDate, User, PaperList
 from app import mail, db
+from app.utils import encode_token
 
 ROOT_LOAD = 'auto_bp.load_papers'
 ROOT_DATA = 'main_bp.data'
@@ -467,17 +467,17 @@ class TestAutoHooks:
 
     def test_rss(self, client, papers, login):
         """Test RSS endpoint."""
-        response = client.get(url_for('settings_bp.settings_page',
-                                      page='pref'
-                                      ),
-                              follow_redirects=True
-                              )
-
-        # get the RSS link
-        page = response.get_data(as_text=True)
-        match = re.search(r'<code>[\s\n]+([\w/.:]+)[\s\n]+</code>', page)
-        if not match or match.group(1) == '':
-            assert False
+        # response = client.get(url_for('settings_bp.settings_page',
+        #                               page='pref'
+        #                               ),
+        #                       follow_redirects=True
+        #                       )
+        #
+        # # get the RSS link
+        # page = response.get_data(as_text=True)
+        # match = re.search(r'<code>[\s\n]+([\w/.:]+)[\s\n]+</code>', page)
+        # if not match or match.group(1) == '':
+        #     assert False
 
         # check wrong token
         response = client.get(url_for('auto_bp.rss_feed',
@@ -489,7 +489,9 @@ class TestAutoHooks:
         assert response.status_code == 303
 
         # check the correct token
-        response = client.get(match.group(1),
+        response = client.get(url_for('auto_bp.rss_feed',
+                                      token=encode_token({"user": EMAIL})
+                                      ),
                               follow_redirects=True
                               )
         assert response.status_code == 200
