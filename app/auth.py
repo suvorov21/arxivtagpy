@@ -107,7 +107,8 @@ def new_user_routine(user: User):
               order=0,
               public=False,
               email=False,
-              bookmark=False
+              bookmark=False,
+              userss=True
               )
     user.tags.append(tag)
     db.session.add(user)

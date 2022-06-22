@@ -20,7 +20,7 @@ export const submitSetting = (url: string, set: settings): Promise<boolean> => {
         .done(function () {
             raiseAlert("Settings are saved", "success");
             resolve(true);
-        }).fail(function (xhr, textStatus: string) {
+        }).fail(function (xhr, _textStatus: string) {
             if (xhr.status === 400) {
                 // consider CSRF token expiration
                 raiseAlert("Your page is outdated, please refresh and try again.",

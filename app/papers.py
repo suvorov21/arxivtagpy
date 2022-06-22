@@ -11,8 +11,9 @@ import logging
 
 from typing import List, Tuple, Dict
 
-from .model import db, Paper
+from .model import db, Paper, PaperCacheDay, PaperCacheWeeks
 from .paper_api import ArxivOaiApi, get_date_range, get_arxiv_sub_start
+from .utils_app import get_old_update_date
 
 rule_dict = {'ti': 'title',
              'au': 'author',
@@ -132,8 +133,8 @@ def process_nov(paper: dict, nov_counters: list, cats: list, last_date: datetime
         nov_counters[0] += 1
 
 
-def process_tags(paper: dict,
-                 tags: dict,
+def process_tags(paper: Dict,
+                 tags: List,
                  tag_counter):
     """Apply tags for a given paper and increment a counter."""
     for num, tag in enumerate(tags):
@@ -142,12 +143,12 @@ def process_tags(paper: dict,
             tag_counter[num] += 1
 
 
-def process_papers(papers: dict,
-                   tags: dict,
-                   cats: list,
+def process_papers(papers: Dict,
+                   tags: List,
+                   cats: List,
                    do_nov: bool,
                    do_tag: bool
-                   ) -> dict:
+                   ) -> Dict:
     """
     Papers processing. Count papers per category, per novelty, per tag.
 
@@ -323,16 +324,31 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
     return False
 
 
+def get_papers(cats: list,
+               old_date: datetime,
+               new_date: datetime
+               ) -> List[Paper]:
+    """Make the DB request."""
+    source = Paper
+    old_date_record = get_old_update_date()
+    if old_date_record.first_paper_day_cache and  old_date >= old_date_record.first_paper_day_cache:
+        source = PaperCacheDay
+    elif old_date_record.first_paper_weeks_cache and  old_date >= old_date_record.first_paper_weeks_cache:
+        source = PaperCacheWeeks
+    paper_query = source.query.filter(
+        source.cats.overlap(cats),
+        source.date_up > old_date,
+        source.date_up < new_date,
+    ).order_by(source.date_up.desc()).all()
+
+    return paper_query
+
 def get_json_papers(cats: list,
                     old_date: datetime,
                     new_date: datetime
                     ) -> List[Dict]:
     """Get list of papers from DB in JSON format."""
-    paper_query = Paper.query.filter(
-                        Paper.cats.overlap(cats),
-                        Paper.date_up > old_date,
-                        Paper.date_up < new_date,
-                        ).order_by(Paper.date_up.desc()).all()
+    paper_query = get_papers(cats, old_date, new_date)
     return [render_paper_json(paper) for paper in paper_query]
 
 
@@ -354,12 +370,7 @@ def get_json_unseen_papers(cats: list,
                                 )
 
             old_date = get_arxiv_sub_start(old_date_tmp.date())
-            paper_query = Paper.query.filter(
-                        Paper.cats.overlap(cats),
-                        Paper.date_up > old_date,
-                        Paper.date_up < new_date,
-                        ).order_by(Paper.date_up.desc()).all()
-            result.extend([render_paper_json(paper) for paper in paper_query])
+            result.extend(get_json_papers(cats, old_date, new_date))
     return result
 
 

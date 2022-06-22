@@ -49,6 +49,17 @@ def test_tricky_logic_and():
 
     assert not tag_test(paper, rule)
 
+def test_negation(simple_paper):
+    """Test negation in the tag rule."""
+    paper_good = simple_paper
+    paper_bad = simple_paper.copy()
+
+    paper_good['author'] = 'Myself'
+
+    rule = 'abs{Breakthrough}&au{!Au2}'
+    assert tag_test(paper_good, rule)
+    assert not tag_test(paper_bad, rule)
+
 
 def test_tag_endpoint(client, login):
     """Test the tag test endpoint."""
