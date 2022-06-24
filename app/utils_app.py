@@ -24,13 +24,13 @@ def mail_catch(msg: Message) -> bool:
     return True
 
 
-def query_lists_for_user(id: int) -> List[Tuple]:
-    """Perform a query to DB to get list of tuples with lists."""
-    return PaperList.query.with_entities(PaperList.name,
-                                         PaperList.not_seen,
-                                         PaperList.id
-                                         ).filter_by(
-        user_id=id
+def query_lists_for_user(id: int) -> List[PaperList]:
+    """Perform a query to DB to get list PaperLists w/o papers."""
+    return db.session.query(PaperList).with_entities(PaperList.name,
+                                                     PaperList.not_seen,
+                                                     PaperList.id
+                                                     ).filter(
+        PaperList.user_id == id
     ).order_by(PaperList.order).all()
 
 
@@ -47,9 +47,9 @@ def get_lists_for_user() -> List[Dict]:
                       current_user.email
                       )
 
-    lists = [{'name': paper_list[0],
-              'not_seen': paper_list[1],
-              'id': paper_list[2]
+    lists = [{'name': paper_list.name,
+              'not_seen': paper_list.not_seen,
+              'id': paper_list.id
               } for paper_list in paper_lists]
     return lists
 
