@@ -1,64 +1,66 @@
 """Test paper tagging feature."""
 # pylint: disable=redefined-outer-name, unused-argument
 
+from copy import copy
 from flask import url_for
 import pytest
 
-from app.papers import tag_test
+from app.papers import tag_suitable
+from app.interfaces.data_structures import PaperInterface
 
 
 @pytest.fixture(scope='function')
-def simple_paper():
+def simple_paper() -> PaperInterface:
     """Fixture with a simple paper."""
-    paper = {'title': 'Awesome title',
-             'author': 'Au1, Au2',
-             'abstract': 'Breakthrough is coming'
-             }
+    paper = PaperInterface.for_tests('Awesome title',
+                                     ['Au1', 'Au2'],
+                                     'Breakthrough is coming'
+                                     )
     yield paper
 
 
 def test_base(simple_paper):
     """Check if the simple rules are working."""
-    assert tag_test(simple_paper, 'ti{awesome}')
-    assert tag_test(simple_paper, 'abs{breakthrough}')
-    assert tag_test(simple_paper, 'au{Au1}')
+    assert tag_suitable(simple_paper, 'ti{awesome}')
+    assert tag_suitable(simple_paper, 'abs{breakthrough}')
+    assert tag_suitable(simple_paper, 'au{Au1}')
 
 
 def test_and_or_outside(simple_paper):
     """Test logic operators in between the simple rules."""
-    assert tag_test(simple_paper, 'ti{awesome}&abs{breakthrough}')
-    assert not tag_test(simple_paper, 'ti{awesome}&abs{awesome}')
-    assert tag_test(simple_paper, 'ti{awesome}|abs{awesome}')
+    assert tag_suitable(simple_paper, 'ti{awesome}&abs{breakthrough}')
+    assert not tag_suitable(simple_paper, 'ti{awesome}&abs{awesome}')
+    assert tag_suitable(simple_paper, 'ti{awesome}|abs{awesome}')
 
 
 def test_and_or_inside(simple_paper):
     """Test logic operators in inside the simple rules."""
-    assert tag_test(simple_paper, 'ti{awesome&title}')
-    assert tag_test(simple_paper, 'ti{awesome|breakthrough}')
+    assert tag_suitable(simple_paper, 'ti{awesome&title}')
+    assert tag_suitable(simple_paper, 'ti{awesome|breakthrough}')
 
 
-def test_tricky_logic_and():
+def test_tricky_logic_and(simple_paper):
     """Test logic end versus sequence."""
-    paper = {'abstract': 'Look for neutrino with heavy detector'}
+    simple_paper.abstract = 'Look for neutrino with heavy detector'
     rule = 'abs{heavy&neutrino|HNL}|ti{heavy&neutrino|HNL}'
 
-    assert tag_test(paper, rule)
+    assert tag_suitable(simple_paper, rule)
 
-    paper = {'abstract': 'Look for neutrino with heavy detector'}
+    simple_paper.abstract = 'Look for neutrino with heavy detector'
     rule = 'abs{heavy neutrino|HNL}|ti{heavy neutrino|HNL}'
 
-    assert not tag_test(paper, rule)
+    assert not tag_suitable(simple_paper, rule)
 
 def test_negation(simple_paper):
     """Test negation in the tag rule."""
-    paper_good = simple_paper
-    paper_bad = simple_paper.copy()
+    paper_good = copy(simple_paper)
+    paper_bad = copy(simple_paper)
 
-    paper_good['author'] = 'Myself'
+    paper_good.author = ['Myself']
 
     rule = 'abs{Breakthrough}&au{!Au2}'
-    assert tag_test(paper_good, rule)
-    assert not tag_test(paper_bad, rule)
+    assert tag_suitable(paper_good, rule)
+    assert not tag_suitable(paper_bad, rule)
 
 
 def test_tag_endpoint(client, login):

@@ -20,6 +20,13 @@ def fix_xml(xml: str) -> str:
     return xml.replace(linesep, " ").replace("  ", " ")
 
 
+def resolve_doi(doi: str) -> str:
+    """Resolve doi string into link."""
+    if not doi:
+        return ''
+    return 'https://www.doi.org/' + doi
+
+
 def cast_args_to_dict(args) -> List[Dict]:
     """Cast requests args to dictionary."""
     prefs = []

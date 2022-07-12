@@ -1,7 +1,5 @@
 """Render utils."""
 
-from datetime import datetime
-
 # dictionary for accents
 accents = {"\\'a": '&aacute;',
            "\\'A": '&Aacute;',
@@ -65,80 +63,6 @@ def render_title(date_type: str) -> str:
         return 'Unseen papers during the past week'
 
     return 'Papers'
-
-
-def render_title_precise(date: str, old: datetime, new: datetime) -> str:
-    """Render title based on the computed dates."""
-    if date == 'today':
-        return datetime.strftime(new, '%A, %d %B')
-    if date in ('week', 'month'):
-        return datetime.strftime(old, '%d %B') + ' - ' + \
-               datetime.strftime(new, '%d %B')
-    if date == 'range':
-        if old.date() == new.date():
-            return 'for ' + datetime.strftime(old, '%A, %d %B')
-
-        return 'from ' + \
-               datetime.strftime(old, '%d %B') + ' until ' + \
-               datetime.strftime(new, '%d %B')
-    if date == 'last':
-        return ' on ' + datetime.strftime(old, '%d %B')
-
-    if date == 'unseen':
-        return ''
-
-    return 'Papers'
-
-
-def key_tag(paper):
-    """Key for sorting with tags."""
-    # Primary key is the 1st tag
-    # secondary key is for date
-
-    # to make the secondary key working in the right way
-    # the sorting is reversed
-    # for consistency the tag index is inverse too
-
-    # WARNING cross-fingered nobody will use 1000 tags
-    # otherwise I'm in trouble
-    return -paper['tags'][0] if len(paper['tags']) > 0 else -1000, \
-        paper['date_up']
-
-
-def key_date_up(paper):
-    """Sorting with date."""
-    return paper['date_up']
-
-
-def render_papers(papers: dict, **kwargs):
-    """Convert papers dict to minimize info."""
-    if kwargs.get('sort'):
-        reverse = True
-        key = key_tag
-
-        if kwargs['sort'] == 'date_up':
-            key = key_date_up
-        papers['papers'] = sorted(papers['papers'],
-                                  key=key,
-                                  reverse=reverse
-                                  )
-
-    for paper in papers['papers']:
-        # cut author list and join to string
-        if paper.get('author') and len(paper['author']) > 4:
-            paper['author'] = paper['author'][:1]
-            paper['author'].append('et al')
-        paper['author'] = ', '.join(paper['author'])
-
-        # fix accents in author list
-        for key, value in accents.items():
-            paper['author'] = paper['author'].replace(key, value)
-
-        # render dates
-        paper['date_sub'] = paper['date_sub'].strftime('%d %B %Y')
-
-        if paper.get('date_up'):
-            paper['date_up'] = paper['date_up'].strftime('%d %B %Y')
 
 
 def render_tags_front(tags: list) -> list:

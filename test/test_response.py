@@ -7,10 +7,9 @@ from datetime import datetime
 from test.conftest import EMAIL, PASS, TMP_EMAIL
 
 from flask import url_for
-from werkzeug.exceptions import InternalServerError
 import pytest
 
-from app.model import Paper, UpdateDate, User, PaperList
+from app.interfaces.model import Paper, UpdateDate, User, PaperList
 from app import mail, db
 from app.utils import encode_token
 
@@ -434,6 +433,27 @@ class TestAutoHooks:
                                        ))
         assert response.status_code == 201
 
+    def test_rss(self, client, papers, login):
+        """Test RSS endpoint."""
+        # check wrong token
+        response = client.get(url_for('auto_bp.rss_feed',
+                                      token='test'
+                                      ),
+                              follow_redirects=False
+                              )
+
+        assert response.status_code == 303
+
+        # check the correct token
+        response = client.get(url_for('auto_bp.rss_feed',
+                                      token=encode_token({"user": EMAIL})
+                                      ),
+                              follow_redirects=True
+                              )
+        assert response.status_code == 200
+        # check that there is a paper inside
+        assert '<item><title>' in response.get_data(as_text=True)
+
     def test_paper_delete(self, client, papers, login):
         """Test paper delete endpoint."""
         # no date --> error
@@ -464,39 +484,6 @@ class TestAutoHooks:
                                        ))
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
-
-    def test_rss(self, client, papers, login):
-        """Test RSS endpoint."""
-        # response = client.get(url_for('settings_bp.settings_page',
-        #                               page='pref'
-        #                               ),
-        #                       follow_redirects=True
-        #                       )
-        #
-        # # get the RSS link
-        # page = response.get_data(as_text=True)
-        # match = re.search(r'<code>[\s\n]+([\w/.:]+)[\s\n]+</code>', page)
-        # if not match or match.group(1) == '':
-        #     assert False
-
-        # check wrong token
-        response = client.get(url_for('auto_bp.rss_feed',
-                                      token='test'
-                                      ),
-                              follow_redirects=False
-                              )
-
-        assert response.status_code == 303
-
-        # check the correct token
-        response = client.get(url_for('auto_bp.rss_feed',
-                                      token=encode_token({"user": EMAIL})
-                                      ),
-                              follow_redirects=True
-                              )
-        assert response.status_code == 200
-        # check that there is a paper inside
-        assert '<item><title>' in response.get_data(as_text=True)
 
 
 @pytest.mark.usefixtures('live_server')

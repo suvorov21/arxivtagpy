@@ -18,15 +18,15 @@ from flask_login import current_user
 
 from feedgen.feed import FeedGenerator
 
-from .model import User, Tag, db, Paper, \
+from .interfaces.data_structures import PaperInterface, PaperResponse
+from .interfaces.model import User, Tag, db, Paper, \
     paper_associate, PaperCacheDay, PaperCacheWeeks
-from .papers import tag_suitable, render_paper_json, update_papers, process_papers
+from .papers import tag_suitable, update_papers, process_papers
 from .paper_api import ArxivOaiApi
-from .utils import month_start, decode_token, DecodeException
+from .utils import decode_token, DecodeException
 from .utils_app import mail_catch, get_or_create_list, get_old_update_date
-from .routes import get_json_papers
+from .routes import get_papers
 from .settings import tag_to_dict
-from .render import render_papers
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -65,7 +65,6 @@ def load_papers():
     # last paper in the DB
     old_date_record = get_old_update_date()
     last_paper_date = old_date_record.last_paper - timedelta(days=1)
-
 
     # update_papers() params
     # by default updates are on
@@ -220,7 +219,7 @@ def bookmark_user():
     paper_list = get_or_create_list(usr.id, name)
 
     for paper in papers:
-        if tag_suitable(render_paper_json(paper), rule):
+        if tag_suitable(PaperInterface.from_paper(paper), rule):
             # check if paper is already there to prevent duplication
             result = db.session.query(paper_associate
                                       ).filter_by(list_ref_id=paper_list.id,
@@ -285,7 +284,7 @@ def bookmark_papers():
 
         # 3.2
         for paper in papers:
-            if tag_suitable(render_paper_json(paper), tag.rule):
+            if tag_suitable(PaperInterface.from_paper(paper), tag.rule):
                 # check if paper is already there to prevent duplication
                 result = db.session.query(paper_associate
                                           ).filter_by(list_ref_id=paper_list.id,
@@ -371,7 +370,7 @@ def email_papers():
                                })
         # 3.2
         for paper in papers:
-            if tag_suitable(render_paper_json(paper), tag.rule):
+            if tag_suitable(PaperInterface.from_paper(paper), tag.rule):
                 papers_to_send[-1]['papers'].append(paper)
                 n_papers += 1
 
@@ -407,13 +406,13 @@ def email_paper_update(papers: List, email: str, do_send: bool):
         for number, paper in enumerate(paper_tag['papers']):
             body += f'{str(number + 1)}. {paper.title}\n'
             html_body += f'<p>{str(number + 1)}. {paper.title}<br/>'
-            ref_pdf = ArxivOaiApi().get_ref_pdf(paper.paper_id,
+            ref_pdf = ArxivOaiApi.get_ref_pdf(paper.paper_id,
+                                              paper.version
+                                              )
+
+            ref_arxiv = ArxivOaiApi.get_ref_web(paper.paper_id,
                                                 paper.version
                                                 )
-
-            ref_arxiv = ArxivOaiApi().get_ref_web(paper.paper_id,
-                                                  paper.version
-                                                  )
             # paper version
             if paper.version != 'v1':
                 html_body += f'<span class="small gray">{paper.version}'
@@ -446,6 +445,7 @@ def email_paper_update(papers: List, email: str, do_send: bool):
     if do_send:
         mail_catch(msg)
 
+
 @auto_bp.route('/rss/<token>')
 def rss_feed(token):
     """Hook for an RSS feed."""
@@ -467,13 +467,10 @@ def rss_feed(token):
 
     # fill the paper list
     new_date = datetime.now()
-    old_date = new_date - timedelta(days = 14)
+    old_date = new_date - timedelta(days=14)
 
-    papers = {'n_cats': None, 'n_nov': None, 'n_tags': None, 'last_date': old_date,
-              'papers': get_json_papers(user.arxiv_cat,
-                                        old_date,
-                                        new_date
-                                        ), 'title': ''}
+    response = PaperResponse(old_date)
+    response.papers = get_papers(user.arxiv_cat, old_date, new_date)
 
     tag_list = []
     # use only RSS tags for speedup
@@ -481,26 +478,26 @@ def rss_feed(token):
     for tag in tags:
         tag_list.append(tag_to_dict(tag))
     # assign tags
-    papers = process_papers(papers,
-                            tag_list,
-                            [""],
-                            do_nov=False,
-                            do_tag=True
-                            )
+    process_papers(response,
+                   tag_list,
+                   [''],
+                   do_nov=False,
+                   do_tag=True
+                   )
 
-    render_papers(papers)
+    response.sort_papers()
     # Add entries to feed
-    for paper in papers['papers']:
+    for paper in response.papers:
         # only if one of the RSS tags is assigned
-        if paper.get('tags') and len(paper['tags']) > 0:
+        if len(paper.tags) > 0:
             fe = fg.add_entry()
             prefix = 'https'
             fe.id(f'{prefix}://{request.headers["Host"]}/rss/id/{paper["id"]}')
-            fe.title(paper['title'])
-            fe.author(name=paper['author'])
-            fe.description(paper['abstract'])
-            fe.published(paper['date_sub'] + ' 00:00Z')
-            fe.link({'href': paper['ref_web'],
+            fe.title(paper.title)
+            fe.author(name=paper.author)
+            fe.description(paper.abstract)
+            fe.published(paper.date_sub.strftime('%d %B %Y') + ' 00:00Z')
+            fe.link({'href': ArxivOaiApi.get_ref_web(paper.paper_id, paper.version),
                      'rel': 'alternate',
                      'type': 'webpage',
                      'hreflang': 'en-US',

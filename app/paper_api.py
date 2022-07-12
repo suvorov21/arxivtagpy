@@ -11,7 +11,7 @@ from flask import current_app
 from requests import get, exceptions
 import urllib3
 
-from .model import Paper
+from .interfaces.model import Paper
 from .utils import fix_xml
 
 
@@ -54,13 +54,15 @@ class ArxivOaiApi:
         """Set Until date."""
         self.params['until'] = until_var
 
-    def get_ref_pdf(self, pid: str, version: str):
+    @classmethod
+    def get_ref_pdf(cls, pid: str, version: str) -> str:
         """Format href for pdf doc."""
-        return self.BASE_URL + '/pdf/' + pid + version + '.pdf'
+        return cls.BASE_URL + '/pdf/' + pid + version + '.pdf'
 
-    def get_ref_web(self, pid: str, version: str):
+    @classmethod
+    def get_ref_web(cls, pid: str, version: str) -> str:
         """Format ref for webpage with summary."""
-        return self.BASE_URL + '/abs/' + pid + version
+        return cls.BASE_URL + '/abs/' + pid + version
 
     def download_papers(self, rest: int = -1):
         """Generator for paper downloading."""
@@ -245,7 +247,7 @@ def get_arxiv_announce_date(paper_sub: datetime) -> datetime:
     return announce_date
 
 
-def get_annonce_date() -> datetime:
+def get_announce_date() -> datetime:
     """
     Compare the current time to the new paper announcement.
 

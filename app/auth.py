@@ -1,4 +1,4 @@
-"""Authority utilities: login, pass check, account managment."""
+"""Authority utilities: login, pass check, account management."""
 
 from datetime import datetime, timezone, timedelta
 import secrets
@@ -18,7 +18,7 @@ from flask_mail import Message
 
 from .import login_manager
 
-from .model import db, User, PaperList, Tag
+from .interfaces.model import db, User, PaperList, Tag
 from .utils import encode_token, decode_token, DecodeException
 from .utils_app import mail_catch
 from .settings import default_data

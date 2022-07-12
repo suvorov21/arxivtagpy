@@ -9,17 +9,12 @@ from re import search, compile, IGNORECASE, error
 from datetime import datetime, timedelta
 import logging
 
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 
-from .model import db, Paper, PaperCacheDay, PaperCacheWeeks
-from .paper_api import ArxivOaiApi, get_date_range, get_arxiv_sub_start
+from .interfaces.data_structures import PaperInterface, PaperResponse
+from .interfaces.model import db, Paper, PaperCacheDay, PaperCacheWeeks
+from .paper_api import get_date_range, get_arxiv_sub_start
 from .utils_app import get_old_update_date
-
-rule_dict = {'ti': 'title',
-             'au': 'author',
-             'abs': 'abstract',
-             'cat': 'cats'
-             }
 
 
 def update_papers(api_list: list, **kwargs):
@@ -84,73 +79,41 @@ def update_paper_record(paper_prev: Paper, paper: Paper):
     paper_prev.cats = paper.cats
 
 
-def resolve_doi(doi: str) -> str:
-    """Resolve doi string into link."""
-    return 'https://www.doi.org/' + doi
-
-
-def render_paper_json(paper: Paper) -> dict:
-    """Render Paper class object into JSON for front-end."""
-    result = {'id': paper.paper_id,
-              'title': paper.title,
-              'author': paper.author,
-              'date_sub': paper.date_sub,
-              'date_up': paper.date_up,
-              'abstract': paper.abstract,
-              'cats': paper.cats,
-              # to be filled later in process_papers()
-              'tags': [],
-              'nov': 0
-              }
-    if paper.source == 1:
-        result['ref_pdf'] = ArxivOaiApi().get_ref_pdf(paper.paper_id,
-                                                      paper.version
-                                                      )
-        result['ref_web'] = ArxivOaiApi().get_ref_web(paper.paper_id,
-                                                      paper.version
-                                                      )
-
-    if paper.doi is not None:
-        result['ref_doi'] = resolve_doi(paper.doi)
-
-    return result
-
-
-def process_nov(paper: dict, nov_counters: list, cats: list, last_date: datetime):
+def process_nov(paper: PaperInterface, nov_counters: list, cats: list, last_date: datetime):
     """Check novelty of the papers. Update counters."""
     # 1.a check if cross-ref
-    if paper['cats'][0] not in cats:
+    if paper.cats[0] not in cats:
         nov_counters[1] += 1
-        paper['nov'] += 2
+        paper.nov += 2
 
     # 1.b count updated papers
-    if paper['date_sub'] < last_date:
-        paper['nov'] += 4
+    if paper.date_sub < last_date:
+        paper.nov += 4
         nov_counters[2] += 1
 
-    if paper['nov'] == 0:
-        paper['nov'] = 1
+    if paper.nov == 0:
+        paper.nov = 1
         nov_counters[0] += 1
 
 
-def process_tags(paper: Dict,
+def process_tags(paper: PaperInterface,
                  tags: List,
                  tag_counter):
     """Apply tags for a given paper and increment a counter."""
     for num, tag in enumerate(tags):
         if tag_suitable(paper, tag['rule']):
-            paper['tags'].append(num)
+            paper.tags.append(num)
             tag_counter[num] += 1
 
 
-def process_papers(papers: Dict,
+def process_papers(response: PaperResponse,
                    tags: List,
                    cats: List,
                    do_nov: bool,
                    do_tag: bool
-                   ) -> Dict:
+                   ) -> None:
     """
-    Papers processing. Count papers per category, per novelty, per tag.
+    response processing. Count papers per category, per novelty, per tag.
 
     Process:
     1. novelty. use 'bit' map
@@ -160,22 +123,20 @@ def process_papers(papers: Dict,
     2. categories
     3. process tags
     """
-    papers['n_nov'] = [0] * 3
-    papers['n_cats'] = [0] * len(cats)
-    papers['n_tags'] = [0] * len(tags)
-    for paper in papers['papers']:
+    response.nnov = [0] * 3
+    response.ncat = [0] * len(cats)
+    response.ntag = [0] * len(tags)
+    for paper in response.papers:
         if do_nov:
             # count paper per category
-            for cat in paper['cats']:
+            for cat in paper.cats:
                 if cat in cats:
-                    papers['n_cats'][cats.index(cat)] += 1
-
-            process_nov(paper, papers['n_nov'], cats, papers['last_date'])
+                    response.ncat[cats.index(cat)] += 1
+            process_nov(paper, response.nnov, cats, response.last_date)
 
         # 2.
         if do_tag:
-            process_tags(paper, tags, papers['n_tags'])
-    return papers
+            process_tags(paper, tags, response.ntag)
 
 
 def find_or_and(rule: str) -> Tuple[List[int], List[int]]:
@@ -198,7 +159,7 @@ def find_or_and(rule: str) -> Tuple[List[int], List[int]]:
     return or_pos, and_pos
 
 
-def tag_suitable(paper: dict, rule: str) -> bool:
+def tag_suitable(paper: PaperInterface, rule: str) -> bool:
     """
     Checking rule for the given paper.
 
@@ -213,7 +174,7 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     return True if no false matches
 
     :param      paper:       The paper
-    :type       paper:       Dict
+    :type       paper:       PaperInterface
     :param      rule:        The rule
     :type       rule:        str
 
@@ -258,7 +219,7 @@ def tag_suitable(paper: dict, rule: str) -> bool:
     return True
 
 
-def parse_simple_rule(paper: dict, condition: str) -> bool:
+def parse_simple_rule(paper: PaperInterface, condition: str) -> bool:
     """Parse simple rules as ti/au/abs."""
     prefix_re = search(r'^(ti|abs|au|cat){(.*?)}', condition)
     if not prefix_re:
@@ -267,20 +228,18 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
     prefix = prefix_re.group(1)
     condition = prefix_re.group(2)
 
-    if prefix not in rule_dict:
-        logging.error('Prefix is unknown %r', prefix)
-
     logging.debug('Initial simple rule %r', condition)
 
-    search_target = paper[rule_dict[prefix]]
+    search_target = paper[prefix]
+    if not search_target:
+        logging.error('Prefix is unknown %r', prefix)
     # in case of
     # 1. author
     # 2. Paper category
     #  the target is a list
     # join the list into string
     if isinstance(search_target, list):
-        target = paper['author' if prefix == 'au' else 'cats']
-        search_target = ', '.join(target)
+        search_target = ', '.join(search_target)
 
     # cast logic AND to proper REGEX
     if '&' in condition:
@@ -324,16 +283,16 @@ def parse_simple_rule(paper: dict, condition: str) -> bool:
     return False
 
 
-def get_papers(cats: list,
-               old_date: datetime,
-               new_date: datetime
-               ) -> List[Paper]:
+def get_papers_from_db(cats: list,
+                       old_date: datetime,
+                       new_date: datetime
+                       ) -> List[Paper]:
     """Make the DB request."""
     source = Paper
     old_date_record = get_old_update_date()
-    if old_date_record.first_paper_day_cache and  old_date >= old_date_record.first_paper_day_cache:
+    if old_date_record.first_paper_day_cache and old_date >= old_date_record.first_paper_day_cache:
         source = PaperCacheDay
-    elif old_date_record.first_paper_weeks_cache and  old_date >= old_date_record.first_paper_weeks_cache:
+    elif old_date_record.first_paper_weeks_cache and old_date >= old_date_record.first_paper_weeks_cache:
         source = PaperCacheWeeks
     paper_query = source.query.filter(
         source.cats.overlap(cats),
@@ -343,21 +302,22 @@ def get_papers(cats: list,
 
     return paper_query
 
-def get_json_papers(cats: list,
-                    old_date: datetime,
-                    new_date: datetime
-                    ) -> List[Dict]:
-    """Get list of papers from DB in JSON format."""
-    paper_query = get_papers(cats, old_date, new_date)
-    return [render_paper_json(paper) for paper in paper_query]
+
+def get_papers(cats: list,
+               old_date: datetime,
+               new_date: datetime
+               ) -> List[PaperInterface]:
+    """Get list of papers from DB."""
+    paper_query = get_papers_from_db(cats, old_date, new_date)
+    return [PaperInterface.from_paper(paper) for paper in paper_query]
 
 
-def get_json_unseen_papers(cats: list,
-                           recent_visit: int,
-                           recent_range: int,
-                           announce_date: datetime
-                           ) -> List[Dict]:
-    """Get unseen papers from DB in JSON format."""
+def get_unseen_papers(cats: list,
+                      recent_visit: int,
+                      recent_range: int,
+                      announce_date: datetime
+                      ) -> List[PaperInterface]:
+    """Get unseen papers from DB."""
     result = []
     for i in range(recent_range - 1):
         if not 2**i & recent_visit:
@@ -370,20 +330,5 @@ def get_json_unseen_papers(cats: list,
                                 )
 
             old_date = get_arxiv_sub_start(old_date_tmp.date())
-            result.extend(get_json_papers(cats, old_date, new_date))
+            result.extend(get_papers(cats, old_date, new_date))
     return result
-
-
-def tag_test(paper: dict, tag_rule: str) -> bool:
-    """Function for tag rule testing."""
-    # Fill the paper keys if no
-    if not paper.get('title'):
-        paper['title'] = ''
-
-    if not paper.get('author'):
-        paper['author'] = ''
-
-    if not paper.get('abstract'):
-        paper['abstract'] = ''
-
-    return tag_suitable(paper, tag_rule)

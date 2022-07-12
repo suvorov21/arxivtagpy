@@ -10,15 +10,15 @@ from flask_login import current_user, login_required
 from flask_mail import Message
 
 from . import mail
-from .model import db, Paper, PaperList, paper_associate, Tag
-from .render import render_papers, render_title, \
-    render_tags_front, tag_name_and_rule, render_title_precise
+from .interfaces.model import db, Paper, PaperList, paper_associate, Tag
+from .interfaces.data_structures import PaperResponse, PaperInterface
+from .render import render_title, render_tags_front, tag_name_and_rule
 from .auth import new_default_list
 
-from .papers import process_papers, render_paper_json, \
-    get_json_papers, get_json_unseen_papers, tag_test
+from .papers import process_papers, \
+    get_papers, get_unseen_papers, tag_suitable
 from .paper_api import get_arxiv_sub_start, \
-    get_annonce_date, get_arxiv_announce_date, get_date_range
+    get_announce_date, get_arxiv_announce_date, get_date_range
 from .utils_app import get_lists_for_user, get_old_update_date, update_seen_papers
 from .settings import load_prefs, default_data
 
@@ -87,13 +87,13 @@ def paper_land():
     """Access to the paper range selector page."""
     load_prefs()
 
-    announce_date = get_annonce_date()
+    announce_date = get_announce_date()
 
     update_recent_papers(announce_date)
 
     # loop over past week and see what days have been seen
     past_week = []
-    today = get_annonce_date()
+    today = get_announce_date()
     count = 0
     for i in range(RECENT_PAPER_RANGE):
         # display only last week
@@ -133,7 +133,7 @@ def paper_land():
 @login_required
 def data():
     """API for paper download and process."""
-    announce_date = get_annonce_date()
+    announce_date = get_announce_date()
 
     # update the information about "seen" papers since the last visit
     update_recent_papers(announce_date)
@@ -158,13 +158,7 @@ def data():
                   old_date
                   )
 
-    papers = {'n_cats': None,
-              'n_nov': None,
-              'n_tags': None,
-              'last_date': old_date,
-              'papers': [],
-              'title': ''
-              }
+    response = PaperResponse(old_date)
 
     # update "seen" papers bounds
     it_start = (announce_date -
@@ -175,24 +169,23 @@ def data():
     # define categories of interest
     load_prefs()
     if request.args['date'] != 'unseen':
-        papers['papers'] = get_json_papers(session['cats'],
-                                           old_date,
-                                           new_date
-                                           )
+        response.papers = get_papers(session['cats'],
+                                     old_date,
+                                     new_date
+                                     )
     else:
         it_start = 0
         it_end = RECENT_PAPER_RANGE
-        papers['papers'] = get_json_unseen_papers(session['cats'],
-                                                  current_user.recent_visit,
-                                                  RECENT_PAPER_RANGE,
-                                                  announce_date)
-
+        response.papers = get_unseen_papers(session['cats'],
+                                            current_user.recent_visit,
+                                            RECENT_PAPER_RANGE,
+                                            announce_date)
 
     update_seen_papers(it_start, min(RECENT_PAPER_RANGE, it_end))
 
     # because of the holidays 1-2 day can be skipped
     # in this case return the last day with submissions
-    if len(papers['papers']) == 0 and request.args['date'] in ('today', 'week', 'month'):
+    if len(response.papers) == 0 and request.args['date'] in ('today', 'week', 'month'):
         last_paper_date = get_old_update_date().last_paper
         # update information for the page title
         old_date_tmp, new_date_tmp, new_date = get_date_range(
@@ -200,52 +193,45 @@ def data():
             get_arxiv_announce_date(last_paper_date)
         )
         # new query in the paper DB. Attempt to find papers
-        papers['papers'] = get_json_papers(session['cats'],
-                                           last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
-                                                                       weeks=int(request.args['date'] == 'week') +
-                                                                       4 * int(request.args['date'] == 'month')),
-                                           last_paper_date
-                                           )
+        response.papers = get_papers(session['cats'],
+                                     last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
+                                                                 weeks=int(request.args['date'] == 'week') +
+                                                                 4 * int(request.args['date'] == 'month')),
+                                     last_paper_date
+                                     )
 
     # error handler
     # "last" and "unseen" papers query results are allowed to be empty
-    if len(papers['papers']) == 0 and \
+    if len(response.papers) == 0 and \
             request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
-        return jsonify(papers)
+        return jsonify(response)
 
     # store the info about last checked paper
     # descending paper order is assumed
-    if len(papers['papers']) > 0 and papers['papers'][0].get('date_up'):
+    if len(response.papers) > 0 and response.papers[0].date_up:
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
         # update last seen paper only if browsing papers until the last one
-        current_user.last_paper = max(papers['papers'][0]['date_up'], current_user.last_paper)
+        current_user.last_paper = max(response.papers[0].date_up, current_user.last_paper)
         logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         db.session.commit()
 
-    papers = process_papers(papers,
-                            session['tags'],
-                            session['cats'],
-                            do_nov=True,
-                            do_tag=True
-                            )
-    render_papers(papers, sort='tag')
+    process_papers(response,
+                   session['tags'],
+                   session['cats'],
+                   do_nov=True,
+                   do_tag=True
+                   )
+
+    response.sort_papers('tag')
+    response.render_title_precise(request.args['date'], old_date_tmp, new_date_tmp)
 
     # lists are required at front-end as there is an interface to add paper to any one
     lists = get_lists_for_user()
+    response.lists = lists
 
-    result = {'papers': papers['papers'],
-              'ncat': papers['n_cats'],
-              'ntag': papers['n_tags'],
-              'nnov': papers['n_nov'],
-              'title': render_title_precise(request.args['date'],
-                                            old_date_tmp,
-                                            new_date_tmp
-                                            ),
-              'lists': lists
-              }
-    return jsonify(result)
+    return jsonify(response.to_dict())
 
 
 @main_bp.route('/about')
@@ -297,42 +283,36 @@ def bookshelf():
     paper_list.not_seen = 0
     db.session.commit()
 
-    papers = {'papers': []}
+    response = PaperResponse()
 
     # read the papers
     sorted_papers = sorted(paper_list.papers,
                            key=lambda p: p.date_up,
                            reverse=True
                            )
-    for paper in sorted_papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]:
-        papers['papers'].append(render_paper_json(paper))
+    response.papers = [PaperInterface.from_paper(paper)
+                       for paper in sorted_papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]]
 
     total_pages = len(paper_list.papers) // PAPERS_PAGE
     total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
 
     # tag papers
     load_prefs()
-    papers = process_papers(papers,
-                            session['tags'],
-                            session['cats'],
-                            do_nov=False,
-                            do_tag=True
-                            )
+    process_papers(response,
+                   session['tags'],
+                   session['cats'],
+                   do_nov=False,
+                   do_tag=True
+                   )
 
-    render_papers(papers)
-    # numerate paper for easier delete on the frontend
-    for num, paper in enumerate(papers['papers']):
-        paper['num'] = num
-    papers['lists'] = lists
+    response.sort_papers()
+    response.lists = lists
     tags_dict = render_tags_front(session['tags'])
 
-    url_base = url_for(ROOT_BOOK,
-                       list_id=display_list
-                       )
-    url_base += '&page='
+    url_base = url_for(ROOT_BOOK, list_id=display_list) + '&page='
 
     return render_template('bookshelf.jinja2',
-                           papers=papers,
+                           papers=response.to_dict(),
                            title=paper_list.name,
                            url_base=url_base,
                            page=page,
@@ -443,16 +423,15 @@ def collect_feedback():
 @login_required
 def test_tag():
     """Test the tag rule for some paper data."""
-    paper = {'title': request.args.get('title'),
-             'author': request.args.get('author'),
-             'abstract': request.args.get('abs')
-             }
+    paper = PaperInterface.for_tests(request.args.get('title') if request.args.get('title') else '',
+                                     request.args.get('author') if request.args.get('author') else '',
+                                     request.args.get('abs') if request.args.get('abs') else '')
 
     if not request.args.get('rule'):
         logging.error('Test tag request w/o rule')
         return dumps({'success': False}), 422
 
-    if tag_test(paper, request.args.get('rule')):
+    if tag_suitable(paper, request.args.get('rule')):
         return dumps({'result': True}), 200
 
     return dumps({'result': False}), 200

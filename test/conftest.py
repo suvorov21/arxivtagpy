@@ -13,7 +13,7 @@ from flask import url_for
 import pytest
 
 from app import app_init, db, mail
-from app.model import User, Tag
+from app.interfaces.model import User, Tag
 
 EMAIL = 'arxiv_tester@mailinator.com'
 PASS = 'tester'  # nosec
