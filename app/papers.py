@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import logging
 
 from typing import List, Tuple
+from sentry_sdk import start_transaction
 
 from .interfaces.data_structures import PaperInterface, PaperResponse
 from .interfaces.model import db, Paper, PaperCacheDay, PaperCacheWeeks
@@ -126,17 +127,18 @@ def process_papers(response: PaperResponse,
     response.nnov = [0] * 3
     response.ncat = [0] * len(cats)
     response.ntag = [0] * len(tags)
-    for paper in response.papers:
-        if do_nov:
-            # count paper per category
-            for cat in paper.cats:
-                if cat in cats:
-                    response.ncat[cats.index(cat)] += 1
-            process_nov(paper, response.nnov, cats, response.last_date)
+    with start_transaction(op="paper_processing", name='papers'):
+        for paper in response.papers:
+            if do_nov:
+                # count paper per category
+                for cat in paper.cats:
+                    if cat in cats:
+                        response.ncat[cats.index(cat)] += 1
+                process_nov(paper, response.nnov, cats, response.last_date)
 
-        # 2.
-        if do_tag:
-            process_tags(paper, tags, response.ntag)
+            # 2.
+            if do_tag:
+                process_tags(paper, tags, response.ntag)
 
 
 def find_or_and(rule: str) -> Tuple[List[int], List[int]]:
