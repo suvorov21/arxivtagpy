@@ -231,39 +231,6 @@ def update_list(old_list: PaperList, up_list: PaperList, order: int):
     old_list.order = order
 
 
-def tag_to_dict(tag: Tag) -> dict:
-    """Transform Tag class object into dict."""
-    tag_dict = {'id': tag.id,
-                'name': tag.name,
-                'rule': tag.rule,
-                'color': tag.color,
-                'bookmark': tag.bookmark,
-                'email': tag.email,
-                'userss': tag.userss,
-                'public': tag.public
-                }
-    return tag_dict
-
-
-# def load_prefs():
-#     """Load preferences from DB to session."""
-#     if not current_user.is_authenticated:
-#         return
-#
-#     user_id = current_user.id
-#
-#     session['cats'] = current_user.arxiv_cat
-#
-#     # read tags
-#     session['tags'] = []
-#     tags = Tag.query.filter_by(user_id=user_id).order_by(Tag.order).all()
-#     for tag in tags:
-#         session['tags'].append(TagInterface.from_tag(tag).to_dict())
-#
-#     # read preferences
-#     session['pref'] = loads(current_user.pref)
-
-
 def default_data():
     """Get default template render params."""
     data = dict()

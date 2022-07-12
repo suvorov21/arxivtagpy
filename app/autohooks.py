@@ -27,7 +27,6 @@ from .paper_api import ArxivOaiApi
 from .utils import decode_token, DecodeException
 from .utils_app import mail_catch, get_or_create_list, get_old_update_date
 from .routes import get_papers
-from .settings import tag_to_dict
 
 auto_bp = Blueprint(
     'auto_bp',

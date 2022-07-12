@@ -36,7 +36,8 @@ ROOT_BOOK = 'main_bp.bookshelf'
 @main_bp.route('/')
 def root():
     """Landing page."""
-    session['pref'] = loads(current_user.pref)
+    if current_user.is_authenticated:
+        session['pref'] = loads(current_user.pref)
     if current_user.is_authenticated:
         return redirect(url_for('main_bp.paper_land'))
 
@@ -240,7 +241,8 @@ def data():
 @main_bp.route('/about')
 def about():
     """About page."""
-    session['pref'] = loads(current_user.pref)
+    if current_user.is_authenticated:
+        session['pref'] = loads(current_user.pref)
     return render_template('about.jinja2',
                            data=default_data()
                            )
@@ -311,7 +313,7 @@ def bookshelf():
 
     response.sort_papers()
     response.lists = lists
-    tags_list = [tag.to_front() for tag in session['tags']]
+    tags_list = [tag.to_front() for tag in tags_inter]
 
     url_base = url_for(ROOT_BOOK, list_id=display_list) + '&page='
 
@@ -393,7 +395,7 @@ def del_bm():
 def public_tags():
     """Get publicly available tags as examples."""
     tags = Tag.query.filter_by(public=True).order_by(Tag.name)
-    tag_list = [tag.to_name_and_rule() for tag in tags]
+    tag_list = [TagInterface.from_tag(tag).to_name_and_rule() for tag in tags]
     unique_tags = []
     for tag in tag_list:
         if tag not in unique_tags:
