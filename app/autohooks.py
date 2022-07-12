@@ -18,10 +18,11 @@ from flask_login import current_user
 
 from feedgen.feed import FeedGenerator
 
-from .interfaces.data_structures import PaperInterface, PaperResponse
+from .interfaces.data_structures import PaperInterface, PaperResponse, TagInterface
 from .interfaces.model import User, Tag, db, Paper, \
     paper_associate, PaperCacheDay, PaperCacheWeeks
-from .papers import tag_suitable, update_papers, process_papers
+from .papers import tag_suitable, process_papers
+from .paper_db import update_papers
 from .paper_api import ArxivOaiApi
 from .utils import decode_token, DecodeException
 from .utils_app import mail_catch, get_or_create_list, get_old_update_date
@@ -476,7 +477,7 @@ def rss_feed(token):
     # use only RSS tags for speedup
     tags = Tag.query.filter_by(user_id=user.id, userss=True).order_by(Tag.order).all()
     for tag in tags:
-        tag_list.append(tag_to_dict(tag))
+        tag_list.append(TagInterface.from_tag(tag))
     # assign tags
     process_papers(response,
                    tag_list,

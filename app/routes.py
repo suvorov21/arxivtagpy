@@ -1,26 +1,23 @@
 """Main blueprint with all the main pages."""
 
 from datetime import datetime, timezone, timedelta
-from json import dumps
+from json import dumps, loads
 import logging
 
-from flask import Blueprint, render_template, session, redirect, \
-    request, jsonify, url_for
+from flask import Blueprint, render_template, session, redirect, request, jsonify, url_for
 from flask_login import current_user, login_required
 from flask_mail import Message
 
 from . import mail
 from .interfaces.model import db, Paper, PaperList, paper_associate, Tag
-from .interfaces.data_structures import PaperResponse, PaperInterface
-from .render import render_title, render_tags_front, tag_name_and_rule
+from .interfaces.data_structures import PaperResponse, PaperInterface, TagInterface
 from .auth import new_default_list
 
-from .papers import process_papers, \
-    get_papers, get_unseen_papers, tag_suitable
-from .paper_api import get_arxiv_sub_start, \
-    get_announce_date, get_arxiv_announce_date, get_date_range
+from .papers import process_papers, get_papers, get_unseen_papers, tag_suitable
+from .paper_api import get_arxiv_sub_start, get_announce_date, get_arxiv_announce_date, get_date_range
 from .utils_app import get_lists_for_user, get_old_update_date, update_seen_papers
-from .settings import load_prefs, default_data
+from .settings import default_data
+from .utils import render_title
 
 PAPERS_PAGE = 25
 RECENT_PAPER_RANGE = 10
@@ -39,7 +36,7 @@ ROOT_BOOK = 'main_bp.bookshelf'
 @main_bp.route('/')
 def root():
     """Landing page."""
-    load_prefs()
+    session['pref'] = loads(current_user.pref)
     if current_user.is_authenticated:
         return redirect(url_for('main_bp.paper_land'))
 
@@ -68,15 +65,17 @@ def papers_list():
                                 ))
 
     # load preferences
-    load_prefs()
+    # TODO load only certain columns?
+    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
 
     # get rid of tag rule at front-end
-    tags_dict = render_tags_front(session['tags'])
+    tags_list = [tag.to_front() for tag in tags_inter]
 
     return render_template('papers.jinja2',
                            title=render_title(date_type),
-                           cats=session['cats'],
-                           tags=dumps(tags_dict),
+                           cats=current_user.arxiv_cat,
+                           tags=dumps(tags_list),
                            data=default_data()
                            )
 
@@ -85,7 +84,7 @@ def papers_list():
 @login_required
 def paper_land():
     """Access to the paper range selector page."""
-    load_prefs()
+    session['pref'] = loads(current_user.pref)
 
     announce_date = get_announce_date()
 
@@ -167,16 +166,17 @@ def data():
               old_date_tmp.replace(tzinfo=timezone.utc)).days
 
     # define categories of interest
-    load_prefs()
+    cats = current_user.arxiv_cat
+
     if request.args['date'] != 'unseen':
-        response.papers = get_papers(session['cats'],
+        response.papers = get_papers(cats,
                                      old_date,
                                      new_date
                                      )
     else:
         it_start = 0
         it_end = RECENT_PAPER_RANGE
-        response.papers = get_unseen_papers(session['cats'],
+        response.papers = get_unseen_papers(cats,
                                             current_user.recent_visit,
                                             RECENT_PAPER_RANGE,
                                             announce_date)
@@ -193,7 +193,7 @@ def data():
             get_arxiv_announce_date(last_paper_date)
         )
         # new query in the paper DB. Attempt to find papers
-        response.papers = get_papers(session['cats'],
+        response.papers = get_papers(cats,
                                      last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
                                                                  weeks=int(request.args['date'] == 'week') +
                                                                  4 * int(request.args['date'] == 'month')),
@@ -217,9 +217,12 @@ def data():
         logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         db.session.commit()
 
+    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+
     process_papers(response,
-                   session['tags'],
-                   session['cats'],
+                   tags_inter,
+                   cats,
                    do_nov=True,
                    do_tag=True
                    )
@@ -237,7 +240,7 @@ def data():
 @main_bp.route('/about')
 def about():
     """About page."""
-    load_prefs()
+    session['pref'] = loads(current_user.pref)
     return render_template('about.jinja2',
                            data=default_data()
                            )
@@ -297,17 +300,18 @@ def bookshelf():
     total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
 
     # tag papers
-    load_prefs()
+    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
     process_papers(response,
-                   session['tags'],
-                   session['cats'],
+                   tags_inter,
+                   current_user.arxiv_cat,
                    do_nov=False,
                    do_tag=True
                    )
 
     response.sort_papers()
     response.lists = lists
-    tags_dict = render_tags_front(session['tags'])
+    tags_list = [tag.to_front() for tag in session['tags']]
 
     url_base = url_for(ROOT_BOOK, list_id=display_list) + '&page='
 
@@ -319,7 +323,7 @@ def bookshelf():
                            paper_page=PAPERS_PAGE,
                            total_pages=total_pages,
                            displayList=display_list,
-                           tags=dumps(tags_dict),
+                           tags=dumps(tags_list),
                            data=default_data()
                            )
 
@@ -389,9 +393,9 @@ def del_bm():
 def public_tags():
     """Get publicly available tags as examples."""
     tags = Tag.query.filter_by(public=True).order_by(Tag.name)
-    tags = tag_name_and_rule(tags)
+    tag_list = [tag.to_name_and_rule() for tag in tags]
     unique_tags = []
-    for tag in tags:
+    for tag in tag_list:
         if tag not in unique_tags:
             unique_tags.append(tag)
 

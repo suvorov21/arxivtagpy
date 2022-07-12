@@ -3,10 +3,8 @@
 from datetime import datetime
 from typing import Tuple, Dict, List
 
-
-from .model import Paper
-from ..utils import resolve_doi
-from ..render import accents
+from .model import Paper, Tag
+from ..utils import resolve_doi, accents
 from ..paper_api import ArxivOaiApi
 
 
@@ -29,7 +27,7 @@ class PaperInterface:
         self.nov = 0
 
     @classmethod
-    def for_tests(cls, title, author, abstract) :
+    def for_tests(cls, title, author, abstract):
         """Create a dummy paper."""
         return PaperInterface(1, '', title, author, None, None, '1', '', abstract, [], 1)
 
@@ -89,6 +87,55 @@ class PaperInterface:
                               )
 
 
+class TagInterface:
+    """Interface for the tag."""
+    def __init__(self, tag_id, order, name, rule, color, bookmark, email, public, userss, user_id):
+        self.id = tag_id
+        self.order = order
+        self.name = name
+        self.rule = rule
+        self.color = color
+        self.bookmark = bookmark
+        self.email = email
+        self.public = public
+        self.userss = userss
+        self.user_id = user_id
+
+    @classmethod
+    def from_tag(cls, tag_db=Tag):
+        return TagInterface(tag_db.id,
+                            tag_db.order,
+                            tag_db.name,
+                            tag_db.rule,
+                            tag_db.color,
+                            tag_db.bookmark,
+                            tag_db.email,
+                            tag_db.public,
+                            tag_db.userss,
+                            tag_db.user_id
+                            )
+
+    def to_front(self) -> Dict:
+        return {'color': self.color,
+                'name': self.name
+                }
+
+    def to_name_and_rule(self) -> Dict:
+        return {'name': self.name,
+                'rule': self.rule
+                }
+
+    def to_detailed_dict(self):
+        return {'id': self.id,
+                'name': self.name,
+                'rule': self.rule,
+                'color': self.color,
+                'bookmark': self.bookmark,
+                'email': self.email,
+                'userss': self.userss
+                }
+
+
 class PaperResponse:
     """Response with paper data, e.g. papers itself, counters."""
     def __init__(self, date=None):
@@ -140,21 +187,27 @@ class PaperResponse:
         """Render title based on the computed dates."""
         if date == 'today':
             self.title = datetime.strftime(new, '%A, %d %B')
+            return
         if date in ('week', 'month'):
             self.title = datetime.strftime(old, '%d %B') + ' - ' + \
                          datetime.strftime(new, '%d %B')
+            return
         if date == 'range':
             if old.date() == new.date():
                 self.title = 'for ' + datetime.strftime(old, '%A, %d %B')
+                return
 
             self.title = 'from ' + \
                          datetime.strftime(old, '%d %B') + ' until ' + \
                          datetime.strftime(new, '%d %B')
+            return
         if date == 'last':
             self.title = ' on ' + datetime.strftime(old, '%d %B')
+            return
 
         if date == 'unseen':
             self.title = ''
+            return
 
         self.title = 'Papers'
 
