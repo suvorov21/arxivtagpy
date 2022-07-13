@@ -18,7 +18,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 import pytest
 
-from app.model import db, User
+from app.interfaces.model import db, User
 
 ROOT = 'main_bp.root'
 ROOT_PAPERS = 'main_bp.papers_list'

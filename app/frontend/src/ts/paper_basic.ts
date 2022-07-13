@@ -28,7 +28,6 @@ export interface Paper {
     ref_web: string;
     ref_doi: string;
     hide?: boolean;
-    num?: number
 }
 
 export interface Data {

@@ -1,26 +1,23 @@
 """Main blueprint with all the main pages."""
 
 from datetime import datetime, timezone, timedelta
-from json import dumps
+from json import dumps, loads
 import logging
 
-from flask import Blueprint, render_template, session, redirect, \
-    request, jsonify, url_for
+from flask import Blueprint, render_template, session, redirect, request, jsonify, url_for
 from flask_login import current_user, login_required
 from flask_mail import Message
 
 from . import mail
-from .model import db, Paper, PaperList, paper_associate, Tag
-from .render import render_papers, render_title, \
-    render_tags_front, tag_name_and_rule, render_title_precise
+from .interfaces.model import db, Paper, PaperList, paper_associate, Tag
+from .interfaces.data_structures import PaperResponse, PaperInterface, TagInterface
 from .auth import new_default_list
 
-from .papers import process_papers, render_paper_json, \
-    get_json_papers, get_json_unseen_papers, tag_test
-from .paper_api import get_arxiv_sub_start, \
-    get_annonce_date, get_arxiv_announce_date, get_date_range
+from .papers import process_papers, get_papers, get_unseen_papers, tag_suitable
+from .paper_api import get_arxiv_sub_start, get_announce_date, get_arxiv_announce_date, get_date_range
 from .utils_app import get_lists_for_user, get_old_update_date, update_seen_papers
-from .settings import load_prefs, default_data
+from .settings import default_data
+from .utils import render_title
 
 PAPERS_PAGE = 25
 RECENT_PAPER_RANGE = 10
@@ -39,7 +36,8 @@ ROOT_BOOK = 'main_bp.bookshelf'
 @main_bp.route('/')
 def root():
     """Landing page."""
-    load_prefs()
+    if current_user.is_authenticated:
+        session['pref'] = loads(current_user.pref)
     if current_user.is_authenticated:
         return redirect(url_for('main_bp.paper_land'))
 
@@ -68,15 +66,17 @@ def papers_list():
                                 ))
 
     # load preferences
-    load_prefs()
+    # TODO load only certain columns?
+    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
 
     # get rid of tag rule at front-end
-    tags_dict = render_tags_front(session['tags'])
+    tags_list = [tag.to_front() for tag in tags_inter]
 
     return render_template('papers.jinja2',
                            title=render_title(date_type),
-                           cats=session['cats'],
-                           tags=dumps(tags_dict),
+                           cats=current_user.arxiv_cat,
+                           tags=dumps(tags_list),
                            data=default_data()
                            )
 
@@ -85,15 +85,15 @@ def papers_list():
 @login_required
 def paper_land():
     """Access to the paper range selector page."""
-    load_prefs()
+    session['pref'] = loads(current_user.pref)
 
-    announce_date = get_annonce_date()
+    announce_date = get_announce_date()
 
     update_recent_papers(announce_date)
 
     # loop over past week and see what days have been seen
     past_week = []
-    today = get_annonce_date()
+    today = get_announce_date()
     count = 0
     for i in range(RECENT_PAPER_RANGE):
         # display only last week
@@ -133,7 +133,7 @@ def paper_land():
 @login_required
 def data():
     """API for paper download and process."""
-    announce_date = get_annonce_date()
+    announce_date = get_announce_date()
 
     # update the information about "seen" papers since the last visit
     update_recent_papers(announce_date)
@@ -158,13 +158,7 @@ def data():
                   old_date
                   )
 
-    papers = {'n_cats': None,
-              'n_nov': None,
-              'n_tags': None,
-              'last_date': old_date,
-              'papers': [],
-              'title': ''
-              }
+    response = PaperResponse(old_date)
 
     # update "seen" papers bounds
     it_start = (announce_date -
@@ -173,26 +167,26 @@ def data():
               old_date_tmp.replace(tzinfo=timezone.utc)).days
 
     # define categories of interest
-    load_prefs()
+    cats = current_user.arxiv_cat
+
     if request.args['date'] != 'unseen':
-        papers['papers'] = get_json_papers(session['cats'],
-                                           old_date,
-                                           new_date
-                                           )
+        response.papers = get_papers(cats,
+                                     old_date,
+                                     new_date
+                                     )
     else:
         it_start = 0
         it_end = RECENT_PAPER_RANGE
-        papers['papers'] = get_json_unseen_papers(session['cats'],
-                                                  current_user.recent_visit,
-                                                  RECENT_PAPER_RANGE,
-                                                  announce_date)
-
+        response.papers = get_unseen_papers(cats,
+                                            current_user.recent_visit,
+                                            RECENT_PAPER_RANGE,
+                                            announce_date)
 
     update_seen_papers(it_start, min(RECENT_PAPER_RANGE, it_end))
 
     # because of the holidays 1-2 day can be skipped
     # in this case return the last day with submissions
-    if len(papers['papers']) == 0 and request.args['date'] in ('today', 'week', 'month'):
+    if len(response.papers) == 0 and request.args['date'] in ('today', 'week', 'month'):
         last_paper_date = get_old_update_date().last_paper
         # update information for the page title
         old_date_tmp, new_date_tmp, new_date = get_date_range(
@@ -200,58 +194,55 @@ def data():
             get_arxiv_announce_date(last_paper_date)
         )
         # new query in the paper DB. Attempt to find papers
-        papers['papers'] = get_json_papers(session['cats'],
-                                           last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
-                                                                       weeks=int(request.args['date'] == 'week') +
-                                                                       4 * int(request.args['date'] == 'month')),
-                                           last_paper_date
-                                           )
+        response.papers = get_papers(cats,
+                                     last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
+                                                                 weeks=int(request.args['date'] == 'week') +
+                                                                 4 * int(request.args['date'] == 'month')),
+                                     last_paper_date
+                                     )
 
     # error handler
     # "last" and "unseen" papers query results are allowed to be empty
-    if len(papers['papers']) == 0 and \
+    if len(response.papers) == 0 and \
             request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
-        return jsonify(papers)
+        return jsonify(response)
 
     # store the info about last checked paper
     # descending paper order is assumed
-    if len(papers['papers']) > 0 and papers['papers'][0].get('date_up'):
+    if len(response.papers) > 0 and response.papers[0].date_up:
         # update the date of last visit
         current_user.login = announce_date.replace(tzinfo=None)
         # update last seen paper only if browsing papers until the last one
-        current_user.last_paper = max(papers['papers'][0]['date_up'], current_user.last_paper)
+        current_user.last_paper = max(response.papers[0].date_up, current_user.last_paper)
         logging.debug('RV %r', format(current_user.recent_visit, 'b'))
         db.session.commit()
 
-    papers = process_papers(papers,
-                            session['tags'],
-                            session['cats'],
-                            do_nov=True,
-                            do_tag=True
-                            )
-    render_papers(papers, sort='tag')
+    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+
+    process_papers(response,
+                   tags_inter,
+                   cats,
+                   do_nov=True,
+                   do_tag=True
+                   )
+
+    response.sort_papers('tag')
+    response.render_title_precise(request.args['date'], old_date_tmp, new_date_tmp)
 
     # lists are required at front-end as there is an interface to add paper to any one
     lists = get_lists_for_user()
+    response.lists = lists
 
-    result = {'papers': papers['papers'],
-              'ncat': papers['n_cats'],
-              'ntag': papers['n_tags'],
-              'nnov': papers['n_nov'],
-              'title': render_title_precise(request.args['date'],
-                                            old_date_tmp,
-                                            new_date_tmp
-                                            ),
-              'lists': lists
-              }
-    return jsonify(result)
+    return jsonify(response.to_dict())
 
 
 @main_bp.route('/about')
 def about():
     """About page."""
-    load_prefs()
+    if current_user.is_authenticated:
+        session['pref'] = loads(current_user.pref)
     return render_template('about.jinja2',
                            data=default_data()
                            )
@@ -297,49 +288,44 @@ def bookshelf():
     paper_list.not_seen = 0
     db.session.commit()
 
-    papers = {'papers': []}
+    response = PaperResponse()
 
     # read the papers
     sorted_papers = sorted(paper_list.papers,
                            key=lambda p: p.date_up,
                            reverse=True
                            )
-    for paper in sorted_papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]:
-        papers['papers'].append(render_paper_json(paper))
+    response.papers = [PaperInterface.from_paper(paper)
+                       for paper in sorted_papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]]
 
     total_pages = len(paper_list.papers) // PAPERS_PAGE
     total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
 
     # tag papers
-    load_prefs()
-    papers = process_papers(papers,
-                            session['tags'],
-                            session['cats'],
-                            do_nov=False,
-                            do_tag=True
-                            )
+    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+    process_papers(response,
+                   tags_inter,
+                   current_user.arxiv_cat,
+                   do_nov=False,
+                   do_tag=True
+                   )
 
-    render_papers(papers)
-    # numerate paper for easier delete on the frontend
-    for num, paper in enumerate(papers['papers']):
-        paper['num'] = num
-    papers['lists'] = lists
-    tags_dict = render_tags_front(session['tags'])
+    response.sort_papers()
+    response.lists = lists
+    tags_list = [tag.to_front() for tag in tags_inter]
 
-    url_base = url_for(ROOT_BOOK,
-                       list_id=display_list
-                       )
-    url_base += '&page='
+    url_base = url_for(ROOT_BOOK, list_id=display_list) + '&page='
 
     return render_template('bookshelf.jinja2',
-                           papers=papers,
+                           papers=response.to_dict(),
                            title=paper_list.name,
                            url_base=url_base,
                            page=page,
                            paper_page=PAPERS_PAGE,
                            total_pages=total_pages,
                            displayList=display_list,
-                           tags=dumps(tags_dict),
+                           tags=dumps(tags_list),
                            data=default_data()
                            )
 
@@ -409,9 +395,9 @@ def del_bm():
 def public_tags():
     """Get publicly available tags as examples."""
     tags = Tag.query.filter_by(public=True).order_by(Tag.name)
-    tags = tag_name_and_rule(tags)
+    tag_list = [TagInterface.from_tag(tag).to_name_and_rule() for tag in tags]
     unique_tags = []
-    for tag in tags:
+    for tag in tag_list:
         if tag not in unique_tags:
             unique_tags.append(tag)
 
@@ -443,16 +429,18 @@ def collect_feedback():
 @login_required
 def test_tag():
     """Test the tag rule for some paper data."""
-    paper = {'title': request.args.get('title'),
-             'author': request.args.get('author'),
-             'abstract': request.args.get('abs')
-             }
+    authors = []
+    if request.args.get('author'):
+        authors = [au for au in request.args.get('author').split(',')]
+    paper = PaperInterface.for_tests(request.args.get('title') if request.args.get('title') else '',
+                                     authors,
+                                     request.args.get('abs') if request.args.get('abs') else '')
 
     if not request.args.get('rule'):
         logging.error('Test tag request w/o rule')
         return dumps({'success': False}), 422
 
-    if tag_test(paper, request.args.get('rule')):
+    if tag_suitable(paper, request.args.get('rule')):
         return dumps({'result': True}), 200
 
     return dumps({'result': False}), 200

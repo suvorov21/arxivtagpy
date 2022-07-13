@@ -1,6 +1,7 @@
 """Catch HTTP errors."""
 
 import logging
+import traceback
 
 from werkzeug.exceptions import HTTPException
 
@@ -48,6 +49,7 @@ def handle_exception(error):
         logging.error('Unhandled HTTP error: %r', error)
         return error
     logging.error('General error was fired: %r', error)
+    logging.error(traceback.format_exc())
     line1 = 'arXiv tag was suddenly broken while processing your request.'
     line2 = 'We are notified and investigating the issue. Sorry for the inconvenience.'
     pref = 'http'

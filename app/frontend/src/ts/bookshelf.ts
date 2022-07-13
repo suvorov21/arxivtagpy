@@ -53,8 +53,9 @@ const deleteBookmark = (event: MouseEvent): void => {
         return;
     }
     const url = "del_bm";
-    const num = parseInt(target.id.split("-")[2], 10);
-    const paper = __DATA__.papers[num - (__PAGE__ - 1) * __PAGE_SIZE__];
+    const cssId = parseInt(target.id.split("-")[2], 10);
+    const arrayId = cssId - (__PAGE__ - 1) * __PAGE_SIZE__
+    const paper = __DATA__.papers[arrayId];
     $.post(url, {
         "paper_id": paper.id.split("v")[0],
         "list_id": __DISPLAY_LIST__
@@ -64,17 +65,18 @@ const deleteBookmark = (event: MouseEvent): void => {
         if (status === 201) {
             raiseAlert("Paper has been deleted", "success");
         }
-        $("#paper-"+num).css("display", "none");
-        __DATA__.papers[`${num}`].hide = true;
-        let visible = 1;
-        __DATA__.papers.forEach((paperUp: Paper) => {
-            if (!paperUp.hide) {
-                const numEl = document.getElementById("paper-num-" + paperUp.num);
-                numEl.textContent = String(visible);
+        $("#paper-"+cssId).css("display", "none");
+        __DATA__.papers[`${arrayId}`].hide = true;
+        const counterStart = (__PAGE__ - 1) * __PAGE_SIZE__;
+        let visible = counterStart;
+        for (let i = 0; i < __DATA__.papers.length; i++) {
+            if (!__DATA__.papers[`${i}`].hide) {
                 visible += 1;
+                const numEl = document.getElementById("paper-num-" + String(counterStart + i));
+                numEl.textContent = String(visible);
             }
-        });
-        if (visible === 1) {
+        }
+        if (visible === counterStart) {
             document.getElementById("no-paper").style.display = "block";
         }
     }).fail(() => {

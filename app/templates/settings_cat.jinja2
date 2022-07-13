@@ -1,0 +1,36 @@
+{% extends "settings.jinja2" %}
+
+{% block settings_content %}
+  <p class="text-secondary">Manage your categories: add, reorder, delete.</p>
+
+  <div id="cats-set">
+    <form class="mb-4" id="mod-cat" method="POST">
+      <button class="btn btn-success btn-save disabled">Save</button>
+      <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
+    </form>
+    <h4>Selected categories:</h4>
+    <datalist id="catsDataList"></datalist>
+    <div id="cats-list">
+    </div>
+    <form id="add-cat" name="add-cat" class="pt-4 row g-3" onsubmit="return false">
+      <div class="col-auto">
+        <label for="cat-add-input">Add new category:</label>
+      </div>
+      <div class="col-auto">
+        <input list="catsDataList" id="cat-add-input" name="cat_name" class="form-control col-10"
+               placeholder="Type to search..."/>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary" id="add-cat-btn">Add</button>
+      </div>
+    </form>
+  </div>
+{% endblock %}
+
+{% block script_footer %}
+  <script type="text/javascript">
+      __CATS__ = {{ data['cats'] }};
+      document.getElementById("cats-link").classList.add("active");
+  </script>
+  <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
+{% endblock %}
