@@ -206,7 +206,7 @@ def data():
     if len(response.papers) == 0 and \
             request.args['date'] not in ('last', 'unseen'):
         logging.warning('No papers suitable with request')
-        return jsonify(response)
+        return jsonify(response.to_dict())
 
     # store the info about last checked paper
     # descending paper order is assumed
