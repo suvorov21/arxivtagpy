@@ -24,12 +24,15 @@ SET_PAGE = 'settings_bp.settings_page'
 
 @settings_bp.route('/settings')
 @login_required
-def settings_page():
+def settings_land():
+    return redirect(url_for(SET_PAGE, page='cat'))
+
+
+@settings_bp.route('/settings/<page>')
+@login_required
+def settings_page(page):
     """Settings page."""
     session['pref'] = loads(current_user.pref)
-    page = 'cat'
-    if 'page' in request.args:
-        page = request.args['page']
 
     data = default_data()
     data['page'] = page
@@ -56,16 +59,12 @@ def settings_page():
         data['orcid'] = current_user.orcid
         data['rss_token'] = f'https://{request.headers["Host"]}/rss/{encode_token({"user": current_user.email})}'
     else:
-        return redirect(url_for(SET_PAGE,
-                                page='cat'
-                                ))
+        return redirect(url_for(SET_PAGE, page='cat'))
 
-    return render_template('settings.jinja2',
-                           data=data
-                           )
+    return render_template('settings_' + page + '.jinja2', data=data)
 
 
-@settings_bp.route('/mod_cat', methods=['POST'])
+@settings_bp.route('/settings/mod_cat', methods=['POST'])
 @login_required
 def mod_cat():
     """Apply category changes."""
@@ -75,7 +74,7 @@ def mod_cat():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/mod_tag', methods=['POST'])
+@settings_bp.route('/settings/mod_tag', methods=['POST'])
 @login_required
 def mod_tag():
     """Apply tag changes."""
@@ -88,7 +87,7 @@ def mod_tag():
                            )
 
 
-@settings_bp.route('/mod_lists', methods=['POST'])
+@settings_bp.route('/settings/mod_lists', methods=['POST'])
 @login_required
 def mod_list():
     """Modify paper lists."""
@@ -101,7 +100,7 @@ def mod_list():
                            )
 
 
-@settings_bp.route('/add_list', methods=['POST'])
+@settings_bp.route('/settings/add_list', methods=['POST'])
 @login_required
 def add_list():
     """Add a new paper list."""
@@ -121,7 +120,7 @@ def add_list():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/mod_pref', methods=['POST'])
+@settings_bp.route('/settings/mod_pref', methods=['POST'])
 @login_required
 def mod_pref():
     """Apply preference changes."""
@@ -138,7 +137,7 @@ def mod_pref():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/noEmail', methods=["POST"])
+@settings_bp.route('/settings/noEmail', methods=["POST"])
 @login_required
 def no_email():
     """Unsubscribe from all the tag emails."""
@@ -215,6 +214,7 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
 
 def update_tag(old_tag: Tag, tag: Tag, order: int):
     """Update Tag record in database."""
+    print(tag)
     old_tag.name = tag['name']
     old_tag.rule = tag['rule']
     old_tag.color = tag['color']

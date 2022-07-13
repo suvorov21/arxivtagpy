@@ -99,7 +99,7 @@ class TestMainPages:
 
     def test_settings_page(self, client, login):
         """Test settings page render."""
-        response = client.get(url_for('settings_bp.settings_page'),
+        response = client.get(url_for('settings_bp.settings_land'),
                               follow_redirects=True
                               )
         assert response.status_code == 200

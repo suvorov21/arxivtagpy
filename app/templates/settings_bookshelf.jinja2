@@ -1,0 +1,27 @@
+{% extends "settings.jinja2" %}
+
+{% block settings_content %}
+  <p class="text-secondary">Manage paper lists: create new, reorder, delete.</p>
+  <form class="mb-4" id="mod-list" method="POST">
+    <button class="btn btn-success btn-save disabled">Save</button>
+    <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
+  </form>
+  <h3>Your bookshelf</h3>
+  <div id="book-list"></div>
+  <form class="mt-3" name="add-book-form" onsubmit="return false">
+    <div class="form row g-3 align-items-center">
+      <div class="col-auto">
+        <input type="text" class="form-control" id="new-list" name='new-list' placeholder="New list" size=25
+               required="required">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary" id="add-book-btn">Add</button>
+      </div>
+    </div>
+  </form>
+{% endblock %}
+
+{% block script_footer %}
+  <script type="text/javascript">__LISTS__ = {{ data['lists'] }};</script>
+  <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
+{%  endblock %}

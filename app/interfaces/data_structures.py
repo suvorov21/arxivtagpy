@@ -132,7 +132,8 @@ class TagInterface:
                 'color': self.color,
                 'bookmark': self.bookmark,
                 'email': self.email,
-                'userss': self.userss
+                'userss': self.userss,
+                'public': self.public
                 }
 
 

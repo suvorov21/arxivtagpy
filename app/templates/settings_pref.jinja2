@@ -1,0 +1,111 @@
+{% extends "settings.jinja2" %}
+
+{% block settings_content %}
+  <div id="pref-set">
+    <form class="mb-4" id="mod-set" method="POST">
+      <button class="btn btn-success btn-save disabled">Save</button>
+      <button class="btn btn-secondary btn-save disabled btn-cancel" type="reset">Cancel</button>
+    </form>
+    <h3>Display settings</h3>
+
+    <div class="form-check form-block" action="/mod_pref">
+      <input class="form-check-input" type="checkbox" id="tex-check">
+      <label class="form-check-label" for="tex-check">Render TeX formulas</label>
+      <div class="form-text">
+        Render TeX formulas may take significant amount of time.
+      </div>
+    </div>
+    <div class="form-block">
+      <label>Theme:</label>
+      <div class="form-check form-block form-check-inline">
+        <input class="form-check-input" type="radio" name="theme" id="radio-light" value="light">
+        <label class="form-check-label" for="inlineRadio1">Light</label>
+      </div>
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" name="theme" id="radio-dark" value="dark">
+        <label class="form-check-label" for="inlineRadio2">Dark</label>
+      </div>
+    </div>
+
+    <h3>RSS feed</h3>
+    <div>
+      A personalised RSS feed link:
+      <code>
+        {{ data['rss_token'] }}
+      </code>
+    </div>
+    <small>
+      RSS feed contains papers for the past 2 weeks that pass your tag selection. <br>
+      You can setup which tags to be included at the <a href="/settings?page=tag">Tags settings</a> page.
+    </small>
+    <br><br>
+
+    <h3>Account settings</h3>
+    <h4 class="mt-4">
+      Email
+    </h4>
+    <span id="email">{% if data['email'] %}{{ data['email'] }}{% else %}no one{% endif %}</span>
+    <i class="ps-2 fa fa-pencil btn-edit" id="emailChange"></i>
+    <span id="verification" class="ms-5">
+                  {% if data['verified_email'] %}
+                    <i class="ps-2 fa fa-check-circle-o success" id="confirm-btn"></i> Verified!
+                  {% else %}
+                    <a class="non-standard-link link-under {% if not data['email'] %}disabled{% endif %}"
+                       href="/verify_email">
+                      <i class="ps-2 fa fa-exclamation-triangle problem" id="confirm-btn"></i> Verify now!
+                    </a>
+                  {% endif %}
+                </span>
+    <div id="orcidWidget" class="w-50">
+      <a id="orcidAuthButton" href="/orcid">
+        <img src="https://info.orcid.org/wp-content/uploads/2019/11/orcid_32x32.png">
+        {% if data['orcid'] %}Unl{% else %}L{% endif %}ink your ORCID iD
+        {% if data['orcid'] %}{{ data['orcid'] }}{% endif %}
+      </a>
+    </div>
+    <h4 class="mt-4"> Password change</h4>
+    <form action="/change_pasw" method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="form-group row pt-2">
+        <input type="hidden" autocomplete="username">
+        <label for="oldPass" class="col-sm-4 col-form-label">Old password</label>
+        <div class="col-sm-8">
+          <input type="password" class="form-control" name="oldPass" size="20" autocomplete="current-password"
+                  {% if not data['pass'] %} disabled {% endif %}>
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="newPass1" class="col-sm-4 col-form-label">New password</label>
+        <div class="col-sm-8">
+          <input type="password" class="form-control" name="newPass1" size="20" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="form-group row">
+        <label for="newPass2" class="col-sm-4 col-form-label">Repeat new password</label>
+        <div class="col-sm-8">
+          <input type="password" class="form-control" name="newPass2" size="20" autocomplete="new-password">
+        </div>
+      </div>
+      <button class="btn btn-primary" id="changePass" type="submit">Change password</button>
+    </form>
+    <h4 class="mt-5">Account control area</h4>
+    <form id="email-cancel">
+      <button class="btn btn-warning" type="submit">Unsubscribe from tags emails</button>
+    </form>
+    <form id="del-acc">
+      <button class="btn btn-danger mt-5" id="deleteAcc" type="submit">Delete account</button>
+    </form>
+  </div>
+{% endblock %}
+
+{% block script_footer %}
+  <script type="text/javascript">
+      __PREF__ = {{ data['pref'] }};
+      __EMAIL__ = "{{ data['email'] }}";
+      __VERIF__ = false;
+      {% if data['verified_email'] %}
+          __VERIF__ = true;
+      {% endif %}
+  </script>
+  <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
+{%  endblock %}
