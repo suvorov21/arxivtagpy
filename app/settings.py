@@ -35,7 +35,6 @@ def settings_page(page):
     session['pref'] = loads(current_user.pref)
 
     data = default_data()
-    data['page'] = page
 
     if page == 'cat':
         data['cats'] = current_user.arxiv_cat

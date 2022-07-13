@@ -22,6 +22,9 @@
 {% endblock %}
 
 {% block script_footer %}
-  <script type="text/javascript">__LISTS__ = {{ data['lists'] }};</script>
+  <script type="text/javascript">
+      __LISTS__ = {{ data['lists'] }};
+      document.getElementById("bookshelf-link").classList.add("active");
+  </script>
   <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_book.bundle.js') }}?{{ data['version'] }}"></script>
 {%  endblock %}

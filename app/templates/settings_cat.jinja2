@@ -28,6 +28,9 @@
 {% endblock %}
 
 {% block script_footer %}
-  <script type="text/javascript">__CATS__ = {{ data['cats'] }};</script>
+  <script type="text/javascript">
+      __CATS__ = {{ data['cats'] }};
+      document.getElementById("cats-link").classList.add("active");
+  </script>
   <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_cat.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}

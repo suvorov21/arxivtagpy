@@ -13,16 +13,16 @@
         <div class="menu-content ms-auto" id="menu-main">
           <ul class="nav flex-column nav-pills">
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if data['page'] == 'cat' else 'none' }}" id="cats-link" href="/settings/cat">Categories</a>
+              <a class="nav-link" id="cats-link" href="/settings/cat">Categories</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if data['page'] == 'tag' else 'none' }}" id="tags-link" href="/settings/tag">Tags</a>
+              <a class="nav-link" id="tags-link" href="/settings/tag">Tags</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if data['page'] == 'bookshelf' else 'none' }}" id="bookshelf-link" href="/settings/bookshelf">Bookshelf</a>
+              <a class="nav-link" id="bookshelf-link" href="/settings/bookshelf">Bookshelf</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link {{ 'active' if data['page'] == 'pref' else 'none' }}" id="pref-link" href="/settings/pref">Preferences</a>
+              <a class="nav-link" id="pref-link" href="/settings/pref">Preferences</a>
             </li>
           </ul>
         </div>
@@ -32,16 +32,16 @@
       <div class="container pb-3 d-md-none">
         <ul class="nav nav-pills">
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if data['page'] == 'cat' else 'none' }}" id="cats-link" href="settings/cat">Categories</a>
+            <a class="nav-link" id="cats-link" href="settings/cat">Categories</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if data['page'] == 'tag' else 'none' }}" id="tags-link" href="settings/tag">Tags</a>
+            <a class="nav-link" id="tags-link" href="settings/tag">Tags</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if data['page'] == 'bookshelf' else 'none' }}" id="bookshelf-link" href="settings/book">Bookshelf</a>
+            <a class="nav-link" id="bookshelf-link" href="settings/book">Bookshelf</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link {{ 'active' if data['page'] == 'pref' else 'none' }}" id="pref-link" href="settings/pref">Preferences</a>
+            <a class="nav-link" id="pref-link" href="settings/pref">Preferences</a>
           </li>
         </ul>
       </div>
@@ -77,11 +77,8 @@
       </div>
     </div>
   </div>
-{% endblock %}
 
-{#{% block script_footer %}#}
-{##}
-{#  <script type="text/javascript">#}
-{#      document.getElementById("set-nav").classList.add("active");#}
-{#  </script>#}
-{#{% endblock %}#}
+  <script type="text/javascript">
+      document.getElementById("set-nav").classList.add("active");
+  </script>
+{% endblock %}

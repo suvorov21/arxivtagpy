@@ -113,7 +113,7 @@
           <input class="form-check-input tag-field" type="checkbox" id="rss-check" name="rss-check">
           <label class="form-check-label" for="public-check">Include in RSS</label>
           <div class="form-text">
-            Papers sutable with this tag will be included in your RSS feed. Check <a href="/settings?page=pref">Preference
+            Papers sutable with this tag will be included in your RSS feed. Check <a href="{{ url_for("settings_bp.settings_page", page="pref") }}">Preference
             page</a> for RSS link.
           </div>
         </div>
@@ -131,6 +131,9 @@
 {% endblock %}
 
 {% block script_footer %}
-  <script type="text/javascript">__TAGS__ = {{ data['tags'] }};</script>
+  <script type="text/javascript">
+      __TAGS__ = {{ data['tags'] }};
+      document.getElementById("tags-link").classList.add("active");
+  </script>
   <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_tag.bundle.js') }}?{{ data['version'] }}"></script>
 {% endblock %}

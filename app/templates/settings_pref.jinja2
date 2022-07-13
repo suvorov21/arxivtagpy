@@ -36,7 +36,7 @@
     </div>
     <small>
       RSS feed contains papers for the past 2 weeks that pass your tag selection. <br>
-      You can setup which tags to be included at the <a href="/settings?page=tag">Tags settings</a> page.
+      You can setup which tags to be included at the <a href="{{ url_for("settings_bp.settings_page", page="tag") }}">Tags settings</a> page.
     </small>
     <br><br>
 
@@ -106,6 +106,7 @@
       {% if data['verified_email'] %}
           __VERIF__ = true;
       {% endif %}
+    document.getElementById("pref-link").classList.add("active");
   </script>
   <script type="text/javascript" src="{{ url_for('settings_bp.static', filename='dist/js/settings_pref.bundle.js') }}?{{ data['version'] }}"></script>
 {%  endblock %}
