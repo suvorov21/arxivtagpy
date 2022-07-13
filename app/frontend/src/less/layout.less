@@ -11,13 +11,6 @@ body {
   }
 }
 
-p > a {
-  text-decoration: none;
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .main-row {
   background-color: var(--background_color);
 }
@@ -117,6 +110,18 @@ p > a {
   margin: 20px 0 5px 0;
 }
 
+.menu-item-bm {
+  a {
+    font-size: 1.2rem;
+    color: var(--bm-item-color);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--bm-item-hover-color);
+    }
+  }
+}
+
 .menu-item {
   label,
   a,
@@ -127,18 +132,6 @@ p > a {
 
     &:hover {
       color: var(--menu_item_hover_color);
-    }
-  }
-}
-
-.menu-item-bm {
-  a {
-    font-size: 1.2rem;
-    color: var(--bm-item-color);
-    text-decoration: none;
-
-    &:hover {
-      color: var(--bm-item-hover-color);
     }
   }
 }
@@ -162,7 +155,6 @@ p > a {
 .footer {
   color: var(--menu_item_color);
   text-align: center;
-  //width: 100%;
   margin: 3rem 3rem 5rem 3rem;
 }
 
@@ -278,4 +270,12 @@ a.disabled {
 
 .paper-day.unseen:hover {
   background-color: var(--unseen-hover-bg) !important;
+}
+
+p > a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }

@@ -86,7 +86,7 @@ def get_old_update_date() -> UpdateDate:
     return old_date_record
 
 
-def update_seen_papers(it_start, it_end):
+def update_seen_papers(it_start: int, it_end: int):
     """Update "seen" papers."""
     for i in range(it_start, it_end + 1):
         # prevent underflow by 1

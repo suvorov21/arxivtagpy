@@ -37,13 +37,13 @@ def cast_args_to_dict(args) -> List[Dict]:
     prefs = '&'.join(prefs)
 
     if prefs == '':
-        return list()
+        return []
 
     # convert to array of dict
     try:
         prefs = loads(prefs)
     except JSONDecodeError:
-        return list()
+        return []
 
     if isinstance(prefs, dict):
         prefs = [prefs]

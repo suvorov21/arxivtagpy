@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time, date, timezone
 import logging
 from re import split
-from typing import Tuple
+from typing import Tuple, Generator, List
 
 from flask import current_app
 from requests import get, exceptions
@@ -64,7 +64,7 @@ class ArxivOaiApi:
         """Format ref for webpage with summary."""
         return cls.BASE_URL + '/abs/' + pid + version
 
-    def download_papers(self, rest: int = -1):
+    def download_papers(self, rest: int = -1) ->Generator[Paper, None, None]:
         """Generator for paper downloading."""
 
         if self.fail_attempts > self.MAX_FAIL:
@@ -161,7 +161,7 @@ class ArxivOaiApi:
         yield from self.download_papers(rest=rest)
 
 
-def parse_authors(author_xml):
+def parse_authors(author_xml: str) -> List[str]:
     """Parse XML entry for authors."""
     # explicitly for people who put affiliation in author list
     authors = split(r', | \(.*?\),| and ', author_xml)
@@ -172,7 +172,7 @@ def parse_authors(author_xml):
 
 
 def get_arxiv_sub_start(announce_date: date,
-                        offset=0
+                        offset: int=0
                         ) -> datetime:
     """Get arxiv submission start time for a given announcement date."""
     deadline_time = current_app.config['ARXIV_DEADLINE_TIME']

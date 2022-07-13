@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name, unused-argument
 
 from copy import copy
+from typing import Generator
 from flask import url_for
 import pytest
 
@@ -10,7 +11,7 @@ from app.interfaces.data_structures import PaperInterface
 
 
 @pytest.fixture(scope='function')
-def simple_paper() -> PaperInterface:
+def simple_paper() -> Generator[PaperInterface, None, None]:
     """Fixture with a simple paper."""
     paper = PaperInterface.for_tests('Awesome title',
                                      ['Au1', 'Au2'],
