@@ -4,7 +4,7 @@ from flask_login import UserMixin
 
 from sqlalchemy.dialects import postgresql as pg
 
-from . import db
+from app import db
 
 
 class User(UserMixin, db.Model):

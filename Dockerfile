@@ -17,7 +17,7 @@ RUN apt update && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
     apt install -y nodejs
 
-RUN cd app/frontend/src/ || return \
+RUN cd app/frontend/src/ \
     npm install \
     npm run build
 

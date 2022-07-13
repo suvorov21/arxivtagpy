@@ -2,14 +2,14 @@
 
 import logging
 import smtplib
-from typing import List, Dict, Tuple
+from typing import List, Dict
 
 from flask_mail import Message
 from flask_login import current_user
 
 from . import mail
 
-from .model import PaperList, db, UpdateDate
+from .interfaces.model import PaperList, db, UpdateDate
 from .utils import month_start
 
 
@@ -24,13 +24,13 @@ def mail_catch(msg: Message) -> bool:
     return True
 
 
-def query_lists_for_user(id: int) -> List[PaperList]:
+def query_lists_for_user(list_id: int) -> List[PaperList]:
     """Perform a query to DB to get list PaperLists w/o papers."""
     return db.session.query(PaperList).with_entities(PaperList.name,
                                                      PaperList.not_seen,
                                                      PaperList.id
                                                      ).filter(
-        PaperList.user_id == id
+        PaperList.user_id == list_id
     ).order_by(PaperList.order).all()
 
 
@@ -85,7 +85,8 @@ def get_old_update_date() -> UpdateDate:
 
     return old_date_record
 
-def update_seen_papers(it_start, it_end):
+
+def update_seen_papers(it_start: int, it_end: int):
     """Update "seen" papers."""
     for i in range(it_start, it_end + 1):
         # prevent underflow by 1

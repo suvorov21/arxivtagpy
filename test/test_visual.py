@@ -18,7 +18,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 import pytest
 
-from app.model import db, User
+from app.interfaces.model import db, User
 
 ROOT = 'main_bp.root'
 ROOT_PAPERS = 'main_bp.papers_list'
@@ -40,6 +40,7 @@ def driver():
 def wait_load(wait, by_parameter, name):
     """Helper function to wait for element load."""
     return wait.until(EC.presence_of_element_located((by_parameter, name)))
+
 
 def wait_and_click(wait, by_parameter, name, driver):
     """Wait for the load and click the element."""
@@ -313,16 +314,6 @@ class TestSettingsUpdate:
         driver.get(url_for(ROOT_PAPERS, _external=True))
         element = wait_load(wait, By.ID, 'check-nov-1')
         assert not element.is_selected()
-
-    # def test_csrf(self, client, user, driver):
-    #     wait = WebDriverWait(driver, 10)
-    #     client.application.config['WTF_CSRF_ENABLED'] = True
-    #     client.application.config['WTF_CSRF_TIME_LIMIT'] = 1
-    #     signout(driver, wait)
-    #     signin(driver, wait, login=EMAIL, passw=PASS, sleep=10)
-    #     wait_load(wait, By.CLASS_NAME, 'btn-primary')
-    #     assert 'About' not in driver.page_source
-    #     client.application.config['WTF_CSRF_ENABLED'] = False
 
 
 @pytest.mark.usefixtures('live_server')

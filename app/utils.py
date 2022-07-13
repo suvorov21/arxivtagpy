@@ -20,6 +20,13 @@ def fix_xml(xml: str) -> str:
     return xml.replace(linesep, " ").replace("  ", " ")
 
 
+def resolve_doi(doi: str) -> str:
+    """Resolve doi string into link."""
+    if not doi:
+        return ''
+    return 'https://www.doi.org/' + doi
+
+
 def cast_args_to_dict(args) -> List[Dict]:
     """Cast requests args to dictionary."""
     prefs = []
@@ -30,13 +37,13 @@ def cast_args_to_dict(args) -> List[Dict]:
     prefs = '&'.join(prefs)
 
     if prefs == '':
-        return list()
+        return []
 
     # convert to array of dict
     try:
         prefs = loads(prefs)
     except JSONDecodeError:
-        return list()
+        return []
 
     if isinstance(prefs, dict):
         prefs = [prefs]
@@ -78,3 +85,68 @@ def decode_token(token: str, **kwargs) -> Dict:
                 raise DecodeException
 
     return decoded
+
+
+def render_title(date_type: str) -> str:
+    """Put the date type in the title text."""
+    if date_type == 'today':
+        return 'Papers for today'
+    if date_type == 'week':
+        return 'Papers for this week'
+    if date_type == 'month':
+        return 'Papers for this month'
+    if date_type == 'last':
+        return 'Papers since your last visit'
+    if date_type == 'unseen':
+        return 'Unseen papers during the past week'
+
+    return 'Papers'
+
+
+# dictionary for accents
+accents = {"\\'a": '&aacute;',
+           "\\'A": '&Aacute;',
+           "\\'e": '&eacute;',
+           "\\'E": '&Eacute;',
+           '\\"u': '&uuml;',
+           '\\"U': '&Uuml;',
+           "\\'i": '&iacute;',
+           "\\'I": '&Iacute;',
+           "\\`a": '&agrave;',
+           "\\`A": '&Agrave;',
+           "\\`e": '&egrave;',
+           "\\`E": '&Egrave;',
+           "\\'u": '&uacute;',
+           "\\'U": '&Uacute;',
+           "\\'c": '&cacute;',
+           "\\'C": '&Cacute;',
+           "\\`u": '&ugrave;',
+           "\\`U": '&Ugrave;',
+           '\\~n': '&ntilde;',
+           '\\~N': '&Ntilde;',
+           '\\c{c}': '&ccedil;',
+           '\\"o': '&ouml;',
+           '\\"O': '&Ouml;',
+           "\\'o": '&oacute;',
+           "\\'O": '&Oacute;',
+           "\\`o": '&ograve;',
+           "\\`O": '&Ograve;',
+           "\\v{z}": '&zcaron;',
+           "\\v{Z}": '&Zcaron;',
+           "\\v{s}": '&scaron;',
+           "\\v{S}": '&Scaron;',
+           "\v{c}": "&ccaron;",
+           "\v{C}": "&Ccaron;",
+           "{\\aa}": '&aring;',
+           "{\\AA}": '&aring;',
+           '\\"a': '&auml;',
+           '\\"A': '&Auml;',
+           '\\v{c}': '&cdot;',
+           '\\v{C}': '&Cdot;',
+           '\\^e': '&ecirc;',
+           '\\^E': '&Ecirc;',
+           '\\"e': '&euml;',
+           '\\"E': '&Euml;',
+           '\\~A': '&Atilde;',
+           '\\~a': '&atilde;'
+           }

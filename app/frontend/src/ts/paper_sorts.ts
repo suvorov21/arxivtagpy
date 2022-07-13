@@ -13,7 +13,7 @@ const sortFunction = (a:number, b:number,
     return bDate - aDate;
 };
 
-const sortTags = (DATA: Data, sortMethod: string) => {
+const sortTags = (DATA: Data, sortMethod: string): void => {
     DATA.papersVis.sort((a: Paper, b: Paper) => {
         if (b.tags.length === 0 && a.tags.length !== 0) {
             return sortMethod === "tag-as" ? -1 : 1;
@@ -32,7 +32,7 @@ const sortTags = (DATA: Data, sortMethod: string) => {
     });
 };
 
-const sortCats = (DATA: Data, sortMethod: string) => {
+const sortCats = (DATA: Data, sortMethod: string): void => {
     DATA.papersVis.sort((a: Paper, b: Paper) => {
         let catA = "";
         let catB = "";
@@ -56,7 +56,7 @@ const sortCats = (DATA: Data, sortMethod: string) => {
     });
 }
 
-const sortDate  = (DATA: Data, sortMethod: string, date: string) => {
+const sortDate  = (DATA: Data, sortMethod: string, date: string): void => {
     DATA.papersVis.sort((a: Paper, b: Paper) => {
         const aDate = new Date(a[date]);
         const bDate = new Date(b[date]);
@@ -67,7 +67,7 @@ const sortDate  = (DATA: Data, sortMethod: string, date: string) => {
     });
 }
 
-export const sortPapers = (DATA: Data) => {
+export const sortPapers = (DATA: Data): void => {
     /** Sort the papers.
      * Only papers marked as visible will be sorted.
      */

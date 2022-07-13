@@ -5,13 +5,13 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, time, date, timezone
 import logging
 from re import split
-from typing import Tuple
+from typing import Tuple, Generator, List
 
 from flask import current_app
 from requests import get, exceptions
 import urllib3
 
-from .model import Paper
+from .interfaces.model import Paper
 from .utils import fix_xml
 
 
@@ -54,15 +54,17 @@ class ArxivOaiApi:
         """Set Until date."""
         self.params['until'] = until_var
 
-    def get_ref_pdf(self, pid: str, version: str):
+    @classmethod
+    def get_ref_pdf(cls, pid: str, version: str) -> str:
         """Format href for pdf doc."""
-        return self.BASE_URL + '/pdf/' + pid + version + '.pdf'
+        return cls.BASE_URL + '/pdf/' + pid + version + '.pdf'
 
-    def get_ref_web(self, pid: str, version: str):
+    @classmethod
+    def get_ref_web(cls, pid: str, version: str) -> str:
         """Format ref for webpage with summary."""
-        return self.BASE_URL + '/abs/' + pid + version
+        return cls.BASE_URL + '/abs/' + pid + version
 
-    def download_papers(self, rest: int = -1):
+    def download_papers(self, rest: int = -1) ->Generator[Paper, None, None]:
         """Generator for paper downloading."""
 
         if self.fail_attempts > self.MAX_FAIL:
@@ -159,7 +161,7 @@ class ArxivOaiApi:
         yield from self.download_papers(rest=rest)
 
 
-def parse_authors(author_xml):
+def parse_authors(author_xml: str) -> List[str]:
     """Parse XML entry for authors."""
     # explicitly for people who put affiliation in author list
     authors = split(r', | \(.*?\),| and ', author_xml)
@@ -170,7 +172,7 @@ def parse_authors(author_xml):
 
 
 def get_arxiv_sub_start(announce_date: date,
-                        offset=0
+                        offset: int=0
                         ) -> datetime:
     """Get arxiv submission start time for a given announcement date."""
     deadline_time = current_app.config['ARXIV_DEADLINE_TIME']
@@ -245,7 +247,7 @@ def get_arxiv_announce_date(paper_sub: datetime) -> datetime:
     return announce_date
 
 
-def get_annonce_date() -> datetime:
+def get_announce_date() -> datetime:
     """
     Compare the current time to the new paper announcement.
 

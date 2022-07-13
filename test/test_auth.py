@@ -9,7 +9,7 @@ import pytest
 from flask import url_for
 from app.utils import encode_token, decode_token, DecodeException
 from app import mail
-from app.model import User, db
+from app.interfaces.model import User, db
 
 
 ROOT_LOGIN = 'auth_bp.login'

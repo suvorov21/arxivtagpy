@@ -8,7 +8,8 @@ from flask import Blueprint, render_template, session, request, \
     current_app, redirect, url_for, flash
 from flask_login import current_user, login_required
 
-from .model import db, Tag, PaperList
+from .interfaces.model import db, Tag, PaperList
+from .interfaces.data_structures import TagInterface
 from .utils import cast_args_to_dict, encode_token
 
 settings_bp = Blueprint(
@@ -23,18 +24,20 @@ SET_PAGE = 'settings_bp.settings_page'
 
 @settings_bp.route('/settings')
 @login_required
-def settings_page():
+def settings_land():
+    return redirect(url_for(SET_PAGE, page='cat'))
+
+
+@settings_bp.route('/settings/<page>')
+@login_required
+def settings_page(page):
     """Settings page."""
-    load_prefs()
-    page = 'cat'
-    if 'page' in request.args:
-        page = request.args['page']
+    session['pref'] = loads(current_user.pref)
 
     data = default_data()
-    data['page'] = page
 
     if page == 'cat':
-        data['cats'] = session['cats']
+        data['cats'] = current_user.arxiv_cat
     elif page == 'bookshelf':
         paper_lists = PaperList.query.filter_by(user_id=current_user.id
                                                 ).order_by(PaperList.order).all()
@@ -43,7 +46,9 @@ def settings_page():
                           } for paper_list in paper_lists]
 
     elif page == 'tag':
-        data['tags'] = dumps(session['tags'])
+        tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+        tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+        data['tags'] = dumps([tag.to_detailed_dict() for tag in tags_inter])
         data['verified_email'] = current_user.verified_email
     elif page == 'pref':
         data['pref'] = dumps(session['pref'])
@@ -53,27 +58,22 @@ def settings_page():
         data['orcid'] = current_user.orcid
         data['rss_token'] = f'https://{request.headers["Host"]}/rss/{encode_token({"user": current_user.email})}'
     else:
-        return redirect(url_for(SET_PAGE,
-                                page='cat'
-                                ))
+        return redirect(url_for(SET_PAGE, page='cat'))
 
-    return render_template('settings.jinja2',
-                           data=data
-                           )
+    return render_template('settings_' + page + '.jinja2', data=data)
 
 
-@settings_bp.route('/mod_cat', methods=['POST'])
+@settings_bp.route('/settings/mod_cat', methods=['POST'])
 @login_required
 def mod_cat():
     """Apply category changes."""
     new_cats = cast_args_to_dict(request.form.to_dict().keys())
     current_user.arxiv_cat = new_cats
     db.session.commit()
-    session['cats'] = current_user.arxiv_cat
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/mod_tag', methods=['POST'])
+@settings_bp.route('/settings/mod_tag', methods=['POST'])
 @login_required
 def mod_tag():
     """Apply tag changes."""
@@ -86,7 +86,7 @@ def mod_tag():
                            )
 
 
-@settings_bp.route('/mod_lists', methods=['POST'])
+@settings_bp.route('/settings/mod_lists', methods=['POST'])
 @login_required
 def mod_list():
     """Modify paper lists."""
@@ -99,7 +99,7 @@ def mod_list():
                            )
 
 
-@settings_bp.route('/add_list', methods=['POST'])
+@settings_bp.route('/settings/add_list', methods=['POST'])
 @login_required
 def add_list():
     """Add a new paper list."""
@@ -119,7 +119,7 @@ def add_list():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/mod_pref', methods=['POST'])
+@settings_bp.route('/settings/mod_pref', methods=['POST'])
 @login_required
 def mod_pref():
     """Apply preference changes."""
@@ -136,7 +136,7 @@ def mod_pref():
     return dumps({'success': True}), 201
 
 
-@settings_bp.route('/noEmail', methods=["POST"])
+@settings_bp.route('/settings/noEmail', methods=["POST"])
 @login_required
 def no_email():
     """Unsubscribe from all the tag emails."""
@@ -213,6 +213,7 @@ def modify_settings(args, db_class, new_db_object, update, set_place):
 
 def update_tag(old_tag: Tag, tag: Tag, order: int):
     """Update Tag record in database."""
+    print(tag)
     old_tag.name = tag['name']
     old_tag.rule = tag['rule']
     old_tag.color = tag['color']
@@ -227,39 +228,6 @@ def update_list(old_list: PaperList, up_list: PaperList, order: int):
     """Update PaperList db record."""
     old_list.name = up_list['name']
     old_list.order = order
-
-
-def tag_to_dict(tag: Tag) -> dict:
-    """Transform Tag class object into dict."""
-    tag_dict = {'id': tag.id,
-                'name': tag.name,
-                'rule': tag.rule,
-                'color': tag.color,
-                'bookmark': tag.bookmark,
-                'email': tag.email,
-                'userss': tag.userss,
-                'public': tag.public
-                }
-    return tag_dict
-
-
-def load_prefs():
-    """Load preferences from DB to session."""
-    if not current_user.is_authenticated:
-        return
-
-    user_id = current_user.id
-
-    session['cats'] = current_user.arxiv_cat
-
-    # read tags
-    session['tags'] = []
-    tags = Tag.query.filter_by(user_id=user_id).order_by(Tag.order).all()
-    for tag in tags:
-        session['tags'].append(tag_to_dict(tag))
-
-    # read preferences
-    session['pref'] = loads(current_user.pref)
 
 
 def default_data():
