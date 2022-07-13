@@ -429,8 +429,11 @@ def collect_feedback():
 @login_required
 def test_tag():
     """Test the tag rule for some paper data."""
+    authors = []
+    if request.args.get('author'):
+        authors = [au for au in request.args.get('author').split(',')]
     paper = PaperInterface.for_tests(request.args.get('title') if request.args.get('title') else '',
-                                     request.args.get('author') if request.args.get('author') else '',
+                                     authors,
                                      request.args.get('abs') if request.args.get('abs') else '')
 
     if not request.args.get('rule'):
