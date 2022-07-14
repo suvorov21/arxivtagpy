@@ -311,7 +311,7 @@ def bookshelf():
                    do_tag=True
                    )
 
-    response.sort_papers()
+    response.sort_papers('date_up')
     response.lists = lists
     tags_list = [tag.to_front() for tag in tags_inter]
 
