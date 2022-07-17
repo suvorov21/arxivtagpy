@@ -579,7 +579,7 @@ document.getElementById("sort-sel").onchange = () => {
     pageChange();
     setTimeout(() => {
         // sort the papers that are supposed to be visible.
-        sortPapers(DATA);
+        sortPapers(DATA.papersVis);
         // render the main page content
         // #pages is still the same, so no point of rendering from scratch
         renderPapers();
