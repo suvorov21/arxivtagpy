@@ -13,8 +13,8 @@ const sortFunction = (a:number, b:number,
     return bDate - aDate;
 };
 
-const sortTags = (DATA: Data, sortMethod: string): void => {
-    DATA.papersVis.sort((a: Paper, b: Paper) => {
+const sortTags = (papers: Array<Paper>, sortMethod: string): void => {
+    papers.sort((a: Paper, b: Paper) => {
         if (b.tags.length === 0 && a.tags.length !== 0) {
             return sortMethod === "tag-as" ? -1 : 1;
         }
@@ -32,8 +32,8 @@ const sortTags = (DATA: Data, sortMethod: string): void => {
     });
 };
 
-const sortCats = (DATA: Data, sortMethod: string): void => {
-    DATA.papersVis.sort((a: Paper, b: Paper) => {
+const sortCats = (papers: Array<Paper>, sortMethod: string): void => {
+    papers.sort((a: Paper, b: Paper) => {
         let catA = "";
         let catB = "";
         for (let id = 0; id < a["cats"].length; id++) {
@@ -56,8 +56,8 @@ const sortCats = (DATA: Data, sortMethod: string): void => {
     });
 }
 
-const sortDate  = (DATA: Data, sortMethod: string, date: string): void => {
-    DATA.papersVis.sort((a: Paper, b: Paper) => {
+const sortDate  = (papers: Array<Paper>, sortMethod: string, date: string): void => {
+    papers.sort((a: Paper, b: Paper) => {
         const aDate = new Date(a[date]);
         const bDate = new Date(b[date]);
         return sortFunction(aDate.getTime(), bDate.getTime(),
@@ -67,26 +67,26 @@ const sortDate  = (DATA: Data, sortMethod: string, date: string): void => {
     });
 }
 
-export const sortPapers = (DATA: Data): void => {
+export const sortPapers = (papers: Array<Paper>): void => {
     /** Sort the papers.
      * Only papers marked as visible will be sorted.
      */
     const sortMethod = String((document.getElementById("sort-sel") as HTMLInputElement).value);
     // tags
     if (sortMethod.includes("tag")) {
-        sortTags(DATA, sortMethod);
+        sortTags(papers, sortMethod);
     }
     // dates
     if (sortMethod.includes("date-up")) {
-        sortDate(DATA, sortMethod, "date_up");
+        sortDate(papers, sortMethod, "date_up");
     }
 
     if (sortMethod.includes("date-sub")) {
-        sortDate(DATA, sortMethod, "date_sub");
+        sortDate(papers, sortMethod, "date_sub");
     }
 
     // categories
     if (sortMethod.includes("cat")) {
-        sortCats(DATA, sortMethod);
+        sortCats(papers, sortMethod);
     }
 };

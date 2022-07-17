@@ -167,13 +167,19 @@ class PaperResponse:
         """Sorting with date."""
         return paper.date_up
 
-    def sort_papers(self, key_type='tag') -> None:
+    @staticmethod
+    def key_date_sub(paper: PaperInterface) -> datetime:
+        """Sorting with date."""
+        return paper.date_sub
+
+    def sort_papers(self, key_type: str = 'tag', reverse:bool = True) -> None:
         """Sort the papers in response."""
-        reverse = True
         key_function = self.key_tag
 
-        if key_type == 'date_up':
+        if key_type == 'date-up':
             key_function = self.key_date_up
+        elif key_type == 'date-sub':
+            key_function = self.key_date_sub
 
         self.papers = sorted(self.papers,
                              key=key_function,
