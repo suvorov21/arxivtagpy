@@ -7,6 +7,7 @@
 
   <script type="text/javascript">
     __DATA__ = {{ papers }};
+    __NPAPERS__ = {{ total_papers }}
     __TAGS__ = {{ tags }};
     __DISPLAY_LIST__ = parseInt("{{ displayList }}", 10);
     __PAGE__ = {{ page }};
@@ -39,6 +40,20 @@
         <div id="paper-list-title">
           {{ title }}
         </div>
+      <div id="sort-block">
+            <span id="passed">0 results</span>
+            <span id="sort-label" class="ms-3">Sort by</span>
+            <select class="form-control form-control-sm" id="sort-sel">
+              <option value="tag_as">tag (first)</option>
+              <option value="tag_des">tag (last)</option>
+              <option disabled="disabled">----</option>
+              <option value="date-up_as" selected="selected">updated (recent)</option>
+              <option value="date-up_des">updated (old)</option>
+              <option disabled="disabled">----</option>
+              <option value="date-sub_as">submitted (recent)</option>
+              <option value="date-sub_des">submitted (old)</option>
+            </select>
+          </div>
         <div id="loading-papers" class="paper-footer"><i class="fa fa-spinner fa-pulse fa-fw"></i> Loading papers...</div>
         <div id="no-paper" class="paper-footer" style="display: none">There are no papers here yet.</div>
         <div id="paper-list-content">

@@ -1,12 +1,13 @@
 /* eslint no-console: ["error", { allow: ["warn", "error"] }] */
-import {renderPapersBase, Paper, List, Data} from "./paper_basic";
-import {raiseAlert, cssVar} from "./layout";
+import {Data, List, Paper, renderPapersBase} from "./paper_basic";
+import {cssVar, raiseAlert} from "./layout";
 
 let unseenCurrentList = 0;
 
 declare const __DATA__: Data;
 
 declare const __PAGE__: number;
+declare const __NPAPERS__: number;
 declare const __PAGE_SIZE__: number;
 declare const __DISPLAY_LIST__: number;
 
@@ -79,6 +80,7 @@ const deleteBookmark = (event: MouseEvent): void => {
         if (visible === counterStart) {
             document.getElementById("no-paper").style.display = "block";
         }
+        document.getElementById("passed").textContent = String(visible + Math.max(__NPAPERS__ - __PAGE_SIZE__, 0)) + " results";
     }).fail(() => {
         raiseAlert("Paper is not deleted due to server error", "danger");
     });
@@ -119,10 +121,27 @@ const renderPapers = (): void => {
     if (__parseTex__) {
         MathJax.typesetPromise();
     }
+    document.getElementById("passed").textContent = String(__NPAPERS__) + " results";
     document.getElementById("loading-papers").style.display = "none";
 }
+
+// change sort selector
+document.getElementById("sort-sel").onchange = () => {
+    let loc = document.location.href;
+    const generalCheck = /[?&]sort=[\w-]+/i;
+    loc = loc.replace(generalCheck, "");
+    location.href = loc + "&sort=" +
+        (document.getElementById("sort-sel") as HTMLInputElement).value;
+};
 
 window.onload = () => {
     renderLists();
     renderPapers();
+    const generalCheck = /[?&]sort=([\w-]+)/i;
+    let loc = document.location.href;
+    let found = loc.match(generalCheck);
+    if (found) {
+        (document.getElementById("sort-sel") as HTMLInputElement).value =
+            found[1];
+    }
 };

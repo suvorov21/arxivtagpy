@@ -289,21 +289,25 @@ def bookshelf():
     db.session.commit()
 
     response = PaperResponse()
+    response.papers = [PaperInterface.from_paper(paper) for paper in paper_list.papers]
 
-    # read the papers
-    sorted_papers = sorted(paper_list.papers,
-                           key=lambda p: p.date_up,
-                           reverse=True
-                           )
-    response.papers = [PaperInterface.from_paper(paper)
-                       for paper in sorted_papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]]
-
-    total_pages = len(paper_list.papers) // PAPERS_PAGE
-    total_pages += 1 if len(paper_list.papers) % PAPERS_PAGE else 0
+    total_papers = len(response.papers)
+    total_pages = total_papers // PAPERS_PAGE
+    total_pages += 1 if total_papers % PAPERS_PAGE else 0
 
     # tag papers
     tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
     tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+
+    # sort and truncate papers before processing for the optimisation
+    sort_key = 'tag'
+    reverse = True
+    if 'sort' in request.args:
+        sort_args = request.args['sort'].split('_')
+        sort_key = sort_args[0]
+        reverse = sort_args[1] == 'as'
+    response.sort_papers(sort_key, reverse)
+    response.papers = response.papers[PAPERS_PAGE * (page - 1):][:PAPERS_PAGE]
     process_papers(response,
                    tags_inter,
                    current_user.arxiv_cat,
@@ -311,11 +315,13 @@ def bookshelf():
                    do_tag=True
                    )
 
-    response.sort_papers('date_up')
     response.lists = lists
     tags_list = [tag.to_front() for tag in tags_inter]
 
-    url_base = url_for(ROOT_BOOK, list_id=display_list) + '&page='
+    url_base = url_for(ROOT_BOOK, list_id=display_list)
+    if 'sort' in request.args:
+        url_base += '&sort=' + request.args['sort']
+    url_base += '&page='
 
     return render_template('bookshelf.jinja2',
                            papers=response.to_dict(),
@@ -324,6 +330,7 @@ def bookshelf():
                            page=page,
                            paper_page=PAPERS_PAGE,
                            total_pages=total_pages,
+                           total_papers=total_papers,
                            displayList=display_list,
                            tags=dumps(tags_list),
                            data=default_data()
