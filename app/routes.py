@@ -8,6 +8,8 @@ from flask import Blueprint, render_template, session, redirect, request, jsonif
 from flask_login import current_user, login_required
 from flask_mail import Message
 
+from sqlalchemy import func
+
 from . import mail
 from .interfaces.model import db, Paper, PaperList, paper_associate, Tag
 from .interfaces.data_structures import PaperResponse, PaperInterface, TagInterface
@@ -66,9 +68,8 @@ def papers_list():
                                 ))
 
     # load preferences
-    # TODO load only certain columns?
-    tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
-    tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+    tags_db = Tag.query.with_entities(Tag.name, Tag.color).filter_by(user_id=current_user.id).order_by(Tag.order).all()
+    tags_inter = [TagInterface.from_name_and_color(tag) for tag in tags_db]
 
     # get rid of tag rule at front-end
     tags_list = [tag.to_front() for tag in tags_inter]
@@ -401,14 +402,13 @@ def del_bm():
 @login_required
 def public_tags():
     """Get publicly available tags as examples."""
-    tags = Tag.query.filter_by(public=True).order_by(Tag.name)
-    tag_list = [TagInterface.from_tag(tag).to_name_and_rule() for tag in tags]
-    unique_tags = []
-    for tag in tag_list:
-        if tag not in unique_tags:
-            unique_tags.append(tag)
+    tags = Tag.query.with_entities(Tag.rule, func.max(Tag.name).label("name"))\
+        .filter(Tag.public==True)\
+        .group_by(Tag.rule)\
+        .all()
+    tag_list = [TagInterface.from_name_and_rule(tag).to_name_and_rule() for tag in tags]
 
-    return jsonify(unique_tags)
+    return jsonify(tag_list)
 
 
 @main_bp.route('/feedback', methods=['POST'])

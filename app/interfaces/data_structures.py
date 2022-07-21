@@ -89,7 +89,17 @@ class PaperInterface:
 
 class TagInterface:
     """Interface for the tag."""
-    def __init__(self, tag_id, order, name, rule, color, bookmark, email, public, userss, user_id):
+    def __init__(self,
+                 tag_id=-1,
+                 order=-1,
+                 name="",
+                 rule="",
+                 color="",
+                 bookmark=False,
+                 email=False,
+                 public=False,
+                 userss=False,
+                 user_id=-1):
         self.id = tag_id
         self.order = order
         self.name = name
@@ -114,6 +124,20 @@ class TagInterface:
                             tag_db.userss,
                             tag_db.user_id
                             )
+
+    @classmethod
+    def from_name_and_rule(cls, tag_db: Tag):
+        result = TagInterface()
+        result.name = tag_db.name
+        result.rule = tag_db.rule
+        return result
+
+    @classmethod
+    def from_name_and_color(cls, tag_db: Tag):
+        result = TagInterface()
+        result.name = tag_db.name
+        result.color = tag_db.color
+        return result
 
     def to_front(self) -> Dict:
         return {'color': self.color,
