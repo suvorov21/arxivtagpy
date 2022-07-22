@@ -457,11 +457,6 @@ $(".tag-field").on("input", function() {
     makeTagEdited();
 });
 
-// TODO should I delete oninput listener?!
-$(".tag-field").on("change", function() {
-    makeTagEdited();
-});
-
 document.getElementById("book-check").onchange = () => {
     changeBookBtnStatus(document.forms["add-tag2"]["book-check"].checked);
 };

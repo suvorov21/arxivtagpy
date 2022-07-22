@@ -1,7 +1,7 @@
 """API for paper downloading."""
 
 from time import sleep
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 from datetime import datetime, timedelta, time, date, timezone
 import logging
 from re import split

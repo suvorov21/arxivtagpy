@@ -554,7 +554,7 @@ const renderNov = (): void =>  {
 
 const renderCounters = (): void => {
     const nCats = __CATS__.length;
-    if (typeof DATA.ncat === "undefined") {
+    if (typeof DATA.ncat === "undefined" || DATA.ncat.length !== nCats) {
         return;
     }
     for(let catId = 0; catId < nCats; catId++) {
