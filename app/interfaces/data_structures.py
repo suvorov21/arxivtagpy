@@ -196,7 +196,7 @@ class PaperResponse:
         """Sorting with date."""
         return paper.date_sub
 
-    def sort_papers(self, key_type: str = 'tag', reverse:bool = True) -> None:
+    def sort_papers(self, key_type: str = 'tag', reverse: bool = True) -> None:
         """Sort the papers in response."""
         key_function = self.key_tag
 

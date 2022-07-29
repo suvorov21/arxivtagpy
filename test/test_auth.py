@@ -147,7 +147,7 @@ class TestPassword:
         assert 'successfully' in response.get_data(as_text=True)
 
     def test_unauthorised_request(self, client):
-        """Test access to login restricted pages."""
+        """Test access to log in restricted pages."""
         response = client.post(url_for(ROOT_PASSW),
                                data={'oldPass': PASS,
                                      'newPass1': 'tester_new',

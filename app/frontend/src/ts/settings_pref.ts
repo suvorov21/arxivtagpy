@@ -5,7 +5,6 @@ import {raiseAlert} from "./layout";
 declare const __PREF__;
 declare const __EMAIL__;
 declare const __VERIF__;
-declare const bootstrap;
 
 const renderPref = (): void => {
     if (__PREF__["tex"]) {

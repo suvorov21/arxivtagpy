@@ -403,7 +403,7 @@ def del_bm():
 def public_tags():
     """Get publicly available tags as examples."""
     tags = Tag.query.with_entities(Tag.rule, func.max(Tag.name).label("name"))\
-        .filter(Tag.public==True)\
+        .filter(Tag.public)\
         .group_by(Tag.rule)\
         .all()
     tag_list = [TagInterface.from_name_and_rule(tag).to_name_and_rule() for tag in tags]

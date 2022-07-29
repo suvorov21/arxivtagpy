@@ -38,7 +38,7 @@
     </div>
     <div id="tag-help">
       <p>
-        Syntaxis:<br/>
+        Syntax:<br/>
         <code>ti{breakthrough}</code> - for papers with "breakthrough" in title<br/>
         <code>abs{awesome}</code> - for papers with "awesome" in abstract<br/>
         <code>cat{hep-ex}</code> - for papers with category "hep-ex" <br/>
@@ -53,7 +53,7 @@
 
         Regular expressions can be used inside curly brackets. <br/>
         $\\LaTeX$ is supported starting with \\\\. E.g. "\\\\chi".<br/>
-        Rules are case insensitive.
+        Rules are case-insensitive.
       </p>
       <p>
         Examples:<br/>
@@ -91,7 +91,7 @@
           <input class="form-check-input tag-field" type="checkbox" id="book-check" name="book-check">
           <label class="form-check-label" for="book-check">Bookmark automatically</label>
           <div class="form-text">
-            Papers suitable with this tag will be added automaticaly to bookshelf, so that you can review them later<br>
+            Papers suitable with this tag will be added automatically to bookshelf, so that you can review them later<br>
             <button type="button" class="btn btn-link" id="btn-book">Fill the bookshelf for the past month</button>
           </div>
         </div>
@@ -103,7 +103,7 @@
           {% endif %}
           <label class="form-check-label" for="email-check">Email notification</label>
           <div class="form-text">
-            Recieve email notifications when new papers suitable with this tag are submitted
+            Receive email notifications when new papers suitable with this tag are submitted
             {% if not data['verified_email'] %}
               <br><span class="sub-alert shade">Verify your email to use this option.</span>
             {% endif %}
@@ -113,7 +113,7 @@
           <input class="form-check-input tag-field" type="checkbox" id="rss-check" name="rss-check">
           <label class="form-check-label" for="public-check">Include in RSS</label>
           <div class="form-text">
-            Papers sutable with this tag will be included in your RSS feed. Check <a href="{{ url_for("settings_bp.settings_page", page="pref") }}">Preference
+            Papers suitable with this tag will be included in your RSS feed. Check <a href="{{ url_for("settings_bp.settings_page", page="pref") }}">Preference
             page</a> for RSS link.
           </div>
         </div>
@@ -121,7 +121,7 @@
           <input class="form-check-input tag-field" type="checkbox" id="public-check" name="public-check">
           <label class="form-check-label" for="public-check">Publicly available</label>
           <div class="form-text">
-            Make the tag visible for other users. It will not be assotiated with your data. Only tag name and rule will
+            Make the tag visible for other users. It will not be associated with your data. Only tag name and rule will
             be visible and could be used by others.
           </div>
         </div>

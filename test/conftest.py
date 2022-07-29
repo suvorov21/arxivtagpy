@@ -19,7 +19,7 @@ EMAIL = 'arxiv_tester@mailinator.com'
 PASS = 'tester'  # nosec
 
 TMP_EMAIL = 'arxiv_tester2@mailinator.com'
-TMP_PASS = 'tester' #nosec
+TMP_PASS = 'tester'  # nosec
 
 DEFAULT_LIST = 'Favourite'
 
@@ -121,7 +121,7 @@ def tmp_login(client, tmp_user):
 def papers(app):
     """Papers downloader."""
     with app.app_context(), app.test_request_context():
-        requests.post(url_for('auto_bp.load_papers', # nosec
+        requests.post(url_for('auto_bp.load_papers',  # nosec
                               token='test_token',  # nosec
                               n_papers=500,
                               set='physics:hep-ex',

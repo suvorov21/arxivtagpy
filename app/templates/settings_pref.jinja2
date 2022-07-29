@@ -8,7 +8,7 @@
     </form>
     <h3>Display settings</h3>
 
-    <div class="form-check form-block" action="/mod_pref">
+    <div class="form-check form-block">
       <input class="form-check-input" type="checkbox" id="tex-check">
       <label class="form-check-label" for="tex-check">Render TeX formulas</label>
       <div class="form-text">
@@ -36,7 +36,7 @@
     </div>
     <small>
       RSS feed contains papers for the past 2 weeks that pass your tag selection. <br>
-      You can setup which tags to be included at the <a href="{{ url_for("settings_bp.settings_page", page="tag") }}">Tags settings</a> page.
+      You can set up which tags to be included at the <a href="{{ url_for("settings_bp.settings_page", page="tag") }}">Tags settings</a> page.
     </small>
     <br><br>
 
