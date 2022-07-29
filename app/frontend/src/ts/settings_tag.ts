@@ -116,21 +116,42 @@ const checkMath = (a, b, rule: string): boolean => {
     return openMatch === closeMatch;
 };
 
-const checkTagRule = (rule: string): boolean => {
+const checkTagRule = (rule: string): string => {
     const openP = /\(/g;
     const closeP = /\)/g;
 
     const openC = /{/g;
     const closeC = /}/g;
 
-    if (!checkMath(openP, closeP, rule) || !checkMath(openC, closeC, rule)) {
-        return false;
+    if (!checkMath(openP, closeP, rule)) {
+        return "Check tag rule: unmatched parenthesis";
+    }
+    if (!checkMath(openC, closeC, rule)) {
+        return "Check tag rule: unmatched curly brackets";
     }
 
-    // https://regex101.com/r/BbdDgl/1
-    const generalCheck = /^(\(|)(ti|au|abs)({.+})(([|&])(\(|)((ti|au|abs){.+})(\)|))*$/i;
+    // https://regex101.com/r/guJCbS/1
+    let prefix = "(ti|au|abs|cat)";
+    let content = "{[\\w\\d|&!$\\s*\\\\-]*?}";
+    const regex = new RegExp(`^\\(*${prefix}${content}([|&]\\(*${prefix}${content}\\)*)*$`);
 
-    return generalCheck.test(rule);
+    if (regex.test(rule)) {
+        return "";
+    } else {
+        // wrong prefix
+        prefix = ".*?";
+        const regexPrefix = new RegExp(`^\\(*${prefix}${content}([|&]\\(*${prefix}${content}\\)*)*$`);
+        if (regexPrefix.test(rule)) {
+            return "Check tag rule: unknown prefix!";
+        }
+
+        content = ".*?";
+        const regexCont = new RegExp(`^\\(*${prefix}${content}([|&]\\(*${prefix}${content}\\)*)*$`);
+        if (regexCont.test(rule)) {
+            return "Check tag rule: deprecated symbol in curly brackets!";
+        }
+        return "Check rule syntax!";
+    }
 };
 
 // check if tag info is filled properly
@@ -163,8 +184,9 @@ const checkTag = (): boolean => {
 
     // check rule
     const rule = document.forms["add-tag"]["tag_rule"].value;
-    if (!checkTagRule(rule)) {
-        document.getElementsByClassName("sub-alert")[0].textContent = "Check the rule syntax!";
+    const check = checkTagRule(rule);
+    if (check !== "") {
+        document.getElementsByClassName("sub-alert")[0].textContent = check;
         return false;
     }
 
@@ -240,8 +262,9 @@ document.getElementById("test-btn").onclick = (event: MouseEvent) => {
         return;
     }
 
-    if (!checkTagRule(rule)) {
-        document.getElementById("test-result").textContent = "Check rule syntax!";
+    const check = checkTagRule(rule);
+    if (check !== "") {
+        document.getElementById("test-result").textContent = check;
         return;
     }
 
@@ -470,8 +493,9 @@ document.getElementById("btn-book").onclick = (event: MouseEvent) => {
         raiseAlert("Enter a name for a tag", "danger");
         return;
     }
-    if (!checkTagRule(rule)) {
-        raiseAlert("Check the rule syntax", "danger");
+    const check = checkTagRule(rule);
+    if (check !== "") {
+        raiseAlert(check, "danger");
         return;
     }
     const url = "/bookmark_papers_user";
