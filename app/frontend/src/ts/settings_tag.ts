@@ -162,6 +162,8 @@ const checkTag = (): boolean => {
     if (!tagEdited) {
         submitSetting("mod_tag", __TAGS__).then(() => {
             reloadTags(false);
+        }, () => {
+            console.warn("Token is outdated. Refresh the page");
         });
         return true;
     }
@@ -222,6 +224,8 @@ const checkTag = (): boolean => {
     submitSetting("mod_tag", __TAGS__).then(() => {
         // reload the page in case of new tag in order to grab the tag id from backend
         reloadTags(editTagId === -1);
+    }, () => {
+        console.warn("Token is outdated. Refresh the page");
     });
     tagEdited = false;
     return false;
