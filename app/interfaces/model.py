@@ -173,6 +173,7 @@ paper_associate = db.Table('paper_associate',
                                      )
                            )
 
+
 class PaperModel(object):
     """Paper table description."""
     id = db.Column(db.Integer,
@@ -237,6 +238,7 @@ class Paper(PaperModel, db.Model):
 class PaperCacheDay(PaperModel, db.Model):
     """Table for paper caching for a day."""
     __tablename__ = 'papers_cache_day'
+
 
 class PaperCacheWeeks(PaperModel, db.Model):
     """Table for paper caching for 14 days (2 weeks)."""

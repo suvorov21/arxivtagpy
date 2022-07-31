@@ -1,9 +1,10 @@
 """Description of the inner app data structures."""
 
 from datetime import datetime
+from os import name
 from typing import Tuple, Dict, List
 
-from .model import Paper, Tag
+from .model import Paper, Tag, PaperList
 from ..utils import resolve_doi, accents
 from ..paper_api import ArxivOaiApi
 
@@ -196,7 +197,7 @@ class PaperResponse:
         """Sorting with date."""
         return paper.date_sub
 
-    def sort_papers(self, key_type: str = 'tag', reverse:bool = True) -> None:
+    def sort_papers(self, key_type: str = 'tag', reverse: bool = True) -> None:
         """Sort the papers in response."""
         key_function = self.key_tag
 
@@ -250,3 +251,38 @@ class PaperResponse:
                 'title': self.title,
                 'lists': self.lists
                 }
+
+
+class PaperListInterface:
+    """Interface for the paper lists."""
+    def __init__(self,
+                 list_id=-1,
+                 order=-1,
+                 name="",
+                 user_id=-1,
+                 not_seen=0):
+        self.list_id = list_id
+        self.order = order
+        self.name = name
+        self.user_id = user_id
+        self.not_seen = not_seen
+
+    @classmethod
+    def from_id(cls, list_db: PaperList):
+        result = PaperListInterface()
+        result.id = list_db.id
+        return result
+
+    @classmethod
+    def from_id_name(cls, list_db: PaperList):
+        result = PaperListInterface()
+        result.id = list_db.id
+        result.name = list_db.name
+        return result
+
+    def to_dict(self):
+        return {'name': self.name,
+                'not_seen': self.not_seen,
+                'id': self.list_id
+                }
+

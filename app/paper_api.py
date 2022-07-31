@@ -64,7 +64,7 @@ class ArxivOaiApi:
         """Format ref for webpage with summary."""
         return cls.BASE_URL + '/abs/' + pid + version
 
-    def download_papers(self, rest: int = -1) ->Generator[Paper, None, None]:
+    def download_papers(self, rest: int = -1) -> Generator[Paper, None, None]:
         """Generator for paper downloading."""
 
         if self.fail_attempts > self.MAX_FAIL:
@@ -172,7 +172,7 @@ def parse_authors(author_xml: str) -> List[str]:
 
 
 def get_arxiv_sub_start(announce_date: date,
-                        offset: int=0
+                        offset: int = 0
                         ) -> datetime:
     """Get arxiv submission start time for a given announcement date."""
     deadline_time = current_app.config['ARXIV_DEADLINE_TIME']

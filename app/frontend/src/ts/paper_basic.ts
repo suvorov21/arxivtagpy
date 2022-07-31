@@ -9,6 +9,7 @@ export interface List {
     id: number;
     name: string;
     not_seen: number;
+    auto?: boolean;
 }
 
 export interface Paper {

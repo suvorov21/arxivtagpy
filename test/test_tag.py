@@ -52,6 +52,7 @@ def test_tricky_logic_and(simple_paper):
 
     assert not tag_suitable(simple_paper, rule)
 
+
 def test_negation(simple_paper):
     """Test negation in the tag rule."""
     paper_good = copy(simple_paper)

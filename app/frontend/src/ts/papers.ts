@@ -216,7 +216,7 @@ const renderPapers = (): void => {
          pId++) {
 
         const content = DATA.papersVis[`${pId}`];
-        const paperBase = renderPapersBase(content as Paper, pId);
+        const paperBase = renderPapersBase(content, pId);
         const btnPanel = paperBase[1];
 
         // add bookmark button

@@ -12,6 +12,7 @@ from typing import List
 from .interfaces.model import db, Paper, Paper, PaperCacheDay, PaperCacheWeeks
 from .utils_app import get_old_update_date
 
+
 def update_papers(api_list: List, **kwargs):
     """
     Update paper table.

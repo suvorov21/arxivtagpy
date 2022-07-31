@@ -135,7 +135,7 @@ class TestBasicViews:
         """Test paper selector href."""
         wait = WebDriverWait(driver, 10)
         signin(driver, wait, login=EMAIL, passw=PASS)
-        # look at the last 3 days (in case of holidays, etc.
+        # look at the last 3 days (in case of holidays, etc).
         recent_papers_exists = []
         for i in range(3):
             driver.get(url_for('main_bp.paper_land', _external=True))

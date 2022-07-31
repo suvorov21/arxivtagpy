@@ -102,6 +102,8 @@ const submitCat = (event: Event): void => {
     }
     submitSetting("mod_cat", __CATS__).then(() => {
         $(".btn-save").addClass("disabled");
+    }, () => {
+        console.warn("Token is outdated. Refresh the page");
     });
 };
 

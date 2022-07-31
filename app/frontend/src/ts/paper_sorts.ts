@@ -1,4 +1,4 @@
-import {Data, Paper} from "./paper_basic";
+import {Paper} from "./paper_basic";
 
 declare const __CATS__: Array<string>;
 
