@@ -24,17 +24,17 @@ def mail_catch(msg: Message) -> bool:
     return True
 
 
-def query_lists_for_user(list_id: int) -> List[PaperList]:
+def query_lists_for_user(user_id: int) -> List[PaperList]:
     """Perform a query to DB to get list PaperLists w/o papers."""
     return db.session.query(PaperList).with_entities(PaperList.name,
                                                      PaperList.not_seen,
                                                      PaperList.id
                                                      ).filter(
-        PaperList.user_id == list_id
+        PaperList.user_id == user_id
     ).order_by(PaperList.order).all()
 
 
-def get_lists_for_user() -> List[Dict]:
+def get_lists_for_current_user() -> List[Dict]:
     """Get all paper lists for a given user."""
     paper_lists = query_lists_for_user(current_user.id)
 
@@ -43,13 +43,13 @@ def get_lists_for_user() -> List[Dict]:
         from .auth import new_default_list
         new_default_list(current_user.id)
         paper_lists = query_lists_for_user(current_user.id)
-        logging.error('Default list was not created for user %r',
-                      current_user.email
-                      )
+        logging.info('Default list was not created for user %r',
+                     current_user.email
+                     )
 
     lists = [{'name': paper_list.name,
               'not_seen': paper_list.not_seen,
-              'id': paper_list.id
+              'id': paper_list.id,
               } for paper_list in paper_lists]
     return lists
 

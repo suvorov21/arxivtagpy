@@ -57,6 +57,13 @@ const confirmEdit = (event: MouseEvent) => {
 
     const num = parseInt(target.id.split("-")[2], 10);
     const field = document.getElementById("field-list-" + num) as HTMLInputElement;
+
+    if (__LISTS__.filter(e => e.name === field.value).length > 0 &&
+    field.value !== __LISTS__[findListNumById(String(num))].name) {
+        raiseAlert("List with this name already exists", "danger");
+        return;
+    }
+
     __LISTS__[findListNumById(String(num))].name = field.value;
     renderBookshelf();
     // Toggle "edited" state
@@ -97,6 +104,8 @@ const editListName = (event: MouseEvent) => {
     parentEle.appendChild(confirmBtn);
     parentEle.draggable = false;
     field.focus();
+
+    $(".btn-cancel").removeClass("disabled");
 };
 
 const renderBookshelf = (): void => {
@@ -132,6 +141,10 @@ const renderBookshelf = (): void => {
         listElement.style.display = "inline";
         listElement.textContent = listName;
 
+        if (list.auto) {
+            listElement.innerHTML += " <i class=\"fa fa-android\" aria-hidden=\"true\"></i>";
+        }
+
         const editBtn = document.createElement("i");
         editBtn.className = "ps-2 fa fa-pencil btn-edit";
         editBtn.id = "list-edit-" + list.id;
@@ -158,6 +171,12 @@ document.getElementById("add-book-btn").onclick = (): void => {
      */
     if (document.forms["add-book-form"]["new-list"].value === "") {
         raiseAlert("Fill the list name", "danger");
+        return;
+    }
+
+    // list names should be unique per user
+    if (__LISTS__.filter(e => e.name === document.forms["add-book-form"]["new-list"].value).length > 0) {
+        raiseAlert("List with this name already exists", "danger");
         return;
     }
     const url = "add_list";
@@ -189,6 +208,8 @@ const submitList = (event: Event): void => {
         for (let i = 0; i < btnCollection.length; i++) {
             btnCollection[`${i}`].classList.add("disabled");
         }
+    }, () => {
+        console.warn("Token is outdated. Refresh the page");
     });
 };
 

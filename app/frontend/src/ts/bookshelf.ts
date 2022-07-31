@@ -15,20 +15,21 @@ declare const MathJax;
 declare const __parseTex__: boolean;
 
 const renderLists = (): void => {
-    // WARNING very inaccurate parsing
-    // TODO replace with regex
-    const hrefBase = document.location.href.split("=")[0];
+    const hrefBase = document.location.href.split("?")[0];
     __DATA__.lists.forEach((list: List) => {
         const listItem = document.createElement("li");
         listItem.className = "nav-item";
         const link = document.createElement("a");
-        link.href = hrefBase + "=" + list.id;
+        link.href = hrefBase + "?list_id=" + list.id;
         link.className = "nav-link";
         if (list.id === __DISPLAY_LIST__) {
             link.className += " active";
             unseenCurrentList = list.not_seen;
         }
         link.textContent = list.name;
+        if (list.auto) {
+            link.innerHTML += " <i class=\"fa fa-android\" aria-hidden=\"true\"></i>";
+        }
         if (list.not_seen !== 0) {
             link.textContent += " ";
             const badge = document.createElement("span");

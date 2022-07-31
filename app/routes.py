@@ -17,7 +17,7 @@ from .auth import new_default_list
 
 from .papers import process_papers, get_papers, get_unseen_papers, tag_suitable
 from .paper_api import get_arxiv_sub_start, get_announce_date, get_arxiv_announce_date, get_date_range
-from .utils_app import get_lists_for_user, get_old_update_date, update_seen_papers
+from .utils_app import get_lists_for_current_user, get_old_update_date, update_seen_papers
 from .settings import default_data
 from .utils import render_title
 
@@ -233,7 +233,7 @@ def data():
     response.render_title_precise(request.args['date'], old_date_tmp, new_date_tmp)
 
     # lists are required at front-end as there is an interface to add paper to any one
-    lists = get_lists_for_user()
+    lists = get_lists_for_current_user()
     response.lists = lists
 
     return jsonify(response.to_dict())
@@ -272,7 +272,7 @@ def bookshelf():
                                 list_id=display_list,
                                 page=1))
 
-    lists = get_lists_for_user()
+    lists = get_lists_for_current_user()
     # if User tries to access the list that doesn't belong to him
     if display_list not in {user_list['id'] for user_list in lists}:
         logging.warning('%r tries to access list %r', current_user.id, display_list)
@@ -316,7 +316,19 @@ def bookshelf():
                    do_tag=True
                    )
 
+
+    # figure out which lists are automatic
+    for list in lists:
+        # since FE doesn't support boolean transfer as int
+        list['auto'] = 0
+        for tag in [tag for tag in tags_inter if tag.bookmark]:
+            if tag.name == list['name']:
+                list['auto'] = 1
+                break
+
     response.lists = lists
+
+    # build dictionary for front-end
     tags_list = [tag.to_front() for tag in tags_inter]
 
     url_base = url_for(ROOT_BOOK, list_id=display_list)
@@ -364,7 +376,7 @@ def add_bm():
         logging.error('List is not in the DB %r', list_id)
         return dumps({'success': False}), 422
 
-    lists = get_lists_for_user()
+    lists = get_lists_for_current_user()
     # if User tries to access the list that doesn't belong to him
     if paper_list.id not in {user_list['id'] for user_list in lists}:
         logging.warning('%r tries to add bm to list %r', current_user.id, paper_list.id)

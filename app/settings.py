@@ -41,9 +41,21 @@ def settings_page(page):
     elif page == 'bookshelf':
         paper_lists = PaperList.query.filter_by(user_id=current_user.id
                                                 ).order_by(PaperList.order).all()
+
         data['lists'] = [{'id': paper_list.id,
                           'name': paper_list.name
                           } for paper_list in paper_lists]
+
+        tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
+        tags_inter = [TagInterface.from_tag(tag) for tag in tags_db]
+        for list in data['lists']:
+            # since FE doesn't support boolean transfer as int
+            list['auto'] = 0
+            for tag in [tag for tag in tags_inter if tag.bookmark]:
+                if tag.name == list['name']:
+                    list['auto'] = 1
+                    break
+
 
     elif page == 'tag':
         tags_db = Tag.query.filter_by(user_id=current_user.id).order_by(Tag.order).all()
@@ -108,6 +120,11 @@ def add_list():
         return dumps({'success': False}), 422
 
     name = request.form.to_dict()['name']
+
+    # check for the list name duplication
+    if name in [paper_list.name for paper_list in current_user.lists]:
+        logging.error('Error attempt to add duplicated list. Request %r', request.form.to_dict())
+        return dumps({'success': False}), 422
 
     n_list = PaperList(name=name,
                        order=999,
