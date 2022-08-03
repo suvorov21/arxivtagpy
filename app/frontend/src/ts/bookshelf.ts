@@ -28,10 +28,13 @@ const renderLists = (): void => {
         }
         link.textContent = list.name;
         if (list.auto) {
-            link.innerHTML += " <i class=\"fa fa-android\" aria-hidden=\"true\"></i>";
+            const android = document.createElement("i");
+            android.className = "fa fa-android";
+            link.textContent += " "
+            link.appendChild(android);
+            console.log(list.name);
         }
         if (list.not_seen !== 0) {
-            link.textContent += " ";
             const badge = document.createElement("span");
             badge.className = "badge bg-light text-dark";
             badge.textContent = String(list.not_seen);
