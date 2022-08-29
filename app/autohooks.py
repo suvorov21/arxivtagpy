@@ -492,7 +492,7 @@ def rss_feed(token):
         if len(paper.tags) > 0:
             fe = fg.add_entry()
             prefix = 'https'
-            fe.id(f'{prefix}://{request.headers["Host"]}/rss/id/{paper["id"]}')
+            fe.id(f'{prefix}://{request.headers["Host"]}/rss/id/{paper.id}')
             fe.title(paper.title)
             fe.author(name=paper.author)
             fe.description(paper.abstract)
