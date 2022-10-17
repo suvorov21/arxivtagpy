@@ -131,7 +131,7 @@ window.onload = () => {
             "Do you want to unsubscribe from all your tag email feeds?",
             "btn btn-warning",
             "",
-            "/noEmail"
+            "/settings/noEmail"
         )
     });
     (document.getElementById("mod-set") as HTMLFormElement).addEventListener("submit",  (event: Event) => {
