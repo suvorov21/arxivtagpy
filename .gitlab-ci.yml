@@ -35,7 +35,7 @@ integration_test:
   tags:
     - custom_runner
   image:
-    python:3.9.9-slim-buster
+    python:3.9.15-slim-buster
   services:
     - postgres:latest
   variables:
