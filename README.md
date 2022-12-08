@@ -1,3 +1,5 @@
+# arXiv tag
+
 ![Release](https://gitlab.com/suvorov21/arxivtagpy/-/badges/release.svg)
 [![Deploy](https://gitlab.com/suvorov21/arxivtagpy/badges/master/pipeline.svg?key_text=deploy)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/master)
 [![Staging](https://gitlab.com/suvorov21/arxivtagpy/badges/develop/pipeline.svg?key_text=staging)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/develop)
@@ -9,14 +11,14 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
 ![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&label=Sonar%20violations&server=https%3A%2F%2Fsonarcloud.io)
 
-# arXiv tag
 Welcome to [arXivtag.com](https://arxivtag.com)!
 
 A server and a [web-page](https://arxivtag.com) for friendly monitoring of the paper submissions at [arXiv.org](https://arxiv.org/).
 
 ![Framework flow](app/frontend/dist/img/scheme_small.png)
 
-### Main features:
+## Main features
+
 1. Create **tags with rules for keywords in title, abstract, and author list**. One can use logical operators (or/and/negation), regular expressions, and TeX formulas. The paper feed is sorted based on your preferences. View the most interesting papers on top!
 2. RSS feed based on the tag settings
 3. Papers suitable with a given tag are **bookmarked automatically**.
@@ -33,7 +35,7 @@ Detailed features description and screenshot gallery at [arxivtag.com](https://a
 Project maintaining requires some amount of coffee and money for server hosting.
 If you like the project, your support is welcome.
 
-[![](https://www.paypalobjects.com/en_US/FR/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=LQKRDE4T6NU4G)
+[![donate](https://www.paypalobjects.com/en_US/FR/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=LQKRDE4T6NU4G)
 
 ## Development
 
@@ -47,15 +49,15 @@ docker-compose build && docker-compose up
 
 The website is accessible with a browser at `http://0.0.0.0:8000/`
 
-The bulk paper download for the last month could be triggered with 
+The bulk paper download for the last month could be triggered with
 `curl -L -X POST "http://0.0.0.0:8000/load_papers?token=test_token"`
-
 
 ### Python venv
 
 Server can be run without Docker, just with a system python and postgres. The python3 >= 3.6 is required.
 
 To do so, create the virtual environment
+
 ```bash
 python3 -m venv varxiv
 . varxiv/bin/activate
@@ -83,4 +85,3 @@ flask run
 ```
 
 The website access is the same as for the Docker run.
-
