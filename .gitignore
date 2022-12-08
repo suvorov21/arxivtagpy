@@ -16,7 +16,10 @@ cert2/*
 .coverage
 coverage.xml
 *.log
+.env
 .vscode/*
 data/*
+migrations/*
 HELP/*
 app/frontend/src/node_modules/*
+app/frontend/src/package-lock.json
