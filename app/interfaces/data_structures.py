@@ -68,7 +68,7 @@ class PaperInterface:
                 'cats': self.cats,
                 'tags': self.tags,
                 'ref_web': ArxivOaiApi.get_ref_web(self.paper_id, self.version),
-                'ref_pdf': ArxivOaiApi.get_ref_web(self.paper_id, self.version),
+                'ref_pdf': ArxivOaiApi.get_ref_pdf(self.paper_id, self.version),
                 'ref_doi': resolve_doi(self.doi)
                 }
 
