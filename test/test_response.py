@@ -484,7 +484,16 @@ class TestAutoHooks:
         assert 'deleted' in loads(response.get_data())
 
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
-                                       until='2019-09-10'
+                                       until='2030-09-10'
+                                       ),
+                                headers={"token": "test_token"} # nosec
+                                )
+        assert response.status_code == 201
+        assert 'deleted' in loads(response.get_data())
+
+        response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
+                                       until='2030-09-10',
+                                       force=True
                                        ),
                                 headers={"token": "test_token"} # nosec
                                 )
