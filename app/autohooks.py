@@ -47,7 +47,7 @@ def check_token(funct):
 
     @wraps(funct)
     def my_wrapper(*args, **kwargs):
-        if current_app.config['TOKEN'] != request.args.get('token'):
+        if current_app.config['TOKEN'] != request.headers.get('token'):
             logging.error('Wrong token')
             return dumps({'success': False}), 422
         return funct(*args, **kwargs)

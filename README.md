@@ -50,7 +50,7 @@ docker-compose build && docker-compose up
 The website is accessible with a browser at `http://0.0.0.0:8000/`
 
 The bulk paper download for the last month could be triggered with
-`curl -L -X POST "http://0.0.0.0:8000/load_papers?token=test_token"`
+`curl -L -X POST -H "token:test_token" "http://0.0.0.0:8000/load_papers"`
 
 ### Python venv
 

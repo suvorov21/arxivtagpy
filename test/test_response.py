@@ -324,18 +324,18 @@ class TestAutoHooks:
     """
     def test_wrong_token(self, client):
         """Test access of the auto functions with wrong token."""
-        response = client.post(url_for(ROOT_LOAD,  # nosec
-                                       token='wrong_token',  # nosec
-                                       ))
+        response = client.post(url_for(ROOT_LOAD),
+                               headers={"token": "wrong_token"} # nosec
+                               )
         assert response.status_code == 422
 
     def test_paper_bookmark(self, client, papers, user):
         """Test auto bookmark papers."""
         user.tags[0].bookmark = True
         db.session.commit()
-        response = client.post(url_for('auto_bp.bookmark_papers',  # nosec
-                                       token='test_token'  # nosec
-                                       ))
+        response = client.post(url_for('auto_bp.bookmark_papers'),
+                               headers={"token": "test_token"} # nosec
+                               )
         assert response.status_code == 201
 
     def test_paper_bookmark_range(self, client, papers, user):
@@ -343,9 +343,10 @@ class TestAutoHooks:
         user.tags[0].bookmark = True
         db.session.commit()
         response = client.post(url_for('auto_bp.bookmark_papers',  # nosec
-                                       token='test_token',  # nosec
                                        start_date='2020-10-11'
-                                       ))
+                                       ),
+                                headers={"token": "test_token"} # nosec
+                                )
         assert response.status_code == 201
 
     def test_paper_email(self, client, papers, user, tmp_user):
@@ -356,9 +357,10 @@ class TestAutoHooks:
         db.session.commit()
         with mail.record_messages() as outbox:
             response = client.post(url_for('auto_bp.email_papers',  # nosec
-                                           token='test_token',  # nosec
                                            do_send=True
-                                           ))
+                                           ),
+                                    headers={"token": "test_token"} # nosec
+                                    )
             assert response.status_code == 201
             assert len(outbox) == 0
 
@@ -370,9 +372,10 @@ class TestAutoHooks:
 
         with mail.record_messages() as outbox:
             response = client.post(url_for('auto_bp.email_papers',  # nosec
-                                           token='test_token',  # nosec
                                            do_send=True
-                                           ))
+                                           ),
+                                    headers={"token": "test_token"} # nosec
+                                    )
             assert response.status_code == 201
             assert len(outbox) == 2
             assert outbox[0].recipients == [EMAIL]
@@ -424,13 +427,14 @@ class TestAutoHooks:
     def test_load_papers(self, client):
         """Test paper loading."""
         response = client.post(url_for(ROOT_LOAD,  # nosec
-                                       token='test_token',  # nosec
                                        n_papers=1500,
                                        set='physics:hep-ex',
                                        do_update='True',
                                        start_date='2020-10-11',
                                        until='2020-12-20'
-                                       ))
+                                       ),
+                                headers={"token": "test_token"} # nosec
+                                )
         assert response.status_code == 201
 
     def test_rss(self, client, papers, login):
@@ -457,31 +461,33 @@ class TestAutoHooks:
     def test_paper_delete(self, client, papers, login):
         """Test paper delete endpoint."""
         # no date --> error
-        response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
-                                       token='test_token'
-                                       )
+        response = client.post(url_for(ROOT_DEL_PAPERS),
+                               headers={"token": "test_token"} # nosec
                                )
         assert response.status_code == 422
         assert 'deleted' not in loads(response.get_data())
 
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
-                                       token='test_token',  # nosec
                                        days=1
-                                       ))
+                                       ),
+                               headers={"token": "test_token"} # nosec
+                               )
         assert response.status_code == 201
         assert loads(response.get_data())['deleted'] > 0
 
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
-                                       token='test_token',  # nosec
                                        week=1
-                                       ))
+                                       ),
+                                headers={"token": "test_token"} # nosec
+                                )
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
 
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
-                                       token='test_token',  # nosec
                                        until='2019-09-10'
-                                       ))
+                                       ),
+                                headers={"token": "test_token"} # nosec
+                                )
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
 
