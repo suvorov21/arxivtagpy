@@ -122,9 +122,9 @@ def papers(app):
     """Papers downloader."""
     with app.app_context(), app.test_request_context():
         requests.post(url_for('auto_bp.load_papers',  # nosec
-                              token='test_token',  # nosec
                               n_papers=500,
                               set='physics:hep-ex',
                               _external=True
-                              )
+                              ),
+                      headers={"token": "test_token"} # nosec
                       )

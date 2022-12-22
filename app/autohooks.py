@@ -47,7 +47,7 @@ def check_token(funct):
 
     @wraps(funct)
     def my_wrapper(*args, **kwargs):
-        if current_app.config['TOKEN'] != request.args.get('token'):
+        if current_app.config['TOKEN'] != request.headers.get('token'):
             logging.error('Wrong token')
             return dumps({'success': False}), 422
         return funct(*args, **kwargs)
@@ -161,10 +161,17 @@ def delete_papers():
         logging.error('Options are not provided. Exit to prevent DB damage.')
         return dumps({'success': False}), 422
 
-    to_delete = Paper.query.filter(Paper.date_up < until_date)
+    if request.args.get('force'):
+        to_delete = Paper.query.filter(Paper.date_up < until_date)
+    else:
+        # WARNING may be not so elegant and fast
+        bookmarked = db.session.query(paper_associate.columns.paper_ref_id).distinct(paper_associate.columns.paper_ref_id)
+        to_delete = db.session.query(Paper).filter(Paper.id.not_in(bookmarked))
+
+    #  Paper.date_up < until_date)
     logging.info('Deleting %i papers', len(to_delete.all()))
     n_deleted = len(to_delete.all())
-    to_delete.delete()
+    to_delete.delete(synchronize_session=False)
     db.session.commit()
 
     logging.info('All papers until %r are deleted.', until_date)

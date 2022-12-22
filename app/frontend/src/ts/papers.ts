@@ -554,7 +554,7 @@ const renderNov = (): void =>  {
 
 const renderCounters = (): void => {
     const nCats = __CATS__.length;
-    if (typeof DATA.ncat === "undefined" || DATA.ncat.length !== nCats) {
+    if (typeof DATA.ncat === "undefined" || DATA.ncat === null || DATA.ncat.length !== nCats) {
         return;
     }
     for(let catId = 0; catId < nCats; catId++) {
@@ -603,7 +603,7 @@ const listClick = (event: MouseEvent): void => {
         target = target.parentElement;
     }
     const num = target.getAttribute("id");
-    const paper = DATA.papers[`${BOOK_BTN}`];
+    const paper = DATA.papersVis[`${BOOK_BTN}`];
     // paper ID w/o version is a unique identifier of the paper record in DB
     $.post(url, {"paper_id": paper.id.split("v")[0],
         "list_id": num
