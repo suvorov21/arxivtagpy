@@ -603,7 +603,7 @@ const listClick = (event: MouseEvent): void => {
         target = target.parentElement;
     }
     const num = target.getAttribute("id");
-    const paper = DATA.papers[`${BOOK_BTN}`];
+    const paper = DATA.papersVis[`${BOOK_BTN}`];
     // paper ID w/o version is a unique identifier of the paper record in DB
     $.post(url, {"paper_id": paper.id.split("v")[0],
         "list_id": num
