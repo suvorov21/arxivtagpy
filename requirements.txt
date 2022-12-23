@@ -80,3 +80,4 @@ WTForms==3.0.1
 zipp==3.11.0
 zope.event==4.5.0
 zope.interface==5.5.2
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
