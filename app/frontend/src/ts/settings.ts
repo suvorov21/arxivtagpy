@@ -2,7 +2,7 @@
 import {raiseAlert, Tag} from "./layout";
 import {List} from "./paper_basic";
 
-type settings = Array<List> | Array<string> | Array<Tag>;
+type settings = (List | string | Tag)[]
 
 declare const bootstrap;
 

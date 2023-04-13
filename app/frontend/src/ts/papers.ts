@@ -558,16 +558,16 @@ const renderCounters = (): void => {
         return;
     }
     for(let catId = 0; catId < nCats; catId++) {
-        document.getElementById("cat-count-" + String(catId)).textContent = DATA.ncat[`${catId}`];
+        document.getElementById("cat-count-" + String(catId)).textContent = String(DATA.ncat[`${catId}`]);
     }
 
     for(let novId = 0; novId < 3; novId++) {
-        document.getElementById("nov-count-" + String(novId)).textContent = DATA.nnov[`${novId}`];
+        document.getElementById("nov-count-" + String(novId)).textContent = String(DATA.nnov[`${novId}`]);
     }
 
     const nTags = __TAGS__.length;
     for (let tagId = 0; tagId < nTags; tagId++) {
-        document.getElementById("tag-count-" + String(tagId)).textContent = DATA.ntag[`${tagId}`];
+        document.getElementById("tag-count-" + String(tagId)).textContent = String(DATA.ntag[`${tagId}`]);
     }
 }
 

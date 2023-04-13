@@ -10,6 +10,9 @@ export interface Tag {
     rule?: string;
     vis?: boolean;
     order?: number;
+    bookmark?: boolean;
+    email?: boolean;
+    public?: boolean;
     userss?: boolean;
 }
 

@@ -344,18 +344,18 @@ const tableRowClick = (event: MouseEvent): void => {
     }
     // assume click is done on a cell, thus the row is a parent element
     const row = (event.target as HTMLElement).parentElement;
-    for (let childId = 0; childId < row.childNodes.length; childId++) {
+    for (let childId = 0; childId < row.children.length; childId++) {
         if (newTag) {
             document.getElementById("add-tag").click();
         }
-        if (!row.childNodes[`${childId}`].className) {
+        if (!row.children[`${childId}`].className) {
             continue;
         }
-        if (row.childNodes[`${childId}`].className.includes("name")) {
-            document.forms["add-tag"]["tag_name"].value = row.childNodes[`${childId}`].textContent;
+        if (row.children[`${childId}`].className.includes("name")) {
+            document.forms["add-tag"]["tag_name"].value = row.children[`${childId}`].textContent;
         }
-        if (row.childNodes[`${childId}`].className.includes("rule")) {
-            document.forms["add-tag"]["tag_rule"].value = row.childNodes[`${childId}`].textContent;
+        if (row.children[`${childId}`].className.includes("rule")) {
+            document.forms["add-tag"]["tag_rule"].value = row.children[`${childId}`].textContent;
         }
     }
     makeTagEdited();
