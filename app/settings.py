@@ -253,7 +253,7 @@ def default_data():
     data['version'] = current_app.config['VERSION']
     data['sentry'] = ''
     if current_app.config['SENTRY_HOOK']:
-        data['sentry'] = 'long'
+        data['sentry'] = current_app.config['SENTRY_DETAILS']
         data['sentry_dsn'] = current_app.config['SENTRY_HOOK']
         data['sentry_key'] = current_app.config['SENTRY_HOOK'].split('//')[1].split('@')[0]
     if 'pref' in session:

@@ -45,14 +45,9 @@ def app_init():
     if app.config['SENTRY_HOOK']:
         sentry_sdk.init(
             dsn=app.config['SENTRY_HOOK'],
-            integrations=[FlaskIntegration()],
             environment=environ['SERVER_CONF'].split('.')[1],
             release=app.config['VERSION'],
-
-            # Set traces_sample_rate to 1.0 to capture 100%
-            # of transactions for performance monitoring.
-            # We recommend adjusting this value in production.
-            traces_sample_rate=1.0
+            traces_sample_rate=app.config['SENTRY_RATE']
         )
 
     db.init_app(app)

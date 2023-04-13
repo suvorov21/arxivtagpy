@@ -26,6 +26,8 @@ class Config:
     # Sentry config
     SENTRY_HOOK = environ.get('SENTRY_HOOK')
     VERSION = environ.get('VERSION')
+    SENTRY_DETAILS = environ.get('SENTRY_DETAILS')
+    SENTRY_RATE = environ.get('SENTRY_RATE')
 
     # email config
     MAIL_SERVER = environ.get('MAIL_SERVER')
