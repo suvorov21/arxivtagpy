@@ -69,6 +69,12 @@ def check_orcid_credits(funct):
 def orcid_signin(driver, wait, **kwargs):
     """Attempt to sign in ORCID system."""
     try:
+        # accept cookies
+        element = wait_load(wait, By.ID, 'onetrust-accept-btn-handler')
+        element.click()
+    except TimeoutException:
+        pass
+    try:
         element = wait_load(wait, By.ID, 'signin-button')
         driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
         driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
