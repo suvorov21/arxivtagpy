@@ -93,7 +93,10 @@ const selectActivePage = (): void => {
     }
 
     // make the current page active
-    document.getElementById("Page" + PAGE.toString()).classList.add("active");
+    const pageElement = document.getElementById("Page" + PAGE.toString());
+    if (pageElement !== undefined) {
+        pageElement.classList.add("active");
+    }
 };
 
 const pageChange = (p = 1, push = true): void => {
