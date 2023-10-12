@@ -206,7 +206,7 @@ const renderPapers = (): void => {
     // prevent UB in case of pressing "back" button,
     // If number of visible papers if too low to go to s specified page,
     // then go to 1st one
-    if (start >= DATA.papersVis.length) {
+    if (DATA.papersVis === undefined || start >= DATA.papersVis.length) {
         pageChange(1, true);
         start = 0;
     }
@@ -554,7 +554,7 @@ const renderNov = (): void =>  {
 
 const renderCounters = (): void => {
     const nCats = __CATS__.length;
-    if (typeof DATA.ncat === "undefined" || DATA.ncat === null || DATA.ncat.length !== nCats) {
+    if (DATA.ncat === undefined || DATA.ncat === null || DATA.ncat.length !== nCats) {
         return;
     }
     for(let catId = 0; catId < nCats; catId++) {
@@ -626,7 +626,7 @@ const listClick = (event: MouseEvent): void => {
 const renderLists = (): void => {
     /** Render pop-up window with page lists
      */
-    if (typeof DATA.lists === "undefined" || DATA.lists.length === 0) {
+    if (DATA.lists === undefined || DATA.lists.length === 0) {
         return;
     }
     DATA.lists.forEach((list: List) => {
