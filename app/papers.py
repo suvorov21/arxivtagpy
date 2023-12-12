@@ -170,7 +170,7 @@ def parse_simple_rule(paper: PaperInterface, condition: str) -> bool:
 
     search_target = paper[prefix]
     if not search_target:
-        logging.error('Prefix is unknown %r', prefix)
+        logging.warning("Paper `%s` doesn't have data for prefix: %r", paper.title, prefix)
     # in case of
     # 1. author
     # 2. Paper category
