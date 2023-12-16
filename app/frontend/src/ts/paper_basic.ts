@@ -45,7 +45,7 @@ export interface Data {
     ncat: Array<number>;
     ntag: Array<number>;
     // visible papers that are selected according to checkbox set
-    papersVis?: Array<Paper> | undefined
+    papersVis: Array<Paper> | undefined
 }
 
 declare const __TAGS__: Array<Tag>;

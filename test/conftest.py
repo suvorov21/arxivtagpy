@@ -27,7 +27,7 @@ DEFAULT_LIST = 'Favourite'
 def make_user(email):
     """Make a default user."""
     user1 = User(email=email,
-                 pasw=generate_password_hash(PASS),
+                 pasw=generate_password_hash(PASS), # NOSONAR
                  created=datetime.now(),
                  login=datetime.now(),
                  last_paper=datetime.now() - timedelta(days=4),

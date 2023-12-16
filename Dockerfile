@@ -15,7 +15,8 @@ RUN python3 -m pip install -r requirements.txt
 RUN apt update && \
     apt install curl -y && \
     curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt install -y nodejs
+    apt install -y nodejs && \
+    apt-get clean && \
 
 RUN cd app/frontend/src/ \
     npm install \

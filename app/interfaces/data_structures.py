@@ -8,6 +8,7 @@ from .model import Paper, Tag, PaperList
 from ..utils import resolve_doi, accents
 from ..paper_api import ArxivOaiApi
 
+DATA_FORMAT = '%d %B'
 
 class PaperInterface:
     """Stores the info about paper."""
@@ -221,8 +222,8 @@ class PaperResponse:
             self.title = datetime.strftime(new, '%A, %d %B')
             return
         if date in ('week', 'month'):
-            self.title = datetime.strftime(old, '%d %B') + ' - ' + \
-                         datetime.strftime(new, '%d %B')
+            self.title = datetime.strftime(old, DATA_FORMAT) + ' - ' + \
+                         datetime.strftime(new, DATA_FORMAT)
             return
         if date == 'range':
             if old.date() == new.date():
@@ -230,11 +231,11 @@ class PaperResponse:
                 return
 
             self.title = 'from ' + \
-                         datetime.strftime(old, '%d %B') + ' until ' + \
-                         datetime.strftime(new, '%d %B')
+                         datetime.strftime(old, DATA_FORMAT) + ' until ' + \
+                         datetime.strftime(new, DATA_FORMAT)
             return
         if date == 'last':
-            self.title = ' on ' + datetime.strftime(old, '%d %B')
+            self.title = ' on ' + datetime.strftime(old, DATA_FORMAT)
             return
 
         if date == 'unseen':

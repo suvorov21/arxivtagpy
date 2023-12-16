@@ -242,7 +242,7 @@ def get_unseen_papers(cats: List[str],
             if (announce_date - timedelta(days=i)).weekday() > 4:
                 # no announcements on weekends
                 continue
-            old_date_tmp, new_date_tmp, new_date = get_date_range(
+            old_date_tmp, _, new_date = get_date_range(
                                 'today',
                                 announce_date - timedelta(days=i)
                                 )

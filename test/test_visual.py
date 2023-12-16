@@ -58,7 +58,6 @@ def check_orcid_credits(funct):
         kwargs['passw'] = environ.get('ORCID_PASSW')
         if not kwargs['login'] or not kwargs['passw']:
             print('WARNING! Test is skipped as no ORCID credentials are provided')
-            assert True
             return None
 
         return funct(*args, **kwargs)
