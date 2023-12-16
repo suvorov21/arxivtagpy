@@ -1,6 +1,7 @@
 stages:
   - build
   - test
+  - sonar
   - deploy
 
 include:
@@ -55,12 +56,40 @@ integration_test:
     - coverage xml -o coverage.xml
     - wget https://coverage.codacy.com/get.sh
     - . get.sh report -r coverage.xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
+    paths:
+      - coverage.xml
     reports:
       coverage_report:
         coverage_format: cobertura
         path: coverage.xml
       junit: report.xml
+
+
+variables:
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+  GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+sonarcloud-check:
+  stage: sonar
+  needs:
+    - job: integration_test
+      artifacts: true
+  tags:
+    - custom_runner
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - sonar-scanner
+  only:
+    - merge_requests
+    - master
+    - develop
 
 stage_to_beta:
   stage: deploy
@@ -87,39 +116,3 @@ prod:
     - source update.sh
   only:
     - master
-
-# stage_to_beta:
-#   stage: stage
-#   image:
-#     alpine:latest
-#   before_script:
-#     - apk add lftp
-#   script:
-#     - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/beta/flask/; bye"
-#   only:
-#     - develop
-
-# production_ftp:
-#   type: deploy
-#   stage: production
-#   image:
-#     alpine:latest
-#   before_script:
-#     - apk add lftp
-#   script:
-#     - lftp -e "set ssl:verify-certificate no; open $FTP_HOST; user $FTP_NAME $FTP_PASS; mirror -X .* -X .*/ -X __pycache__/* -X *.wsgi -X wsgi.py -X .env -X *.json -X *.log --reverse --verbose --delete /builds/suvorov21/arxivtagpy/ public_html/prod/flask/; bye"
-#   only:
-#     - master
-
-# HEROKU PRODUCTION
-# production_heroku:
-#     type: deploy
-#     stage: production
-#     before_script:
-#       - apt-get update -qy
-#       - apt-get install -y ruby-dev
-#       - gem install dpl
-#     script:
-#         - dpl --provider=heroku --skip_cleanup --app=$ARXIVTAG_PRODUCTION --api-key=$HEROKU_API_KEY
-#     only:
-#         - master
