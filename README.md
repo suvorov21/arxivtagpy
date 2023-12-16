@@ -1,15 +1,14 @@
 # arXiv tag
 
 ![Release](https://gitlab.com/suvorov21/arxivtagpy/-/badges/release.svg)
+
+[![Website arxivtag.com](https://img.shields.io/website-up-down-green-red/http/arxivtag.com.svg)](http://arxivtag.com/)
 [![Deploy](https://gitlab.com/suvorov21/arxivtagpy/badges/master/pipeline.svg?key_text=deploy)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/master)
 [![Staging](https://gitlab.com/suvorov21/arxivtagpy/badges/develop/pipeline.svg?key_text=staging)](https://gitlab.com/suvorov21/arxivtagpy/-/commits/develop)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=suvorov21_arxivtagpy)
 [![Codacy](https://app.codacy.com/project/badge/Grade/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/manual/suvorov21/arxivtagpy?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=suvorov21/arxivtagpy&amp;utm_campaign=Badge_Grade)
 [![Coverage](https://app.codacy.com/project/badge/Coverage/eea7048694ce444b8f1f1329cbc010d6)](https://www.codacy.com/gl/suvorov21/arxivtagpy/dashboard?utm_source=gitlab.com&utm_medium=referral&utm_content=suvorov21/arxivtagpy&utm_campaign=Badge_Coverage)
-
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=alert_status)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=suvorov21_arxivtagpy&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=suvorov21_arxivtagpy)
-![Sonar Violations (long format)](https://img.shields.io/sonar/violations/suvorov21_arxivtagpy?format=long&label=Sonar%20violations&server=https%3A%2F%2Fsonarcloud.io)
 
 Welcome to [arXivtag.com](https://arxivtag.com)!
 
