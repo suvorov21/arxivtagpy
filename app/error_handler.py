@@ -36,7 +36,7 @@ def handle_csrf_error(error):
 def handle_exception(error):
     """Error handler."""
     if isinstance(error, HTTPException):
-        logging.info('HTTP error %r', error)
+        logging.debug('HTTP error %r', error)
         if error.code in (404, 405):
             pref = 'http'
             line2 = f'Go to <a href="{pref}://{request.headers.get("Host")}">main page</a>'
