@@ -5,7 +5,10 @@ import secrets
 import string
 import logging
 import re
+from json import dumps
+
 import requests
+from sqlalchemy import text
 
 from werkzeug.security import check_password_hash, \
     generate_password_hash
@@ -44,6 +47,16 @@ def load_user(user_id):
         usr = User.query.get(user_id)
         return usr
     return None
+
+@auth_bp.route('/status', methods=['GET'])
+def status():
+    try:
+        db.session.execute(text('SELECT 1'))
+    except:
+        logging.error('Failed to connect to database')
+        return dumps({'status': 'failed'}), 500
+
+    return dumps({'status': 'ok'}), 200
 
 
 @auth_bp.route('/login', methods=['POST'])
