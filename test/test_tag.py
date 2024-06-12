@@ -3,11 +3,12 @@
 
 from copy import copy
 from typing import Generator
-from flask import url_for
-import pytest
 
-from app.papers import tag_suitable
+import pytest
+from flask import url_for
+
 from app.interfaces.data_structures import PaperInterface
+from app.papers import tag_suitable
 
 
 @pytest.fixture(scope='function')

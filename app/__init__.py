@@ -18,7 +18,6 @@ from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 
 import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
 
 # read .env file with configurations
 load_dotenv()
@@ -47,7 +46,8 @@ def app_init():
             dsn=app.config['SENTRY_HOOK'],
             environment=environ['SERVER_CONF'].split('.')[1],
             release=app.config['VERSION'],
-            traces_sample_rate=app.config['SENTRY_RATE']
+            traces_sample_rate=app.config['SENTRY_RATE'],
+            profiles_sample_rate=1.0
         )
 
     db.init_app(app)

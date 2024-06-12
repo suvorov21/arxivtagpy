@@ -4,11 +4,11 @@ Papers parsers utils.
 Tag processor checks if a given paper is suitable with the tag
 """
 
-from re import search, compile, IGNORECASE, error
-from datetime import datetime, timedelta
 import logging
-
+from datetime import datetime, timedelta
+from re import search, compile, IGNORECASE, error
 from typing import List, Tuple
+
 from sentry_sdk import start_transaction
 
 from .interfaces.data_structures import PaperInterface, PaperResponse, TagInterface
@@ -137,7 +137,7 @@ def tag_suitable(paper: PaperInterface, rule: str) -> bool:
     # process logic OR
     if len(or_pos) > 2:
         for num, pos in enumerate(or_pos[:-1]):
-            if tag_suitable(paper, rule[pos+1:or_pos[num+1]]):
+            if tag_suitable(paper, rule[pos + 1:or_pos[num + 1]]):
                 return True
 
     # if logic OR was found but True was not returned before
@@ -150,7 +150,7 @@ def tag_suitable(paper: PaperInterface, rule: str) -> bool:
 
     # process logic AND
     for num, pos in enumerate(and_pos[:-1]):
-        if not tag_suitable(paper, rule[pos+1:and_pos[num+1]]):
+        if not tag_suitable(paper, rule[pos + 1:and_pos[num + 1]]):
             return False
 
     # if logic AND is inside the rule but False was not found
@@ -238,14 +238,14 @@ def get_unseen_papers(cats: List[str],
     """Get unseen papers from DB."""
     result = []
     for i in range(recent_range - 1):
-        if not 2**i & recent_visit:
+        if not 2 ** i & recent_visit:
             if (announce_date - timedelta(days=i)).weekday() > 4:
                 # no announcements on weekends
                 continue
             old_date_tmp, _, new_date = get_date_range(
-                                'today',
-                                announce_date - timedelta(days=i)
-                                )
+                'today',
+                announce_date - timedelta(days=i)
+            )
 
             old_date = get_arxiv_sub_start(old_date_tmp.date())
             result.extend(get_papers(cats, old_date, new_date))

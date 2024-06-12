@@ -4,11 +4,10 @@ import logging
 import smtplib
 from typing import List, Dict
 
-from flask_mail import Message
 from flask_login import current_user
+from flask_mail import Message
 
 from . import mail
-
 from .interfaces.model import PaperList, db, UpdateDate
 from .utils import month_start
 

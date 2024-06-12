@@ -1,30 +1,27 @@
 """Authority utilities: login, pass check, account management."""
 
-from datetime import datetime, timezone, timedelta
-import secrets
-import string
 import logging
 import re
+import secrets
+import string
+from datetime import datetime, timezone, timedelta
 from json import dumps
 
 import requests
-from sqlalchemy import text
-
-from werkzeug.security import check_password_hash, \
-    generate_password_hash
-
 from flask import Blueprint, render_template, flash, redirect, \
     request, current_app, url_for, session
 from flask_login import login_user, logout_user, \
     current_user, login_required
 from flask_mail import Message
+from sqlalchemy import text
+from werkzeug.security import check_password_hash, \
+    generate_password_hash
 
-from .import login_manager
-
+from . import login_manager
 from .interfaces.model import db, User, PaperList, Tag
+from .settings import default_data
 from .utils import encode_token, decode_token, DecodeException
 from .utils_app import mail_catch
-from .settings import default_data
 
 DEFAULT_LIST = 'Favourite'
 
@@ -47,6 +44,7 @@ def load_user(user_id):
         usr = User.query.get(user_id)
         return usr
     return None
+
 
 @auth_bp.route('/status', methods=['GET'])
 def status():
@@ -279,10 +277,11 @@ def restore_pass():
 def oath():
     """Authentication with ORCID API."""
     code = request.args.get('code')
-    headers = {'Accept': 'application/json'}
+    headers = {'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'}
     prefix = 'https'
     if current_app.config['TESTING'] or current_app.config['DEBUG']:
         prefix = 'http'
+
     data = {'client_id': current_app.config["ORCID_APP"],
             'client_secret': current_app.config["ORCID_SECRET"],
             'grant_type': 'authorization_code',
@@ -544,6 +543,7 @@ def orcid():
     prefix = 'https'
     if current_app.config['TESTING'] or current_app.config['DEBUG']:
         prefix = 'http'
+
     href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
                                  '/oauth/authorize?client_id=',
                                  current_app.config['ORCID_APP'],

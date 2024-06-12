@@ -1,15 +1,14 @@
 """Settings management: settings page and settings changes."""
 
-from json import loads, dumps
-
 import logging
+from json import loads, dumps
 
 from flask import Blueprint, render_template, session, request, \
     current_app, redirect, url_for, flash
 from flask_login import current_user, login_required
 
-from .interfaces.model import db, Tag, PaperList
 from .interfaces.data_structures import TagInterface
+from .interfaces.model import db, Tag, PaperList
 from .utils import cast_args_to_dict, encode_token
 
 settings_bp = Blueprint(

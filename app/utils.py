@@ -1,13 +1,11 @@
 """Some toolkit with utils that are independent of the app."""
 
-from os import linesep
-
-from json import loads, JSONDecodeError
-from typing import List, Dict
 from datetime import datetime, timedelta
+from json import loads, JSONDecodeError
+from os import linesep
+from typing import List, Dict
 
 from flask import current_app, flash
-
 from jwt import decode, encode, InvalidTokenError, ExpiredSignatureError
 
 

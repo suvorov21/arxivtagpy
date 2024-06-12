@@ -1,24 +1,21 @@
 """Test module with selenium."""
 # pylint: disable=redefined-outer-name, no-self-use, unused-argument
 
-from time import sleep
-from os import environ
 from functools import wraps
-
-from test.conftest import EMAIL, PASS, TMP_EMAIL, TMP_PASS
-
-from flask import url_for
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from os import environ
+from time import sleep
 
 import pytest
+from flask import url_for
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from app.interfaces.model import db, User
+from test.conftest import EMAIL, PASS, TMP_EMAIL, TMP_PASS
 
 ROOT = 'main_bp.root'
 ROOT_PAPERS = 'main_bp.papers_list'
@@ -75,7 +72,7 @@ def orcid_signin(driver, wait, **kwargs):
         pass
     try:
         element = wait_load(wait, By.ID, 'signin-button')
-        driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+        driver.find_element(By.ID, 'username-input').send_keys(kwargs['login'])
         driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
         element.click()
     except TimeoutException:
@@ -105,6 +102,7 @@ def signout(driver, wait):
 @pytest.mark.usefixtures('live_server')
 class TestBasicViews:
     """Class for tests with visual driver."""
+
     def test_login(self, user, driver):
         """Test login form."""
         wait = WebDriverWait(driver, 10)
@@ -178,6 +176,7 @@ class TestBasicViews:
 @pytest.mark.usefixtures('live_server')
 class TestSettingsUpdate:
     """Test settings modifications."""
+
     def test_settings_view(self, driver, user):
         """Test settings page load properly."""
         wait = WebDriverWait(driver, 10)
@@ -324,6 +323,7 @@ class TestSettingsUpdate:
 @pytest.mark.usefixtures('live_server')
 class TestOrcid:
     """Test ORCID authorization."""
+
     @check_orcid_credits
     def test_orcid_auth(self, driver, user, **kwargs):
         """Test ORCID authentication."""

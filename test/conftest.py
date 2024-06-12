@@ -1,16 +1,16 @@
 """Test fixtures go there."""
 # pylint: disable=redefined-outer-name
 
-import multiprocessing
-from datetime import datetime, timedelta
 import logging
-import requests
+import multiprocessing
+import os
+from datetime import datetime, timedelta
 
-from werkzeug.utils import import_string
-from werkzeug.security import generate_password_hash
-
-from flask import url_for
 import pytest
+import requests
+from flask import url_for
+from werkzeug.security import generate_password_hash
+from werkzeug.utils import import_string
 
 from app import app_init, db, mail
 from app.interfaces.model import User, Tag
@@ -27,7 +27,7 @@ DEFAULT_LIST = 'Favourite'
 def make_user(email):
     """Make a default user."""
     user1 = User(email=email,
-                 pasw=generate_password_hash(PASS), # NOSONAR
+                 pasw=generate_password_hash(PASS),  # NOSONAR
                  created=datetime.now(),
                  login=datetime.now(),
                  last_paper=datetime.now() - timedelta(days=4),
@@ -52,9 +52,11 @@ def make_user(email):
 def app():
     """Initialize app + user record in db."""
     multiprocessing.set_start_method("fork")
+    os.environ['SERVER_CONF'] = 'configmodule.TestingConfig'
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
+    app.config['SERVER_NAME'] = '127.0.0.1'
     logging.level = logging.DEBUG
     with app.app_context():
         mail.init_app(app)
@@ -122,9 +124,10 @@ def papers(app):
     """Papers downloader."""
     with app.app_context(), app.test_request_context():
         requests.post(url_for('auto_bp.load_papers',  # nosec
+                              _external=True,
                               n_papers=500,
                               set='physics:hep-ex',
-                              _external=True
+
                               ),
-                      headers={"token": "test_token"} # nosec
+                      headers={"token": "test_token"}  # nosec
                       )

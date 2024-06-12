@@ -1,25 +1,23 @@
 """Main blueprint with all the main pages."""
 
+import logging
 from datetime import datetime, timezone, timedelta
 from json import dumps, loads
-import logging
 
 from flask import Blueprint, render_template, session, redirect, request, jsonify, url_for
 from flask_login import current_user, login_required
 from flask_mail import Message
-
 from sqlalchemy import func
 
 from . import mail
-from .interfaces.model import db, Paper, PaperList, paper_associate, Tag
-from .interfaces.data_structures import PaperResponse, PaperInterface, TagInterface
 from .auth import new_default_list
-
-from .papers import process_papers, get_papers, get_unseen_papers, tag_suitable
+from .interfaces.data_structures import PaperResponse, PaperInterface, TagInterface
+from .interfaces.model import db, Paper, PaperList, paper_associate, Tag
 from .paper_api import get_arxiv_sub_start, get_announce_date, get_arxiv_announce_date, get_date_range
-from .utils_app import get_lists_for_current_user, get_old_update_date, update_seen_papers
+from .papers import process_papers, get_papers, get_unseen_papers, tag_suitable
 from .settings import default_data
 from .utils import render_title
+from .utils_app import get_lists_for_current_user, get_old_update_date, update_seen_papers
 
 PAPERS_PAGE = 25
 RECENT_PAPER_RANGE = 10
@@ -198,7 +196,7 @@ def data():
         response.papers = get_papers(cats,
                                      last_paper_date - timedelta(days=int(request.args['date'] == 'today'),
                                                                  weeks=int(request.args['date'] == 'week') +
-                                                                 4 * int(request.args['date'] == 'month')),
+                                                                       4 * int(request.args['date'] == 'month')),
                                      last_paper_date
                                      )
 
@@ -316,7 +314,6 @@ def bookshelf():
                    do_tag=True
                    )
 
-
     # figure out which lists are automatic
     for list in lists:
         # since FE doesn't support boolean transfer as int
@@ -414,9 +411,9 @@ def del_bm():
 @login_required
 def public_tags():
     """Get publicly available tags as examples."""
-    tags = Tag.query.with_entities(Tag.rule, func.max(Tag.name).label("name"))\
-        .filter(Tag.public)\
-        .group_by(Tag.rule)\
+    tags = Tag.query.with_entities(Tag.rule, func.max(Tag.name).label("name")) \
+        .filter(Tag.public) \
+        .group_by(Tag.rule) \
         .all()
     tag_list = [TagInterface.from_name_and_rule(tag).to_name_and_rule() for tag in tags]
 
