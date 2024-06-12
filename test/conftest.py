@@ -2,6 +2,7 @@
 # pylint: disable=redefined-outer-name
 
 import multiprocessing
+import os
 from datetime import datetime, timedelta
 import logging
 import requests
@@ -52,6 +53,7 @@ def make_user(email):
 def app():
     """Initialize app + user record in db."""
     multiprocessing.set_start_method("fork")
+    os.environ['SERVER_CONF'] = 'configmodule.TestingConfig'
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)

@@ -26,15 +26,20 @@
 
   {% if data['sentry'] == 'long' %}
     <script
-      src="https://browser.sentry-cdn.com/7.24.2/bundle.tracing.min.js"
-      integrity="sha384-Nb9Pkx/WZV5kujSYUYEjIqArDFhw1LX9tsEjSylkWLAvjP4kgIQZ47O98EQfeUwX"
-      crossorigin="anonymous"
-    ></script>
+      src="https://browser.sentry-cdn.com/8.9.1/bundle.tracing.replay.min.js"
+      integrity="sha384-zSrSTiVqY2RqdcIAsq98W/J+/mZmeNpjsIN2Xi9Fk837TFp0hGArviVjB/OTV+Ee"
+      crossorigin="anonymous">
+    </script>
     <script type="text/javascript">
-      Sentry.init({ dsn: "{{ data['sentry_dsn'] }}",
-        release: "{{ data['version'] }}",
-        integrations: [new Sentry.Integrations.BrowserTracing()],
-        tracesSampleRate: 1.0,
+      Sentry.onLoad(function() {
+        Sentry.init({
+          dsn: "{{ data['sentry_dsn'] }}",
+          release: "{{ data['version'] }}",
+          integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
+          tracesSampleRate: 1.0,
+          replaysSessionSampleRate: 0.1,
+          replaysOnErrorSampleRate: 1.0
+        });
       });
     </script>
   {% endif %}

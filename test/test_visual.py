@@ -75,7 +75,7 @@ def orcid_signin(driver, wait, **kwargs):
         pass
     try:
         element = wait_load(wait, By.ID, 'signin-button')
-        driver.find_element(By.ID, 'username').send_keys(kwargs['login'])
+        driver.find_element(By.ID, 'username-input').send_keys(kwargs['login'])
         driver.find_element(By.ID, 'password').send_keys(kwargs['passw'])
         element.click()
     except TimeoutException:
