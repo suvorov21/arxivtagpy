@@ -1,17 +1,16 @@
 """Test papers functionality."""
 # pylint: disable=redefined-outer-name, unused-argument, no-self-use
 
-from json import loads
 from datetime import datetime
+from json import loads
 
-from test.conftest import EMAIL, PASS, TMP_EMAIL
-
-from flask import url_for
 import pytest
+from flask import url_for
 
-from app.interfaces.model import Paper, UpdateDate, User, PaperList
 from app import mail, db
+from app.interfaces.model import Paper, UpdateDate, User, PaperList
 from app.utils import encode_token
+from test.conftest import EMAIL, PASS, TMP_EMAIL
 
 ROOT_LOAD = 'auto_bp.load_papers'
 ROOT_DATA = 'main_bp.data'
@@ -25,6 +24,7 @@ ROOT_DEL_PAPERS = 'auto_bp.delete_papers'
 @pytest.mark.usefixtures('live_server')
 class TestMainPages:
     """Main pages simple tests."""
+
     def test_signup_page(self, client):
         """Test sign up page."""
         response = client.get(url_for('auth_bp.signup'))
@@ -73,11 +73,11 @@ class TestMainPages:
         """Test bookmark page with a wrong argument."""
         list_id = User.query.filter_by(email=EMAIL).first().id
         response = client.get(url_for(ROOT_BOOKSHELF,
-                                      list_id=list_id+3
+                                      list_id=list_id + 3
                                       ),
                               follow_redirects=True
                               )
-        assert 'list_id=' + str(list_id+3) not in response.history[-1].location
+        assert 'list_id=' + str(list_id + 3) not in response.history[-1].location
         assert 'list_id=' + str(list_id) in response.history[-1].location
 
     def test_bookshelf_large_page(self, client, login):
@@ -147,6 +147,7 @@ class TestMainPages:
 @pytest.mark.usefixtures('live_server')
 class TestPaperPage:
     """Main paper feed page features."""
+
     def test_paper_api(self, client, papers, login):
         """Test paper API."""
         response5 = client.get(url_for(ROOT_DATA, date='unseen'))
@@ -322,10 +323,11 @@ class TestAutoHooks:
     Automatic functions for paper downloading,
     bookmarking and creating email feeds.
     """
+
     def test_wrong_token(self, client):
         """Test access of the auto functions with wrong token."""
         response = client.post(url_for(ROOT_LOAD),
-                               headers={"token": "wrong_token"} # nosec
+                               headers={"token": "wrong_token"}  # nosec
                                )
         assert response.status_code == 422
 
@@ -334,7 +336,7 @@ class TestAutoHooks:
         user.tags[0].bookmark = True
         db.session.commit()
         response = client.post(url_for('auto_bp.bookmark_papers'),
-                               headers={"token": "test_token"} # nosec
+                               headers={"token": "test_token"}  # nosec
                                )
         assert response.status_code == 201
 
@@ -345,8 +347,8 @@ class TestAutoHooks:
         response = client.post(url_for('auto_bp.bookmark_papers',  # nosec
                                        start_date='2020-10-11'
                                        ),
-                                headers={"token": "test_token"} # nosec
-                                )
+                               headers={"token": "test_token"}  # nosec
+                               )
         assert response.status_code == 201
 
     def test_paper_email(self, client, papers, user, tmp_user):
@@ -359,8 +361,8 @@ class TestAutoHooks:
             response = client.post(url_for('auto_bp.email_papers',  # nosec
                                            do_send=True
                                            ),
-                                    headers={"token": "test_token"} # nosec
-                                    )
+                                   headers={"token": "test_token"}  # nosec
+                                   )
             assert response.status_code == 201
             assert len(outbox) == 0
 
@@ -374,8 +376,8 @@ class TestAutoHooks:
             response = client.post(url_for('auto_bp.email_papers',  # nosec
                                            do_send=True
                                            ),
-                                    headers={"token": "test_token"} # nosec
-                                    )
+                                   headers={"token": "test_token"}  # nosec
+                                   )
             assert response.status_code == 201
             assert len(outbox) == 2
             assert outbox[0].recipients == [EMAIL]
@@ -433,8 +435,8 @@ class TestAutoHooks:
                                        start_date='2020-10-11',
                                        until='2020-12-20'
                                        ),
-                                headers={"token": "test_token"} # nosec
-                                )
+                               headers={"token": "test_token"}  # nosec
+                               )
         assert response.status_code == 201
 
     def test_rss(self, client, papers, login):
@@ -462,7 +464,7 @@ class TestAutoHooks:
         """Test paper delete endpoint."""
         # no date --> error
         response = client.post(url_for(ROOT_DEL_PAPERS),
-                               headers={"token": "test_token"} # nosec
+                               headers={"token": "test_token"}  # nosec
                                )
         assert response.status_code == 422
         assert 'deleted' not in loads(response.get_data())
@@ -470,7 +472,7 @@ class TestAutoHooks:
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        days=1
                                        ),
-                               headers={"token": "test_token"} # nosec
+                               headers={"token": "test_token"}  # nosec
                                )
         assert response.status_code == 201
         assert loads(response.get_data())['deleted'] > 0
@@ -478,16 +480,16 @@ class TestAutoHooks:
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        week=1
                                        ),
-                                headers={"token": "test_token"} # nosec
-                                )
+                               headers={"token": "test_token"}  # nosec
+                               )
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
 
         response = client.post(url_for(ROOT_DEL_PAPERS,  # nosec
                                        until='2030-09-10'
                                        ),
-                                headers={"token": "test_token"} # nosec
-                                )
+                               headers={"token": "test_token"}  # nosec
+                               )
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
 
@@ -495,8 +497,8 @@ class TestAutoHooks:
                                        until='2030-09-10',
                                        force=True
                                        ),
-                                headers={"token": "test_token"} # nosec
-                                )
+                               headers={"token": "test_token"}  # nosec
+                               )
         assert response.status_code == 201
         assert 'deleted' in loads(response.get_data())
 
@@ -508,6 +510,7 @@ class TestSettings:
 
     E.g. categories changes, tags modifications, preferences updates
     """
+
     def test_unsubscribe(self, client, login):
         """Test unsubscribe from all emails."""
         response = client.post(url_for('settings_bp.no_email'))

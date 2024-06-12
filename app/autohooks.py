@@ -6,27 +6,26 @@ Module with daemon functions that work are triggered by hooks.
 3. Emails
 """
 
-from datetime import datetime, timedelta
 import logging
-from json import dumps
+from datetime import datetime, timedelta
 from functools import wraps
+from json import dumps
 from typing import List
 
-from flask import Blueprint, current_app, request, render_template, make_response, redirect, url_for, flash
-from flask_mail import Message
-from flask_login import current_user
-
 from feedgen.feed import FeedGenerator
+from flask import Blueprint, current_app, request, render_template, make_response, redirect, url_for, flash
+from flask_login import current_user
+from flask_mail import Message
 
 from .interfaces.data_structures import PaperInterface, PaperResponse, TagInterface
 from .interfaces.model import User, Tag, db, Paper, \
     paper_associate, PaperCacheDay, PaperCacheWeeks
-from .papers import tag_suitable, process_papers
-from .paper_db import update_papers
 from .paper_api import ArxivOaiApi
+from .paper_db import update_papers
+from .papers import tag_suitable, process_papers
+from .routes import get_papers
 from .utils import decode_token, DecodeException
 from .utils_app import mail_catch, get_or_create_list, get_old_update_date
-from .routes import get_papers
 
 auto_bp = Blueprint(
     'auto_bp',
@@ -165,7 +164,8 @@ def delete_papers():
         to_delete = Paper.query.filter(Paper.date_up < until_date)
     else:
         # WARNING may be not so elegant and fast
-        bookmarked = db.session.query(paper_associate.columns.paper_ref_id).distinct(paper_associate.columns.paper_ref_id)
+        bookmarked = db.session.query(paper_associate.columns.paper_ref_id).distinct(
+            paper_associate.columns.paper_ref_id)
         to_delete = db.session.query(Paper).filter(Paper.id.not_in(bookmarked))
 
     #  Paper.date_up < until_date)

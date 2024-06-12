@@ -3,13 +3,11 @@
 import logging
 import traceback
 
-from werkzeug.exceptions import HTTPException
-
 from flask import render_template, abort, current_app, request, flash, redirect, url_for
 from flask_wtf.csrf import CSRFError
+from werkzeug.exceptions import HTTPException
 
 from .settings import default_data
-
 
 ERROR_TEMPLATE = 'error_main.jinja2'
 
@@ -65,4 +63,4 @@ def handle_exception(error):
 @current_app.route('/error', methods=['GET'])
 def error_path():
     """Error tester endpoint."""
-    return 1/0
+    return 1 / 0

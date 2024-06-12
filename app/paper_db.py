@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import List
 
-from .interfaces.model import db, Paper, Paper, PaperCacheDay, PaperCacheWeeks
+from .interfaces.model import db, Paper, PaperCacheDay, PaperCacheWeeks
 from .utils_app import get_old_update_date
 
 

@@ -1,15 +1,15 @@
 """API for paper downloading."""
 
-from time import sleep
-import defusedxml.ElementTree as ET
-from datetime import datetime, timedelta, time, date, timezone
 import logging
+from datetime import datetime, timedelta, time, date, timezone
 from re import split
+from time import sleep
 from typing import Tuple, Generator, List
 
+import defusedxml.ElementTree as ET
+import urllib3
 from flask import current_app
 from requests import get, exceptions
-import urllib3
 
 from .interfaces.model import Paper
 from .utils import fix_xml
@@ -129,7 +129,7 @@ class ArxivOaiApi:
             updated = datetime.strptime(updated, "%d %b %Y %H:%M:%S GMT")
 
             # use only first doi
-            doi = info.find(self.ARXIV+"doi")
+            doi = info.find(self.ARXIV + "doi")
             if doi is not None:
                 doi = doi.text.split()[0]
 
@@ -184,7 +184,7 @@ def get_arxiv_sub_start(announce_date: date,
     # the situation is equivalent to Friday announcements
     # From Wednesday to Thursday
     if announce_date.weekday() > 4:
-        sub_date_begin -= timedelta(days=sub_date_begin.weekday()-2)
+        sub_date_begin -= timedelta(days=sub_date_begin.weekday() - 2)
 
     # on Monday papers from Thursday to Friday are announced
     if announce_date.weekday() == 0:
@@ -218,14 +218,14 @@ def get_arxiv_sub_end(announce_date: date) -> datetime:
     # the situation is equivalent to Friday announcements
     # From Wednesday to Thursday
     if announce_date.weekday() > 4:
-        sub_date_end -= timedelta(days=sub_date_end.weekday()-3)
+        sub_date_end -= timedelta(days=sub_date_end.weekday() - 3)
     # on Monday papers from Thursday to Friday are announced
     if announce_date.weekday() == 0:
         sub_date_end -= timedelta(days=2)
 
     # arxiv submission deadline is at 17:59
     sub_date_end = datetime.combine(sub_date_end,
-                                    time(hour=deadline_time.hour-1,
+                                    time(hour=deadline_time.hour - 1,
                                          minute=59,
                                          second=59
                                          )
@@ -239,10 +239,10 @@ def get_arxiv_announce_date(paper_sub: datetime) -> datetime:
     deadline_time = current_app.config['ARXIV_DEADLINE_TIME']
     announce_date = paper_sub
     announce_date = announce_date \
-        + timedelta(days=1 if paper_sub.hour < deadline_time.hour else 2)
+                    + timedelta(days=1 if paper_sub.hour < deadline_time.hour else 2)
     if announce_date.weekday() > 4:
         announce_date = announce_date \
-            + timedelta(days=7-announce_date.weekday())
+                        + timedelta(days=7 - announce_date.weekday())
 
     return announce_date
 
@@ -291,9 +291,9 @@ def get_date_range(date_type: str,
 
     if date_type == 'month':
         old_date_tmp = announce_date - \
-                       timedelta(days=announce_date.day-1)
+                       timedelta(days=announce_date.day - 1)
         if old_date_tmp.weekday() > 4:
-            old_date_tmp += timedelta(days=7-old_date_tmp.weekday())
+            old_date_tmp += timedelta(days=7 - old_date_tmp.weekday())
 
         logging.debug("Start for month %r", old_date_tmp)
 

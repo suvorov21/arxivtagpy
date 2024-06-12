@@ -1,16 +1,16 @@
 """authorisation tests."""
 # pylint: disable=redefined-outer-name. unused-argument, no-self-use
 
-from test.conftest import EMAIL, PASS, TMP_EMAIL
 from datetime import datetime, timezone, timedelta
 from time import sleep
 
 import pytest
 from flask import url_for
-from app.utils import encode_token, decode_token, DecodeException
+
 from app import mail
 from app.interfaces.model import User, db
-
+from app.utils import encode_token, decode_token, DecodeException
+from test.conftest import EMAIL, PASS, TMP_EMAIL
 
 ROOT_LOGIN = 'auth_bp.login'
 ROOT_PASSW = 'auth_bp.change_pasw'
@@ -24,6 +24,7 @@ ROOT_VERIFY_EMAIL = 'auth_bp.verify_email_confirm'
 @pytest.mark.usefixtures('live_server')
 class TestAccount:
     """Test account creation and change."""
+
     def test_login(self, client, user):
         """Test login."""
         response = client.post(url_for(ROOT_LOGIN),
@@ -133,6 +134,7 @@ class TestAccount:
 @pytest.mark.usefixtures('live_server')
 class TestPassword:
     """Password related tests."""
+
     def test_change_pass(self, client, tmp_login):
         """Test password change."""
         response = client.post(url_for(ROOT_PASSW),
@@ -208,6 +210,7 @@ class TestPassword:
 @pytest.mark.usefixtures('live_server')
 class TestVerificationConfirmation:
     """Test email change and verification."""
+
     def test_email_verification(self, client, login):
         """Test generation of the email verification email."""
         with mail.record_messages() as outbox:
@@ -344,6 +347,7 @@ class TestVerificationConfirmation:
 @pytest.mark.usefixtures('live_server')
 class TestToken:
     """JWT tests."""
+
     def test_good_token(self):
         """Test token encoding/decoding."""
         payload = {'new': 'very_new'}

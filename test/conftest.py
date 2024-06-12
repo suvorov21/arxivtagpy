@@ -1,17 +1,16 @@
 """Test fixtures go there."""
 # pylint: disable=redefined-outer-name
 
+import logging
 import multiprocessing
 import os
 from datetime import datetime, timedelta
-import logging
-import requests
 
-from werkzeug.utils import import_string
-from werkzeug.security import generate_password_hash
-
-from flask import url_for
 import pytest
+import requests
+from flask import url_for
+from werkzeug.security import generate_password_hash
+from werkzeug.utils import import_string
 
 from app import app_init, db, mail
 from app.interfaces.model import User, Tag
@@ -28,7 +27,7 @@ DEFAULT_LIST = 'Favourite'
 def make_user(email):
     """Make a default user."""
     user1 = User(email=email,
-                 pasw=generate_password_hash(PASS), # NOSONAR
+                 pasw=generate_password_hash(PASS),  # NOSONAR
                  created=datetime.now(),
                  login=datetime.now(),
                  last_paper=datetime.now() - timedelta(days=4),
@@ -130,5 +129,5 @@ def papers(app):
                               set='physics:hep-ex',
 
                               ),
-                      headers={"token": "test_token"} # nosec
+                      headers={"token": "test_token"}  # nosec
                       )

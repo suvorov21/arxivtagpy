@@ -18,7 +18,6 @@ from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 
 import sentry_sdk
-from sentry_sdk.integrations.flask import FlaskIntegration
 
 # read .env file with configurations
 load_dotenv()
