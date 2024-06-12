@@ -57,6 +57,7 @@ def app():
     app = app_init()
     cfg = import_string('configmodule.TestingConfig')
     app.config.from_object(cfg)
+    app.config['SERVER_NAME'] = '127.0.0.1'
     logging.level = logging.DEBUG
     with app.app_context():
         mail.init_app(app)
@@ -124,9 +125,10 @@ def papers(app):
     """Papers downloader."""
     with app.app_context(), app.test_request_context():
         requests.post(url_for('auto_bp.load_papers',  # nosec
+                              _external=True,
                               n_papers=500,
                               set='physics:hep-ex',
-                              _external=True
+
                               ),
                       headers={"token": "test_token"} # nosec
                       )

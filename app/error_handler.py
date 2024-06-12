@@ -37,13 +37,6 @@ def handle_exception(error):
     """Error handler."""
     if isinstance(error, HTTPException):
         logging.debug('HTTP error %r', error)
-        # a Hack to bypass the problem with selenium testing
-        # While the server is run on 127.0.0.1:5678 selenium for some reason uses localhost:5678
-        # ORCID redirect works only with 127.0.0.1:5678, but not with localhost
-        # Thus do the redirect in case of test environment
-        if current_app.config['TESTING'] and request.headers['Host'] == '127.0.0.1:5678' and 'code' in request.args:
-            return redirect('http://localhost:5678' + request.path + f'?code={request.args["code"]}', code=302)
-
         if error.code in (404, 405):
             pref = 'http'
             line2 = f'Go to <a href="{pref}://{request.headers.get("Host")}">main page</a>'

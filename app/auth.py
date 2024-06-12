@@ -281,15 +281,13 @@ def oath():
     code = request.args.get('code')
     headers = {'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded'}
     prefix = 'https'
-    url = f'{prefix}://{request.headers["Host"]}/oath'
     if current_app.config['TESTING'] or current_app.config['DEBUG']:
         prefix = 'http'
-        # Hack error_handler.py:42
-        url = f'{prefix}://{request.headers["Host"].replace("localhost", "127.0.0.1")}/oath',
+
     data = {'client_id': current_app.config["ORCID_APP"],
             'client_secret': current_app.config["ORCID_SECRET"],
             'grant_type': 'authorization_code',
-            'redirect_uri': url,
+            'redirect_uri': f'{prefix}://{request.headers["Host"]}/oath',
             'code': str(code)
             }
 
@@ -545,17 +543,14 @@ def orcid():
         return redirect(url_for(ROOT_SET, page='pref'), code=303)
 
     prefix = 'https'
-    url = f'{prefix}://{request.headers["Host"]}/oath'
     if current_app.config['TESTING'] or current_app.config['DEBUG']:
         prefix = 'http'
-        # Hack error_handler.py:42
-        url = f'{prefix}://{request.headers["Host"].replace("localhost", "127.0.0.1")}/oath'
 
     href = '{}{}{}{}{}{}'.format(current_app.config['ORCID_URL'],
                                  '/oauth/authorize?client_id=',
                                  current_app.config['ORCID_APP'],
                                  '&response_type=code&scope=/authenticate',
                                  '&redirect_uri=',
-                                 url
+                                 f'{prefix}://{request.headers["Host"]}/oath'
                                  )
     return redirect(href, code=303)
