@@ -321,7 +321,7 @@ const filterVisiblePapers = (): void => {
         (document.getElementById("tag-label-0") === null ||
         document.getElementById("tag-label-0").style.borderColor === "transparent");
 
-    if (DATA == null || DATA.papers == null || DATA.papers.length === 0) {
+    if (DATA?.papers == null || DATA.papers.length === 0) {
         console.warn("No papers in DATA.papers during filterVisiblePapers() call");
         document.getElementById("no-paper").style["display"] = "block";
         document.getElementById("loading-papers").style["display"] = "none";

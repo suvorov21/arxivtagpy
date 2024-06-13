@@ -47,10 +47,10 @@ export class Preference {
         const cname = name + "=";
         for (let i = 0; i < cookieDecoded.length; i++) {
             let cook = cookieDecoded[`${i}`];
-            while (cook[0] === " ") {
+            while (cook.startsWith(" ")) {
                 cook = cook.slice(1);
             }
-            if (cook.indexOf(cname) === 0) {
+            if (cook.startsWith(cname)) {
                 const parsedJSON = JSON.parse(cook.substring(cname.length, cook.length));
                 if ("catsArr" in parsedJSON) {
                     this.catsArr = parsedJSON["catsArr"];
@@ -108,7 +108,7 @@ export function raiseAlert(text = "Text", type: alertType="success"): void {
 
 // utility function to access css var
 export function cssVar(name: string, value: string = null): string {
-    if (name[0] !=="-") {
+    if (!name.startsWith("-")) {
         name = "--" + name; //allow passing with or without --
     }
     if (value) {

@@ -18,8 +18,10 @@ RUN apt update && \
     apt install -y nodejs && \
     apt-get clean && \
 
-RUN cd app/frontend/src/ \
-    npm install \
+WORKDIR app/frontend/src/
+RUN npm install \
     npm run build
+
+WORKDIR /usr/src/app
 
 ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
