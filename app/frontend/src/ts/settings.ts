@@ -29,7 +29,7 @@ export const submitSetting = (url: string, set: settings): Promise<boolean> => {
                 raiseAlert("Settings were not saved. Please try later",
                     "danger");
             }
-            reject(false);
+            reject(new Error('Error on settings save'));
         });
     });
 };

@@ -143,7 +143,7 @@ window.onload = () => {
     renderPapers();
     const generalCheck = /[?&]sort=([\w-]+)/i;
     let loc = document.location.href;
-    let found = loc.match(generalCheck);
+    let found = RegExp(generalCheck).exec(loc);
     if (found) {
         (document.getElementById("sort-sel") as HTMLInputElement).value =
             found[1];

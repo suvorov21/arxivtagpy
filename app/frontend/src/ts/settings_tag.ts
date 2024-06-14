@@ -110,8 +110,8 @@ const reloadTags = (hardReload = false): void => {
 };
 
 const checkMath = (a, b, rule: string): boolean => {
-    const openMatch = (rule.match(a) || []).length;
-    const closeMatch = (rule.match(b) || []).length;
+    const openMatch = (RegExp(a).exec(rule) || []).length;
+    const closeMatch = (RegExp(b).exec(rule) || []).length;
 
     return openMatch === closeMatch;
 };
