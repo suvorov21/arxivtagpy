@@ -73,9 +73,9 @@ class ArxivOaiApi:
 
         logging.debug('Start harvesting')
 
+        response = None
         try:
             response = get(self.URL, self.params, verify=True)
-            response.raise_for_status()
         except (urllib3.exceptions.MaxRetryError,
                 urllib3.exceptions.NewConnectionError,
                 urllib3.exceptions.HTTPError
@@ -84,6 +84,11 @@ class ArxivOaiApi:
             sleep(self.DELAY)
             self.fail_attempts += 1
             yield from self.download_papers(rest=rest)
+
+        if response is None:
+            return
+        try:
+            response.raise_for_status()
         except exceptions.HTTPError:
             if 'Retry-After' in response.headers:
                 delay = int(response.headers["Retry-After"])
