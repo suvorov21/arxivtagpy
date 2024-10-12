@@ -89,6 +89,7 @@ sonarcloud-check:
   only:
     - master
     - develop
+    - merge_requests
 
 stage_to_beta:
   stage: deploy
