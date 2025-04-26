@@ -155,6 +155,10 @@ def new_user():
         flash("ERROR! Passwords don't match!")
         return redirect(url_for(SIGNUP_ROOT), code=303)
 
+    if pasw1 is None or pasw1 == "":
+        flash("ERROR! Password is not provided")
+        return redirect(url_for(SIGNUP_ROOT), code=303)
+
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if not re.fullmatch(regex, email):
         flash("ERROR! The email is not correct!")

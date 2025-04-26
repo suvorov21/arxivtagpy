@@ -58,6 +58,15 @@ class TestAccount:
         assert response.status_code == 200
         assert 'ERROR! Wrong username/password!' in response.get_data(as_text=True)
 
+    def test_empty_pass(self, client):
+        """Test wrong login."""
+        response = client.post(url_for(ROOT_LOGIN),
+                               data={'i_login': EMAIL},
+                               follow_redirects=True
+                               )
+        assert response.status_code == 200
+        assert 'ERROR! Wrong username/password!' in response.get_data(as_text=True)
+
     def test_logout(self, client, login):
         """Test logout."""
         response = client.get('/logout',
@@ -115,6 +124,16 @@ class TestAccount:
                                )
         assert response.status_code == 200
         assert "Passwords don't match!" in response.get_data(as_text=True)
+        assert 'Welcome' not in response.get_data(as_text=True)
+
+    def test_new_acc_empty_passw(self, client):
+        """Test new account creation with different passwords."""
+        response = client.post(url_for(ROOT_NEW_USER),
+                               data={'email': 'tester4@mailinator.com'},
+                               follow_redirects=True
+                               )
+        assert response.status_code == 200
+        assert "Password is not provided" in response.get_data(as_text=True)
         assert 'Welcome' not in response.get_data(as_text=True)
 
     def test_del_acc(self, client, tmp_login):
